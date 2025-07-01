@@ -20,14 +20,14 @@ import RecordDetailPage from "./pages/RecordDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 
 const routes: RouteObject[] = [
-  { path: "/login", element: <LoginPage /> },
-  { path: "/onboard", element: <OnboardingPage /> },
   {
     path: "/",
     element: <Layout />,
     errorElement: <NotFound />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: "/login", element: <LoginPage /> },
+      { path: "/onboard", element: <OnboardingPage /> },
       { path: "record/new", element: <NewRecordPage /> },
       { path: "record/:id", element: <RecordDetailPage /> },
       { path: "map", element: <MapPage /> },
