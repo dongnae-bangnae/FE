@@ -1,7 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 
 import BottomTabBar from "../components/common/BottomTabBar";
-import Header from "../components/common/Header";
 
 const Layout = () => {
   const location = useLocation();
@@ -14,11 +13,6 @@ const Layout = () => {
         className="flex flex-col w-full max-w-[375px] bg-white shadow-lg"
         style={{ height: "calc(var(--vh, 1vh) * 100)" }}
       >
-        {/* 상단 헤더 */}
-        <div className="h-[56px] flex-none">
-          <Header />
-        </div>
-
         {/* 메인 콘텐츠 */}
         <main className="flex-1 overflow-auto">
           <Outlet />
