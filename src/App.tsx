@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   createBrowserRouter,
   RouteObject,
@@ -44,6 +45,16 @@ const router = createBrowserRouter(routes);
 const queryClient = new QueryClient();
 
 function App() {
+  useEffect(() => {
+    const setScreenSize = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+    setScreenSize();
+    window.addEventListener("resize", setScreenSize);
+    return () => window.removeEventListener("resize", setScreenSize);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
