@@ -16,6 +16,7 @@ import MyProfilePage from "./pages/MyProfilePage";
 import NewPlacePage from "./pages/NewPlacePage";
 import NewRecordPage from "./pages/NewRecordPage";
 import NotFound from "./pages/NotFound";
+import NotificationsPage from "./pages/NotificationsPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -36,6 +37,7 @@ const routes: RouteObject[] = [
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/likes", element: <MyLikesPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
+      { path: "mypage/notifications", element: <NotificationsPage /> },
       { path: "mypage/settings", element: <SettingsPage /> }
     ]
   }
