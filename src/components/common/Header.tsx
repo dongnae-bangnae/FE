@@ -20,7 +20,7 @@ const Header = ({ left, title, right, underline = false }: HeaderProps) => {
       }`}
     >
       {/* 왼쪽 */}
-      <div className="flex items-center min-w-[24px]">
+      <div className="w-[40px] flex items-center justify-start">
         {left ?? (
           <button onClick={() => navigate(-1)}>
             <img
