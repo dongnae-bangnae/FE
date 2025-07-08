@@ -8,6 +8,7 @@ import {
 
 import Layout from "./layouts/Layout";
 import AddCategoryPage from "./pages/AddCategoryPage";
+import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
@@ -20,7 +21,6 @@ import NotFound from "./pages/NotFound";
 import NotificationsPage from "./pages/NotificationsPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
-import SettingsPage from "./pages/SettingsPage";
 
 const routes: RouteObject[] = [
   {
@@ -38,7 +38,7 @@ const routes: RouteObject[] = [
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/likes", element: <MyLikesPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
-      { path: "mypage/settings", element: <SettingsPage /> },
+      { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
       { path: "category/new", element: <AddCategoryPage /> }
     ]
   }
