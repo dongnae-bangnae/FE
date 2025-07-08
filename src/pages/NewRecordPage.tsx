@@ -14,6 +14,7 @@ function NewRecordPage() {
         fontFamily: fonts.family,
       }}
     >
+      
       {/* 상단바 */}
       <div className="w-full">
         <div className="w-full">
