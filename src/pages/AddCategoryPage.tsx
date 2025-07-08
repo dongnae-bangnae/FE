@@ -1,21 +1,11 @@
 import { useState } from "react";
 import Header from "../components/common/Header";
 import { Check } from "lucide-react";
-
-const categoryColors = [
-    "#FB8A1F",
-    "#FFDC5D",
-    "#77B255",
-    "#4289C1",
-    "#BB66CF",
-    "#E0A1A1",
-    "#DF87C7"
-
-]
+import { CategoryColorName, categoryColors } from "../types/categoryColors";
 
 function AddCategoryPage() {
     const [categoryName, setCategoryName] = useState(""); 
-    const [categoryColor, setCategoryColor] = useState<string | null>(null); 
+    const [categoryColor, setCategoryColor] = useState<CategoryColorName | null>(null); 
 
     const isFormValid = categoryName.trim() !== "" && categoryColor !== null;
 
@@ -33,14 +23,14 @@ function AddCategoryPage() {
                 <div className="py-5">
                     <div className="text-sm">색상 선택</div>
                     <div className="flex flex-c">
-                        {categoryColors.map((color) => (
+                        {categoryColors.map(({name, code}) => (
                             <button
-                                key={color}
-                                onClick={() => setCategoryColor(color)}
-                                style={{ backgroundColor: color }}
+                                key={name}
+                                onClick={() => setCategoryColor(name)}
+                                style={{ backgroundColor: code }}
                                 className="category-color-button"
                             >
-                                {categoryColor === color && (
+                                {categoryColor === name && (
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <Check className="w-4 h-4 text-black" />
                                     </div>
