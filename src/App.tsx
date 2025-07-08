@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import SettingsPage from "./pages/SettingsPage";
+import AddCategoryPage from "./pages/AddCategoryPage";
 
 const routes: RouteObject[] = [
   {
@@ -36,7 +37,8 @@ const routes: RouteObject[] = [
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/likes", element: <MyLikesPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
-      { path: "mypage/settings", element: <SettingsPage /> }
+      { path: "mypage/settings", element: <SettingsPage /> },
+      { path: "category/new", element: <AddCategoryPage/>}
     ]
   }
 ];

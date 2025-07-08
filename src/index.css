@@ -33,3 +33,15 @@ button {
   font-weight: 500;
   line-height: 1.25rem;
 }
+
+/* 카테고리 색상 버튼 */
+.category-color-button {
+	all: unset;
+	width: 30px;
+	height: 30px;
+	border-radius: 9999px;
+  margin-top: 10px; 
+  margin-right: 10px;
+  cursor: pointer;
+  position: relative;
+}
