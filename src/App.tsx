@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 
 import Layout from "./layouts/Layout";
+import AddCategoryPage from "./pages/AddCategoryPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
@@ -37,8 +38,8 @@ const routes: RouteObject[] = [
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/likes", element: <MyLikesPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
-      { path: "mypage/notifications", element: <NotificationsPage /> },
-      { path: "mypage/settings", element: <SettingsPage /> }
+      { path: "mypage/settings", element: <SettingsPage /> },
+      { path: "category/new", element: <AddCategoryPage /> }
     ]
   }
 ];

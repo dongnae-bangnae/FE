@@ -15,21 +15,19 @@ const Header = ({ left, title, right, underline = false }: HeaderProps) => {
 
   return (
     <div
-      className={`w-full h-[56px] flex items-center px-4 bg-white ${
+      className={`w-full h-[56px] flex items-center bg-white ${
         underline ? "border-b border-[#999999]" : ""
       }`}
     >
       {/* 왼쪽 */}
-      <div className="w-[40px] flex items-center justify-start">
+      <div className="w-[60px] flex items-center justify-start">
         {left ?? (
           <button onClick={() => navigate(-1)}>
             <img
               src={BackArrowIcon}
               alt="뒤로가기"
               style={{
-                width: "24px",
-                height: "24px",
-                objectFit: "contain",
+                objectFit: "contain", // 화살표 뜨지 않게 설정
                 display: "block"
               }}
             />
@@ -43,7 +41,7 @@ const Header = ({ left, title, right, underline = false }: HeaderProps) => {
       </div>
 
       {/* 오른쪽 */}
-      <div className="flex items-center min-w-[24px] justify-end">
+      <div className="w-[60px] flex items-center justify-end">
         {right ?? null}
       </div>
     </div>
