@@ -23,6 +23,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import SelectedPinTypePage from "./pages/SelectPinTypePage";
+import RecordWritingPage from "./pages/RecordWritingPage";
 
 const routes: RouteObject[] = [
   {
@@ -34,7 +35,8 @@ const routes: RouteObject[] = [
       { path: "/login", element: <LoginPage /> },
       { path: "/onboard", element: <OnboardingPage /> },
       { path: "record/new", element: <NewRecordPage /> },
-      { path: "record/:id", element: <RecordDetailPage /> },
+      { path: "record/:id", element: <RecordWritingPage /> },
+      { path: "record/:id/detail", element: <RecordDetailPage /> },
       { path: "map", element: <MapPage /> },
       { path: "map/new", element: <NewPlacePage /> },
       { path: "map/select-pin", element: <SelectedPinTypePage/>}, 
