@@ -8,14 +8,15 @@ interface HeaderProps {
   title: string;
   right?: ReactNode;
   underline?: boolean;
+  bgColor?: string; 
 }
 
-const Header = ({ left, title, right, underline = false }: HeaderProps) => {
+const Header = ({ left, title, right, underline = false, bgColor = "bg-white" }: HeaderProps) => {
   const navigate = useNavigate();
 
   return (
     <div
-      className={`w-full h-[56px] flex items-center bg-white ${
+      className={`w-full h-[56px] flex items-center ${bgColor} ${
         underline ? "border-b border-[#999999]" : ""
       }`}
     >
