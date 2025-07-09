@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import NextIcon from "../assets/icon-next.svg";
+import ConfirmModal from "../components/common/ConfirmModal";
 import Header from "../components/common/Header";
-import ConfirmModal from "../components/ConfirmModal";
 
 function MyProfilePage() {
   const navigate = useNavigate();
