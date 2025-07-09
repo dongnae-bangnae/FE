@@ -8,10 +8,16 @@ interface HeaderProps {
   title: string;
   right?: ReactNode;
   underline?: boolean;
-  bgColor?: string; 
+  bgColor?: string;
 }
 
-const Header = ({ left, title, right, underline = false, bgColor = "bg-white" }: HeaderProps) => {
+const Header = ({
+  left,
+  title,
+  right,
+  underline = false,
+  bgColor = "bg-white"
+}: HeaderProps) => {
   const navigate = useNavigate();
 
   return (
@@ -21,13 +27,15 @@ const Header = ({ left, title, right, underline = false, bgColor = "bg-white" }:
       }`}
     >
       {/* 왼쪽 */}
-      <div className="w-[60px] flex items-center justify-start">
+      <div className="w-[60px] flex items-center justify-start pl-2">
         {left ?? (
           <button onClick={() => navigate(-1)}>
             <img
               src={BackArrowIcon}
               alt="뒤로가기"
               style={{
+                width: "25px",
+                height: "22px",
                 objectFit: "contain", // 화살표 뜨지 않게 설정
                 display: "block"
               }}
