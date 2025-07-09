@@ -10,6 +10,7 @@ function MyProfilePage() {
   const navigate = useNavigate();
   const [profileUrl, setProfileUrl] = useState<string>("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
 
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -20,11 +21,23 @@ function MyProfilePage() {
   };
 
   const handleLogout = () => {
-    // 1. localStorage에서 로그인 관련 정보 제거
+    // localStorage에서 로그인 관련 정보 제거
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user"); // 사용자 정보 저장해뒀다면 함께 제거
 
-    // 2. 로그인 페이지로 이동
+    // 로그인 페이지로 이동
+    navigate("/login", { replace: true });
+  };
+
+  const handleDeleteAccount = () => {
+    // 회원탈퇴 API 여기서 호출 예정
+    console.log("회원 탈퇴 처리");
+
+    // 계정 정보 초기화
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+
+    // 로그인 페이지로 이동
     navigate("/login", { replace: true });
   };
 
@@ -92,7 +105,10 @@ function MyProfilePage() {
         >
           로그아웃
         </button>
-        <button className="w-[120px] bg-[#E5E5E5] text-black py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-[#FFC064] transition-colors duration-200">
+        <button
+          onClick={() => setShowDeleteAccountModal(true)}
+          className="w-[120px] bg-[#E5E5E5] text-black py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-[#FFC064] transition-colors duration-200"
+        >
           회원탈퇴
         </button>
       </div>
@@ -102,6 +118,20 @@ function MyProfilePage() {
           message="로그아웃 하시겠습니까?"
           onConfirm={handleLogout}
           onCancel={() => setShowLogoutModal(false)}
+        />
+      )}
+
+      {showDeleteAccountModal && (
+        <ConfirmModal
+          message={
+            <>
+              회원 탈퇴하시겠습니까?
+              <br />
+              탈퇴 시, 계정은 복구되지 않습니다.
+            </>
+          }
+          onConfirm={handleDeleteAccount}
+          onCancel={() => setShowDeleteAccountModal(false)}
         />
       )}
     </>
