@@ -14,7 +14,7 @@ function MyPage() {
 
   return (
     <>
-      <Header title="마이페이지" underline={true} />
+      <Header title="마이 페이지" underline={true} />
       <div style={{ height: "16px" }} />
 
       {/* 상단바 (알림 + 설정 아이콘 그룹) */}

@@ -22,14 +22,14 @@ const BottomTabBar = () => {
   return (
     <div className="w-full h-[60px] bg-white flex justify-center">
       {/* 탭바 wrapper */}
-      <div className="w-[375px] border-t-[2px] border-[#999999] bg-white flex h-[60px]">
+      <div className="w-[375px] border-t border-neutral-400 bg-white flex h-[60px]">
         {tabs.map((tab) => (
           <button
             key={tab.path}
             onClick={() => navigate(tab.path)}
             className="flex flex-1 flex-col items-center justify-center"
           >
-            <img src={tab.icon} alt={tab.label} className="w-6 h-6" />
+            <img src={tab.icon} alt={tab.label} className="w-[30px] h-[30px]" />
           </button>
         ))}
       </div>
