@@ -16,25 +16,13 @@ function NewRecordPage() {
     >
       
       {/* 상단바 */}
-      <div className="w-full">
-        <div className="w-full">
-          <div className="border-b">
-            <header className="h-[76px] flex items-center justify-between"
-                    style={{ fontFamily: fonts.family, gap: "10px", padding: "5px 22px"}}>
-              <h1
-                style={{
-                  fontSize: fonts.size.subtitle,
-                  fontWeight: fonts.weight.medium,
-                  lineHeight: fonts.lineHeight.subtitle,
-                  color: "#000",
-                }}
-              >
-                기록
-              </h1>
-            </header>
-          </div>
-        </div>
+      <div
+      className="w-full h-[56px] flex items-center px-4 bg-white border-b border-[#999999]"
+      style={{paddingLeft: "20px", fontSize: "20px", fontWeight: fonts.weight.bold}}
+      >
+        <span>기록</span>
       </div>
+
 
       {/* 본문 */}
       <div className="flex-1 flex items-center justify-center">
