@@ -7,7 +7,7 @@ import { useState } from "react";
 
 function CategoryPage() {
 	const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
 	const categories: { name: string; color: CategoryColorName }[] = [
 		{ name: "종로 3가", color: "green" },
@@ -25,7 +25,7 @@ function CategoryPage() {
 							key={cat.name}
 							name={cat.name}
 							color={getColorCode(cat.color)}
-              selected={selectedCategory === cat.name}
+							selected={selectedCategory === cat.name}
 							onClick={() => setSelectedCategory(cat.name)}
 						/>
 					))}
