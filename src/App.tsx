@@ -8,6 +8,7 @@ import {
 
 import Layout from "./layouts/Layout";
 import AddCategoryPage from "./pages/AddCategoryPage";
+import CategoryPage from "./pages/CategoryPage";
 import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -39,6 +40,7 @@ const routes: RouteObject[] = [
       { path: "mypage/likes", element: <MyLikesPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
       { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
+      { path: "category", element: <CategoryPage /> },
       { path: "category/new", element: <AddCategoryPage /> }
     ]
   }
