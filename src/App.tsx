@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import NotificationsPage from "./pages/NotificationsPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
+import SelectedPinTypePage from "./pages/SelectPinTypePage";
 
 const routes: RouteObject[] = [
   {
@@ -36,6 +37,7 @@ const routes: RouteObject[] = [
       { path: "record/:id", element: <RecordDetailPage /> },
       { path: "map", element: <MapPage /> },
       { path: "map/new", element: <NewPlacePage /> },
+      { path: "map/select-pin", element: <SelectedPinTypePage/>}, 
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/likes", element: <MyLikesPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
