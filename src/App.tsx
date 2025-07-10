@@ -7,6 +7,9 @@ import {
 } from "react-router-dom";
 
 import Layout from "./layouts/Layout";
+import AddCategoryPage from "./pages/AddCategoryPage";
+import CategoryPage from "./pages/CategoryPage";
+import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
@@ -16,9 +19,11 @@ import MyProfilePage from "./pages/MyProfilePage";
 import NewPlacePage from "./pages/NewPlacePage";
 import NewRecordPage from "./pages/NewRecordPage";
 import NotFound from "./pages/NotFound";
+import NotificationsPage from "./pages/NotificationsPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
-import SettingsPage from "./pages/SettingsPage";
+import SelectedPinTypePage from "./pages/SelectPinTypePage";
+import RecordWritingPage from "./pages/RecordWritingPage";
 
 const routes: RouteObject[] = [
   {
@@ -30,13 +35,17 @@ const routes: RouteObject[] = [
       { path: "/login", element: <LoginPage /> },
       { path: "/onboard", element: <OnboardingPage /> },
       { path: "record/new", element: <NewRecordPage /> },
-      { path: "record/:id", element: <RecordDetailPage /> },
+      { path: "record/:id", element: <RecordWritingPage /> },
+      { path: "record/:id/detail", element: <RecordDetailPage /> },
       { path: "map", element: <MapPage /> },
       { path: "map/new", element: <NewPlacePage /> },
+      { path: "map/select-pin", element: <SelectedPinTypePage/>}, 
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/likes", element: <MyLikesPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
-      { path: "mypage/settings", element: <SettingsPage /> }
+      { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
+      { path: "category", element: <CategoryPage /> },
+      { path: "category/new", element: <AddCategoryPage /> }
     ]
   }
 ];
