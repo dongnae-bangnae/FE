@@ -16,7 +16,7 @@ function SavedPlaceListPage() {
 
   const handleRecordClick = () => {
     if (!selectedPlace) return;
-    navigate(`/record?placeId=${selectedPlace}`);
+    navigate(`/mypage/saved/${selectedPlace}/list`);
   };
 
   return (
