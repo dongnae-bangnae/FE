@@ -35,7 +35,7 @@ function EditNicknamePage() {
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] px-4 py-3 bg-white z-50">
         <button
           disabled={!isActive}
-          className={`w-full h-10 rounded-md text-white text-sm font-semibold ${
+          className={`w-full h-10 rounded-md text-sm font-semibold ${
             isActive ? "bg-[#F59E0B]" : "bg-gray-300"
           }`}
         >

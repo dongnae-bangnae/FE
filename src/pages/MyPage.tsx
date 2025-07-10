@@ -24,7 +24,7 @@ function MyPage() {
             src={RingIcon}
             alt="알림"
             style={{ width: "20px", height: "20px", cursor: "pointer" }}
-            onClick={() => navigate("/mypage/notifications")}
+            onClick={() => navigate("/mypage/notification")}
           />
           <img
             src={SettingIcon}

@@ -19,11 +19,11 @@ import MyProfilePage from "./pages/MyProfilePage";
 import NewPlacePage from "./pages/NewPlacePage";
 import NewRecordPage from "./pages/NewRecordPage";
 import NotFound from "./pages/NotFound";
-import NotificationsPage from "./pages/NotificationsPage";
+import NotificationPage from "./pages/NotificationPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
-import SelectedPinTypePage from "./pages/SelectPinTypePage";
 import RecordWritingPage from "./pages/RecordWritingPage";
+import SelectedPinTypePage from "./pages/SelectPinTypePage";
 
 const routes: RouteObject[] = [
   {
@@ -39,9 +39,10 @@ const routes: RouteObject[] = [
       { path: "record/:id/detail", element: <RecordDetailPage /> },
       { path: "map", element: <MapPage /> },
       { path: "map/new", element: <NewPlacePage /> },
-      { path: "map/select-pin", element: <SelectedPinTypePage/>}, 
+      { path: "map/select-pin", element: <SelectedPinTypePage /> },
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/likes", element: <MyLikesPage /> },
+      { path: "mypage/notification", element: <NotificationPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
       { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
       { path: "category", element: <CategoryPage /> },
