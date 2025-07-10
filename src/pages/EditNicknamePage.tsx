@@ -6,7 +6,9 @@ function EditNicknamePage() {
   const [nickname, setNickname] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNickname(e.target.value);
+    if (e.target.value.length <= 10) {
+      setNickname(e.target.value);
+    }
   };
 
   const isActive = nickname.trim().length > 0;
@@ -36,7 +38,7 @@ function EditNicknamePage() {
         <button
           disabled={!isActive}
           className={`w-full h-10 rounded-md text-sm font-semibold ${
-            isActive ? "bg-[#F59E0B]" : "bg-gray-300"
+            isActive ? "bg-[#FFC064]" : "bg-gray-300"
           }`}
         >
           변경 완료
