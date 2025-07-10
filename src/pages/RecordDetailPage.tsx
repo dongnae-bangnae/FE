@@ -5,6 +5,7 @@ import MenuIcon from "../assets/record/icon-menubar.svg";
 import fonts from "../styles/fonts";
 import RecordBottomNav from "../components/Record/RecordBottomNav";
 import { useState } from "react";
+import MiniMap from "../components/Record/MiniMap";
 
 
 const RecordDetail = () => {
@@ -24,18 +25,18 @@ const RecordDetail = () => {
     <>
       {/* 상단 바 */}
       <div
-        className="w-full flex items-center justify-between "
-        style={{ fontFamily: fonts.family, padding: "14px 20px", height: "56px" }}
+        className="w-full relative flex items-center justify-between "
+        style={{ fontFamily: fonts.family, height: "56px",}}
       >
-        <button onClick={() => navigate("/")} style={{ all: "unset", cursor: "pointer" }}>
-          <img src={BackIcon} alt="back" width={30} height={28} />
+        <button onClick={() => navigate("/")} style={{ all: "unset", cursor: "pointer" }} className="absolute left-[20px] flex-items-center justify-center">
+          <img src={BackIcon} alt="back" width={30} height={28} style={{marginLeft: "5px"}}/>
         </button>
     
-        <div className="flex items-center gap-[6px]" style={{ fontSize: fonts.size.body, fontWeight: fonts.weight.medium }}>
+        <div className="absolute left-1/2 -translate-x-1/2" style={{ fontSize: "20px", fontWeight: fonts.weight.bold}}>
           <span>{date}</span>
         </div>
 
-        <button onClick={() => setShowMenu((prev) => !prev)}>
+        <button onClick={() => setShowMenu((prev) => !prev)} className="absolute right-[20px]">
           <img src={MenuIcon} alt="menu" width={3} height={15} />
         </button>
 
@@ -102,15 +103,11 @@ const RecordDetail = () => {
             </div>
           )}
 
-
-
-
-          
-
           {/* 지도 */}
-          <div className="mx-auto w-[370px] h-[250px] border text-center mt-[50px]">
-         미니맵
+          <div className="mx-auto w-[370px] h-[250px] text-center mt-[50px] rounded-[10px] overflow-hidden">
+            <MiniMap lat={37.558514} lng={126.925911} />
           </div>
+
 
         </div>
       </div>
