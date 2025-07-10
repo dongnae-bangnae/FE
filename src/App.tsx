@@ -24,7 +24,7 @@ import NotificationPage from "./pages/NotificationPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
-import SavedPlaceListPage from "./pages/savedPlaceListPage";
+import SavedPlaceListPage from "./pages/SavedPlaceListPage";
 import SelectedPinTypePage from "./pages/SelectPinTypePage";
 
 const routes: RouteObject[] = [

@@ -4,9 +4,13 @@ import colors from "../styles/colors";
 import fonts from "../styles/fonts";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
 import SelectIcon from "../assets/top/icon-top-select.svg";
+import CalendarIcon_w from "../assets/record/icon-calendar-white.svg";
+import GalleryIcon_w from "../assets/record/icon-gallery-white.svg";
+import FileIcon_w from "../assets/record/icon-file-white.svg";
+import PinIcon_w from "../assets/record/icon-map-white.svg";
 import CalendarIcon from "../assets/icon-calendar.svg";
 import GalleryIcon from "../assets/icon-gallery.svg";
-import CameraIcon from "../assets/icon-camera.svg";
+import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
 import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
@@ -77,7 +81,7 @@ function RecordWritingPage() {
         <div>
           <div className="flex items-center gap-[6px]" style={{ fontSize: fonts.size.subtitle, fontWeight: fonts.weight.bold }}>
             <span>카테고리</span>
-            <button onClick={() => navigate("/category/new")} style={{ all: "unset", cursor: "pointer" }}>
+            <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
               <img src={SelectIcon} alt="select" width={15} height={15} />
             </button>
           </div>
@@ -134,61 +138,87 @@ function RecordWritingPage() {
           }}
         />
 
-        {/* 미리보기 */}
-        {selectedImages.length > 0 && (
-        <div className="w-full absolute left-1/2 -translate-x-1/2 px-2" style={{ bottom: "320px" }}>
-            {selectedImages.length === 1 ? (
-            <img
-                src={selectedImages[0]}
-                alt="preview-single"
-                className="w-[375px] h-[184px] object-cover rounded-[15px]"
-            />
-            ) : selectedImages.length <= 3 ? (
-            <div className="flex gap-[6px]">
-                <div className="w-[184px] h-[184px] relative">
+          {/* 미리보기 */}
+          {selectedImages.length > 0 && (
+            <div className="w-full absolute left-1/2 -translate-x-1/2 px-2" style={{ bottom: "320px" }}>
+              {selectedImages.length === 1 ? (
                 <img
-                    src={selectedImages[0]}
-                    alt="대표"
-                    className="w-full h-full object-cover rounded-[15px]"
+                  src={selectedImages[0]}
+                  alt="preview-single"
+                  className="w-[375px] h-[184px] object-cover rounded-[15px]"
                 />
-                <div className="absolute top-[10px] left-[10px] bg-[orange] text-[white] w-[65px] h-[24px] rounded-full text-center">
-                    대표사진
-                </div>
-                </div>
-                <div className="flex flex-col gap-[6px]">
-                {selectedImages.slice(1).map((src, index) => (
-                    <img
-                    key={index}
-                    src={src}
-                    alt={`preview-${index}`}
-                    className="w-[184px] h-[89px] object-cover rounded-[15px]"
-                    />
-                ))}
-                </div>
-            </div>
-            ) : (
-            <div className="flex gap-[6px] overflow-x-auto no-scrollbar">
-                {selectedImages.map((src, index) => (
-                <div
-                    key={index}
-                    className="relative flex-shrink-0 w-[140px] h-[140px] rounded-[12px] overflow-hidden"
-                >
-                    <img
-                    src={src}
-                    alt={`scroll-preview-${index}`}
-                    className="w-full h-full object-cover"
-                    />
-                    {index === 0 && (
-                    <div className="absolute top-[10px] left-[10px] bg-[orange] text-white text-sm px-2 py-1 rounded-full">
-                        대표사진
+              ) : selectedImages.length === 2 ? (
+                <div className="flex gap-[6px]">
+                  {selectedImages.map((src, index) => (
+                    <div key={index} className="w-[184px] h-[184px] relative">
+                      <img
+                        src={src}
+                        alt={`preview-${index}`}
+                        className="w-full h-full object-cover rounded-[15px]"
+                      />
+                      {index === 0 && (
+                        <div className="absolute top-[10px] right-[10px] bg-[orange] text-[black] w-[65px] h-[24px] rounded-full text-center"
+                            style={{ fontWeight: fonts.weight.regular }}
+                        >
+                          대표사진
+                        </div>
+                      )}
                     </div>
-                    )}
+                  ))}
                 </div>
-                ))}
+              ) : selectedImages.length === 3 ? (
+                <div className="flex gap-[6px]">
+                  <div className="w-[184px] h-[184px] relative">
+                    <img
+                      src={selectedImages[0]}
+                      alt="대표"
+                      className="w-full h-full object-cover rounded-[15px]"
+                    />
+                    <div className="absolute top-[10px] right-[10px] bg-[orange] text-[black] w-[65px] h-[24px] rounded-full text-center"
+                        style={{ fontWeight: fonts.weight.regular }}
+                    >
+                      대표사진
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-[6px]">
+                    {selectedImages.slice(1).map((src, index) => (
+                      <img
+                        key={index}
+                        src={src}
+                        alt={`preview-${index}`}
+                        className="w-[184px] h-[89px] object-cover rounded-[15px]"
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-[6px] overflow-x-auto no-scrollbar">
+                  {selectedImages.map((src, index) => (
+                    <div
+                      key={index}
+                      className="relative flex-shrink-0 w-[140px] h-[140px] rounded-[12px] overflow-hidden"
+                    >
+                      <img
+                        src={src}
+                        alt={`scroll-preview-${index}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {index === 0 && (
+                        <div className="absolute top-[10px] right-[10px] bg-[orange] text-[black] w-[65px] h-[24px] rounded-full"
+                             style={{fontWeight: fonts.weight.regular}}
+                        >
+                          <span className="px-[2px]">대표사진</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            )}
-        </div>
-        )}
+          )}
+
+      
+
 
       </div>
 
@@ -217,7 +247,7 @@ function RecordWritingPage() {
             </button>
 
             <button style={{ all: "unset" }} onClick={handleGalleryClick}>
-              <img src={CameraIcon} alt="카메라" className="w-[27px] h-[27px]" />
+              <img src={FileIcon} alt="카메라" className="w-[27px] h-[27px]" />
             </button>
 
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
@@ -240,7 +270,7 @@ function RecordWritingPage() {
             onClick={() => setShowCalendar(true)}
             style={{backgroundColor: colors.primaryDark}}
           >
-            <img src={CalendarIcon} alt="달력" className="w-[24px] h-[24px]" />
+            <img src={CalendarIcon_w} alt="달력" className="w-[24px] h-[24px]" />
           </button>
 
           <button
@@ -248,7 +278,7 @@ function RecordWritingPage() {
             onClick={() => setShowGallery(true)}
             style={{backgroundColor: colors.primaryDark}}
           >
-            <img src={GalleryIcon} alt="갤러리" className="w-[24px] h-[24px]" />
+            <img src={GalleryIcon_w} alt="갤러리" className="w-[24px] h-[24px]" />
           </button>
 
           <button
@@ -256,7 +286,7 @@ function RecordWritingPage() {
             onClick={handleGalleryClick}
             style={{backgroundColor: colors.primaryDark}}
           >
-            <img src={CameraIcon} alt="카메라" className="w-[24px] h-[24px]" />
+            <img src={FileIcon_w} alt="카메라" className="w-[24px] h-[24px]" />
           </button>
 
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
@@ -266,7 +296,7 @@ function RecordWritingPage() {
             onClick={() => navigate("/map/new")}
             style={{backgroundColor: colors.primaryDark}}
           >
-            <img src={PinIcon} alt="지도" className="w-[24px] h-[24px]" />
+            <img src={PinIcon_w} alt="지도" className="w-[24px] h-[24px]" />
           </button>
         </div>
       </div>
