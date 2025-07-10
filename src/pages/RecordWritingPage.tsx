@@ -32,6 +32,8 @@ function RecordWritingPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
+  const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
+
 
   const handleSubmit = () => {
     navigate('/record/:id/detail', {
@@ -69,6 +71,13 @@ function RecordWritingPage() {
       return [...prev, src];
     });
   };
+
+
+  // const isFormValid =
+  // title.trim() !== "" &&
+  // content.trim() !== "" &&
+  // selectedImages.length > 0 &&
+  // pinLocation !== null;
 
   return (
     <div className="flex flex-col h-full relative" style={{ fontFamily: fonts.family }}>
@@ -350,26 +359,6 @@ function RecordWritingPage() {
           }}
         />
       )}
-
-
-      
-      {showMap && (
-      <div
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 bg-white rounded-t-xl border-t"
-        style={{ width: "390px", height: "250px" }}
-      >
-        {/* 닫기 버튼 */}
-        <div className="flex justify-end p-2">
-          <button
-            onClick={() => setShowMap(false)}
-            className="text-sm px-3 py-1 border rounded"
-          >
-            닫기
-          </button>
-        </div>
-        <MapPage />
-      </div>
-)}
 </div>
 
 );
