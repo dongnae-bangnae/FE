@@ -197,7 +197,7 @@ function RecordWritingPage() {
                   {selectedImages.map((src, index) => (
                     <div
                       key={index}
-                      className="relative flex-shrink-0 w-[140px] h-[140px] rounded-[12px] overflow-hidden"
+                      className="relative flex-shrink-0 w-[184px] h-[184px] rounded-[12px] overflow-hidden"
                     >
                       <img
                         src={src}
