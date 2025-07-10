@@ -4,13 +4,22 @@ import { useNavigate } from "react-router-dom";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import RingIcon from "../assets/icon-ring.svg";
 import SettingIcon from "../assets/icon-setting.svg";
+import CategoryItem from "../components/common/CategoryItem";
 import Header from "../components/common/Header";
+import { CategoryColorName } from "../types/categoryColors";
+import { getColorCode } from "../utils/getColorCode";
 
 function MyPage() {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<"saved" | "myPosts" | "pro">(
     "saved"
   );
+
+  const savedCategories: { name: string; color: CategoryColorName }[] = [
+    { name: "종로 3가", color: "green" },
+    { name: "상수동", color: "orange" },
+    { name: "연남동", color: "yellow" }
+  ];
 
   return (
     <>
@@ -54,7 +63,7 @@ function MyPage() {
       <div className="flex justify-center mt-4">
         <button
           onClick={() => setSelectedTab("saved")}
-          className={`w-[90px] h-8 rounded-lg text-sm font-medium
+          className={`w-[90px] h-9 rounded-lg text-sm font-medium
       ${selectedTab === "saved" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
         >
           저장
@@ -64,7 +73,7 @@ function MyPage() {
 
         <button
           onClick={() => setSelectedTab("myPosts")}
-          className={`w-[90px] h-8 rounded-lg text-sm font-medium
+          className={`w-[90px] h-9 rounded-lg text-sm font-medium
       ${selectedTab === "myPosts" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
         >
           내 글
@@ -74,7 +83,7 @@ function MyPage() {
 
         <button
           onClick={() => setSelectedTab("pro")}
-          className={`w-[90px] h-8 rounded-lg text-sm font-medium
+          className={`w-[90px] h-9 rounded-lg text-sm font-medium
       ${selectedTab === "pro" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
         >
           PRO 구독
@@ -84,12 +93,19 @@ function MyPage() {
       {/* 구분선 */}
       <div className="w-full mt-4 border-b border-[#E5E5E5]" />
 
-      {/* 저장 탭을 눌렀을 때 */}
-      {/* {selectedTab === "saved" && (
-        <div className="w-full mt-6 flex flex-col gap-3">
-
+      {/* 저장 탭 */}
+      {selectedTab === "saved" && (
+        <div className="w-full px-5 mt-6">
+          {savedCategories.map((cat) => (
+            <CategoryItem
+              key={cat.name}
+              name={cat.name}
+              color={getColorCode(cat.color)}
+              onClick={() => navigate(`/mypage/saved/${cat.name}`)} // 저장 장소 상세 페이지로 이동
+            />
+          ))}
         </div>
-      )} */}
+      )}
     </>
   );
 }

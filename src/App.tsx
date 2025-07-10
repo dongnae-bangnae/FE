@@ -22,7 +22,9 @@ import NotFound from "./pages/NotFound";
 import NotificationPage from "./pages/NotificationPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
+import RecordListByAreaPage from "./pages/RecordListMyAreaPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
+import SavedPlaceListPage from "./pages/savedPlaceListPage";
 import SelectedPinTypePage from "./pages/SelectPinTypePage";
 
 const routes: RouteObject[] = [
@@ -45,6 +47,8 @@ const routes: RouteObject[] = [
       { path: "mypage/notification", element: <NotificationPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
       { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
+      { path: "mypage/saved/:placeId", element: <SavedPlaceListPage /> },
+      { path: "record/list/:area", element: <RecordListByAreaPage /> },
       { path: "category", element: <CategoryPage /> },
       { path: "category/new", element: <AddCategoryPage /> }
     ]
