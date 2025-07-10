@@ -73,9 +73,9 @@ function LoginPage() {
 
       {/* 일반 로그인 / 회원가입 */}
       <div className="text-center text-[17px] font-semibold leading-[1.5] space-x-2">
-        <button className="underline">일반 로그인</button>
+        <button>일반 로그인</button>
         <span>|</span>
-        <button className="underline">일반 회원가입</button>
+        <button>일반 회원가입</button>
       </div>
     </div>
   );

@@ -9,6 +9,8 @@ interface HeaderProps {
   right?: ReactNode;
   underline?: boolean;
   bgColor?: string;
+  onBack?: () => void; // 추가
+  titleClassName?: string; // 추가
 }
 
 const Header = ({
@@ -16,7 +18,9 @@ const Header = ({
   title,
   right,
   underline = false,
-  bgColor = "bg-white"
+  bgColor = "bg-white",
+  onBack,
+  titleClassName // 추가
 }: HeaderProps) => {
   const navigate = useNavigate();
 
@@ -29,14 +33,14 @@ const Header = ({
       {/* 왼쪽 */}
       <div className="w-[60px] flex items-center justify-start pl-2">
         {left ?? (
-          <button onClick={() => navigate(-1)}>
+          <button onClick={onBack ?? (() => navigate(-1))}>
             <img
               src={BackArrowIcon}
               alt="뒤로가기"
               style={{
                 width: "25px",
                 height: "22px",
-                objectFit: "contain", // 화살표 뜨지 않게 설정
+                objectFit: "contain",
                 display: "block"
               }}
             />
@@ -45,7 +49,9 @@ const Header = ({
       </div>
 
       {/* 가운데 타이틀 */}
-      <div className="text-base font-semibold text-center flex-1 truncate">
+      <div
+        className={`text-base font-semibold text-center flex-1 truncate ${titleClassName ?? ""}`}
+      >
         {title}
       </div>
 
