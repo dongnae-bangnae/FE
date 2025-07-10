@@ -31,6 +31,7 @@ function RecordWritingPage() {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const selectedCategory = location.state?.selectedCategory ?? "카테고리";
 
   const handleSubmit = () => {
     navigate('/record/:id/detail', {
@@ -81,7 +82,7 @@ function RecordWritingPage() {
         </button>
         <div>
           <div className="flex items-center gap-[6px]" style={{ fontSize: fonts.size.subtitle, fontWeight: fonts.weight.bold }}>
-            <span>카테고리</span>
+            <span>{selectedCategory}</span>
             <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
               <img src={SelectIcon} alt="select" width={15} height={15} />
             </button>

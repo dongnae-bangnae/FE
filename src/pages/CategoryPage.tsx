@@ -43,7 +43,17 @@ function CategoryPage() {
 						</button>
 					</div>
 				</div>
-				<button className="mt-auto w-[320px] h-11 bg-[#FFC064] hover:bg-[#FFB347] rounded-md cursor-pointer">
+				<button className="mt-auto w-[320px] h-11 bg-[#FFC064] hover:bg-[#FFB347] rounded-md cursor-pointer"
+						onClick={() => {
+							if (selectedCategory) {
+							navigate("/record/:id", {
+								state: {
+								selectedCategory: selectedCategory,
+								},
+							});
+							}
+						}}
+				>
 					완료
 				</button>
 			</div>
