@@ -13,9 +13,9 @@ const NotificationItem = ({ item, onDelete }: Props) => {
 
   const handleClick = () => {
     if (item.type === "comment") {
-      navigate(`/record/${item.postId}#comments`);
+      navigate(`/record/${item.postId}/detail#comments`);
     } else if (item.type === "ad" && item.reportCount < 20) {
-      navigate(`/record/${item.postId}`);
+      navigate(`/record/${item.postId}/detail`);
     }
     // 20회 이상일 경우는 이동 X
   };
