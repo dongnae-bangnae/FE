@@ -8,8 +8,7 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const handleSocialLogin = (provider: "naver" | "kakao" | "google") => {
-    console.log(`${provider} 로그인 시도`);
-    navigate("/onboard");
+    navigate(`/oauth2/authorization/${provider}`);
   };
 
   return (

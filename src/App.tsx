@@ -24,6 +24,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import SelectedPinTypePage from "./pages/SelectPinTypePage";
 import RecordWritingPage from "./pages/RecordWritingPage";
+import OAuthRedirect from "./pages/OAuthRedirect";
 
 const routes: RouteObject[] = [
   {
@@ -31,15 +32,16 @@ const routes: RouteObject[] = [
     element: <Layout />,
     errorElement: <NotFound />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: "/login", element: <LoginPage /> },
-      { path: "/onboard", element: <OnboardingPage /> },
+      { index: true, element: <LoginPage /> },
+      { path: "oauth-redirect", element: <OAuthRedirect /> },
+      { path: "onboard", element: <OnboardingPage /> },
+      { path: "home", element: <HomePage /> },
       { path: "record/new", element: <NewRecordPage /> },
       { path: "record/:id", element: <RecordWritingPage /> },
       { path: "record/:id/detail", element: <RecordDetailPage /> },
       { path: "map", element: <MapPage /> },
       { path: "map/new", element: <NewPlacePage /> },
-      { path: "map/select-pin", element: <SelectedPinTypePage/>}, 
+      { path: "map/select-pin", element: <SelectedPinTypePage /> },
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/likes", element: <MyLikesPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
