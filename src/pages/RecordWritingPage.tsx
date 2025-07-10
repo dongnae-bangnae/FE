@@ -14,13 +14,11 @@ import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
 import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
-import MapPage from "./MapPage";
 
 
 function RecordWritingPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [showMap, setShowMap] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -32,7 +30,6 @@ function RecordWritingPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
-  const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
 
 
   const handleSubmit = () => {
@@ -265,9 +262,7 @@ function RecordWritingPage() {
 
 
             <button style={{ all: "unset" }} onClick={() => navigate("/map/new")}>
-            <button style={{ all: "unset" }} onClick={() => setShowMap(true)}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" />
-            </button>
             </button>
           </div>
         </div>
