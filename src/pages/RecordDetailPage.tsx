@@ -76,12 +76,12 @@ const RecordDetail = () => {
 
           {/* 이미지 슬라이드 전체 */}
           {images.length > 0 && (
-            <div className="flex flex-col items-center mb-[30px]">
+            <div className="flex flex-col items-center">
               {/* 가로 슬라이드 */}
               <div
                 className="overflow-x-auto no-scrollbar"
                 style={{
-                  width: "390px",
+                  width: "375px",
                   paddingBottom: "10px",
                 }}
               >
@@ -104,7 +104,7 @@ const RecordDetail = () => {
           )}
 
           {/* 지도 */}
-          <div className="mx-auto w-[370px] h-[250px] text-center mt-[50px] rounded-[10px] overflow-hidden">
+          <div className="mx-auto w-[370px] h-[250px] text-center mt-[75px] rounded-[10px] overflow-hidden">
             <MiniMap lat={37.558514} lng={126.925911} />
           </div>
 
