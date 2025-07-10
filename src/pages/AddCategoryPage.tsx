@@ -2,11 +2,13 @@ import { useState } from "react";
 import Header from "../components/common/Header";
 import { Check } from "lucide-react";
 import { CategoryColorName, categoryColors } from "../types/categoryColors";
+import { useNavigate } from "react-router-dom";
 
 function AddCategoryPage() {
 	const [categoryName, setCategoryName] = useState("");
 	const [categoryColor, setCategoryColor] = useState<CategoryColorName | null>(null);
 
+	const navigate = useNavigate(); 
 	const isFormValid = categoryName.trim() !== "" && categoryColor !== null;
 
 	return (
@@ -43,6 +45,7 @@ function AddCategoryPage() {
 				</div>
 
 				<button
+					onClick={() => navigate("/category")}
 					disabled={!isFormValid}
 					className={`items-center w-[320px] h-11 rounded-md ${
 						isFormValid

@@ -43,7 +43,9 @@ function CategoryPage() {
 						</button>
 					</div>
 				</div>
-				<button className="mt-auto w-[320px] h-11 bg-[#FFC064] hover:bg-[#FFB347] rounded-md cursor-pointer">
+				<button 
+					onClick={() => navigate("/record/:id")}
+					className="mt-auto w-[320px] h-11 bg-[#FFC064] hover:bg-[#FFB347] rounded-md cursor-pointer">
 					완료
 				</button>
 			</div>
