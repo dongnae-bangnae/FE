@@ -9,11 +9,11 @@ const BottomTabBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const visiblePaths = ["/", "/map", "/record/new", "/mypage"];
+  const visiblePaths = ["/home", "/map", "/record/new", "/mypage"];
   if (!visiblePaths.includes(location.pathname)) return null;
 
   const tabs = [
-    { path: "/", icon: homeIcon, label: "홈" },
+    { path: "/home", icon: homeIcon, label: "홈" },
     { path: "/map", icon: mapIcon, label: "지도" },
     { path: "/record/new", icon: writeIcon, label: "작성" },
     { path: "/mypage", icon: profileIcon, label: "마이" }
