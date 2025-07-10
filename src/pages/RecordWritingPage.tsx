@@ -1,3 +1,4 @@
+import { useNavigate, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 import colors from "../styles/colors";
@@ -18,6 +19,12 @@ import MapPage from "./MapPage";
 
 
 function RecordWritingPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const popupCategory = location.state?.selectedCategory || null;
+  const [showPopup, setShowPopup] = useState(!!popupCategory);
   const navigate = useNavigate();
   const [showMap, setShowMap] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -252,6 +259,8 @@ function RecordWritingPage() {
 
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
+
+            <button style={{ all: "unset" }} onClick={() => navigate("/map/new")}>
             <button style={{ all: "unset" }} onClick={() => setShowMap(true)}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" />
             </button>
@@ -346,6 +355,8 @@ function RecordWritingPage() {
         />
       )}
 
+
+      
       {showMap && (
       <div
         className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 bg-white rounded-t-xl border-t"
