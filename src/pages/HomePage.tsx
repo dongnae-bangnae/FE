@@ -2,6 +2,7 @@ import Header from "../components/common/Header";
 import BottomTabBar from "../components/common/BottomTabBar";
 import PreviewPost from "../components/Home/PostCardPreview";
 import { useNavigate } from "react-router-dom";
+import sampleImage from "../assets/record/img1.jpg";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -9,7 +10,10 @@ function HomePage() {
   return (
     <div className="flex flex-col min-h-screen relative bg-[#f5f5f5]">
       {/* 헤더 */}
-      <Header title="홈" />
+      <Header
+        title=""
+        left={<span className="text-[18px] font-semibold ml-1">홈</span>}
+      />
 
       {/* 메인 스크롤 영역 */}
       <div className="flex-1 flex flex-col overflow-y-auto">
@@ -18,7 +22,7 @@ function HomePage() {
           <div className="flex justify-between items-center w-full px-4 py-[5px]">
             <h2 className="text-[20px] font-bold">새 글</h2>
             <button
-              onClick={() => navigate("/posts")}
+              onClick={() => navigate("/record/list")} // 여기!
               className="text-[14px] bg-[#fff] rounded-[8px] px-4 py-1 border border-gray-300"
             >
               게시물 확인하기
@@ -33,7 +37,7 @@ function HomePage() {
                 author="커비"
                 date="2025.8.25"
                 title="연남동 파스타 맛집에서 데이트"
-                image="https://source.unsplash.com/random/400x300"
+                image={sampleImage}
                 onClick={() => navigate(`/post/${i}`)}
               />
             ))}
@@ -174,7 +178,7 @@ function HomePage() {
                 author="푸짐바오"
                 date="2시간 전"
                 title="연남동 지브리 카페 다녀왔어요"
-                image="https://source.unsplash.com/random/400x300"
+                image={sampleImage}
                 onClick={() => navigate(`/post/${i}`)}
               />
             ))}

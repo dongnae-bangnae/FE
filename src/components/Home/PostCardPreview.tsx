@@ -1,3 +1,5 @@
+import sampleImage from "../../assets/record/img1.jpg";
+
 interface PostCardPreviewProps {
   id: string;
   profileImage?: string;
@@ -23,7 +25,7 @@ function PostCardPreview({
     >
       {/* 이미지 */}
       <img
-        src={image || "https://via.placeholder.com/233x145.png?text=미리보기"}
+        src={image || sampleImage}
         alt="게시물 이미지"
         className="w-[233px] h-[145px] object-cover rounded-[10px]"
       />

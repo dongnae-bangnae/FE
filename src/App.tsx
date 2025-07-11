@@ -11,6 +11,7 @@ import AddCategoryPage from "./pages/AddCategoryPage";
 import CategoryPage from "./pages/CategoryPage";
 import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
+import RecordListPage from "./pages/RecordListPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import MyLikesPage from "./pages/MyLikesPage";
@@ -36,6 +37,7 @@ const routes: RouteObject[] = [
       { path: "oauth-redirect", element: <OAuthRedirect /> },
       { path: "onboard", element: <OnboardingPage /> },
       { path: "home", element: <HomePage /> },
+      { path: "record/list", element: <RecordListPage /> },
       { path: "record/new", element: <NewRecordPage /> },
       { path: "record/:id", element: <RecordWritingPage /> },
       { path: "record/:id/detail", element: <RecordDetailPage /> },
