@@ -81,7 +81,7 @@ function MyProfilePage() {
           {/* 관심 동네 설정 */}
           <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#D1D5DB] rounded-lg text-sm font-medium">
             <span className="text-black px-4">관심 동네 설정</span>
-            <button onClick={() => navigate("/mypage/profile/area")}>
+            <button onClick={() => navigate("/mypage/profile/likeplace")}>
               <img src={NextIcon} alt=">" className="w-3 h-3 mr-2" />
             </button>
           </div>
