@@ -4,7 +4,7 @@ import BottomTabBar from "../components/common/BottomTabBar";
 
 const Layout = () => {
   const location = useLocation();
-  const visiblePaths = ["/", "/map", "/record/new", "/mypage"];
+  const visiblePaths = ["/map", "/record/new", "/mypage"];
   const showBottomTabBar = visiblePaths.includes(location.pathname);
 
   return (

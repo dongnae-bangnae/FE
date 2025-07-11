@@ -11,6 +11,7 @@ import AddCategoryPage from "./pages/AddCategoryPage";
 import CategoryPage from "./pages/CategoryPage";
 import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
+import RecordListPage from "./pages/RecordListPage";
 import LocationPostsPage from "./pages/LocationPostsPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
@@ -24,6 +25,7 @@ import NotificationPage from "./pages/NotificationPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
+import OAuthRedirect from "./pages/OAuthRedirect";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
 import SelectedPinTypePage from "./pages/SelectPinTypePage";
 
@@ -33,9 +35,11 @@ const routes: RouteObject[] = [
     element: <Layout />,
     errorElement: <NotFound />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: "/login", element: <LoginPage /> },
-      { path: "/onboard", element: <OnboardingPage /> },
+      { index: true, element: <LoginPage /> },
+      { path: "oauth-redirect", element: <OAuthRedirect /> },
+      { path: "onboard", element: <OnboardingPage /> },
+      { path: "home", element: <HomePage /> },
+      { path: "record/list", element: <RecordListPage /> },
       { path: "record/new", element: <NewRecordPage /> },
       { path: "record/:id", element: <RecordWritingPage /> },
       { path: "record/:id/detail", element: <RecordDetailPage /> },
