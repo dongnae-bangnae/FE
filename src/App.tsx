@@ -12,20 +12,22 @@ import CategoryPage from "./pages/CategoryPage";
 import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
 import RecordListPage from "./pages/RecordListPage";
+import LocationPostsPage from "./pages/LocationPostsPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
-import MyLikesPage from "./pages/MyLikesPage";
 import MyPage from "./pages/MyPage";
+import MyPostListPage from "./pages/MyPostListPage";
 import MyProfilePage from "./pages/MyProfilePage";
 import NewPlacePage from "./pages/NewPlacePage";
 import NewRecordPage from "./pages/NewRecordPage";
 import NotFound from "./pages/NotFound";
-import NotificationsPage from "./pages/NotificationsPage";
+import NotificationPage from "./pages/NotificationPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
-import SelectedPinTypePage from "./pages/SelectPinTypePage";
 import RecordWritingPage from "./pages/RecordWritingPage";
 import OAuthRedirect from "./pages/OAuthRedirect";
+import SavedPlaceListPage from "./pages/SavedPlaceListPage";
+import SelectedPinTypePage from "./pages/SelectPinTypePage";
 
 const routes: RouteObject[] = [
   {
@@ -45,9 +47,12 @@ const routes: RouteObject[] = [
       { path: "map/new", element: <NewPlacePage /> },
       { path: "map/select-pin", element: <SelectedPinTypePage /> },
       { path: "mypage", element: <MyPage /> },
-      { path: "mypage/likes", element: <MyLikesPage /> },
+      { path: "mypage/notification", element: <NotificationPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
       { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
+      { path: "mypage/saved/:placeId", element: <SavedPlaceListPage /> },
+      { path: "mypage/saved/:placeId/list", element: <MyPostListPage /> },
+      { path: "mypage/locationposts", element: <LocationPostsPage /> },
       { path: "category", element: <CategoryPage /> },
       { path: "category/new", element: <AddCategoryPage /> }
     ]

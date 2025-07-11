@@ -44,6 +44,12 @@ function MapPage() {
 									position: locPosition,
 									map: mapRef.current,
 									title: "현재 위치",
+									image: new window.kakao.maps.MarkerImage("/src/assets/pin/pin_me.png",
+										new window.kakao.maps.Size(36, 36), 
+										{
+											offset: new window.kakao.maps.Point(18, 36) 
+										}
+									)
 								});
 								setIsMapLoaded(true); 
 							}

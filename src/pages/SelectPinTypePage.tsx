@@ -10,6 +10,7 @@ import iconWalk from "../assets/place/place-walk.png";
 import CheckedIcon from "../assets/category-checked.png";
 import UncheckedIcon from "../assets/category-unchecked2.png";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 const categories = [
@@ -25,12 +26,14 @@ const categories = [
 
 
 function SelectedPinTypePage() {
+	const navigate = useNavigate(); 
     const [selectedPlace, setSelectedPlace] = useState<string | null>(null);
     const handleComplete = () => {
 		if (!selectedPlace) {
 			alert("카테고리를 선택해주세요!");
 			return;
 		}
+		navigate("/record/:id");
 		console.log("선택된 카테고리:", selectedPlace);
 	};
 
