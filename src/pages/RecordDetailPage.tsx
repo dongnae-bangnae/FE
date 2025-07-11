@@ -113,7 +113,7 @@ const RecordDetail = () => {
       </div>
     
     {/* 하단바 */}
-    <RecordBottomNav likes={8} ban={1} comments={3} active="comment"/>
+    <RecordBottomNav likes={8} ban={1} comments={3}/>
       
     {showMenu && (
       <div
