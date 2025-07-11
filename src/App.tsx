@@ -11,7 +11,7 @@ import AddCategoryPage from "./pages/AddCategoryPage";
 import CategoryPage from "./pages/CategoryPage";
 import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
-import RecordListPage from "./pages/RecordListPage";
+import LikePlacePage from "./pages/LikePlacePage";
 import LocationPostsPage from "./pages/LocationPostsPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
@@ -22,10 +22,11 @@ import NewPlacePage from "./pages/NewPlacePage";
 import NewRecordPage from "./pages/NewRecordPage";
 import NotFound from "./pages/NotFound";
 import NotificationPage from "./pages/NotificationPage";
+import OAuthRedirect from "./pages/OAuthRedirect";
 import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
+import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
-import OAuthRedirect from "./pages/OAuthRedirect";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
 import SelectedPinTypePage from "./pages/SelectPinTypePage";
 
@@ -50,6 +51,7 @@ const routes: RouteObject[] = [
       { path: "mypage/notification", element: <NotificationPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
       { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
+      { path: "mypage/profile/likeplace", element: <LikePlacePage /> },
       { path: "mypage/saved/:placeId", element: <SavedPlaceListPage /> },
       { path: "mypage/saved/:placeId/list", element: <MyPostListPage /> },
       { path: "mypage/locationposts", element: <LocationPostsPage /> },
