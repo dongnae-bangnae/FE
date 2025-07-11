@@ -45,7 +45,7 @@ const RecordBottomNav = ({ likes, ban, comments, active }: Props) => {
         </button>
       </div>
       <div className={`relative flex items-center gap-[15px] ${active === "comment" ? "font-bold" : ""}`}>
-        <button onClick={()=>navigate("/record/:id/comments")} className="flex gap-[15px]">
+        <button onClick={()=>navigate("/record/:id/detail/comments")} className="flex gap-[15px]">
           <img src={CommentIcon} width={23} height={23} />
           <span>{comments}</span>
         </button>

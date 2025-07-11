@@ -29,6 +29,7 @@ import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
 import SelectedPinTypePage from "./pages/SelectPinTypePage";
+import CommentPage from "./pages/CommentPage";
 
 const routes: RouteObject[] = [
   {
@@ -44,6 +45,7 @@ const routes: RouteObject[] = [
       { path: "record/new", element: <NewRecordPage /> },
       { path: "record/:id", element: <RecordWritingPage /> },
       { path: "record/:id/detail", element: <RecordDetailPage /> },
+      { path: "record/:id/detail/comments", element: <CommentPage /> },
       { path: "map", element: <MapPage /> },
       { path: "map/new", element: <NewPlacePage /> },
       { path: "map/select-pin", element: <SelectedPinTypePage /> },
