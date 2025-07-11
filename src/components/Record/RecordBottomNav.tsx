@@ -10,10 +10,10 @@ interface Props {
   likes: number;
   ban: number;
   comments: number;
-  active?: "comment"; 
+  // active?: "comment"; 
 }
 
-const RecordBottomNav = ({ likes, ban, comments, active }: Props) => {
+const RecordBottomNav = ({comments}: Props) => {
   const navigate = useNavigate();
   const [likeCount, setLikeCount] = useState(0);
   const handleLike = () => {
@@ -44,7 +44,7 @@ const RecordBottomNav = ({ likes, ban, comments, active }: Props) => {
           <span>{banCount}</span> 
         </button>
       </div>
-      <div className={`relative flex items-center gap-[15px] ${active === "comment" ? "font-bold" : ""}`}>
+      <div className="relative flex items-center gap-[15px]">
         <button onClick={()=>navigate("/record/:id/detail/comments")} className="flex gap-[15px]">
           <img src={CommentIcon} width={23} height={23} />
           <span>{comments}</span>
