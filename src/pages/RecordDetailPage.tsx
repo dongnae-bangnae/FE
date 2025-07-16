@@ -28,7 +28,7 @@ const RecordDetail = () => {
         className="w-full relative flex items-center justify-between "
         style={{ fontFamily: fonts.family, height: "56px",}}
       >
-        <button onClick={() => navigate("/")} style={{ all: "unset", cursor: "pointer" }} className="absolute left-[20px] flex-items-center justify-center">
+        <button onClick={() => navigate("/home")} style={{ all: "unset", cursor: "pointer" }} className="absolute left-[20px] flex-items-center justify-center">
           <img src={BackIcon} alt="back" width={30} height={28} style={{marginLeft: "5px"}}/>
         </button>
     
