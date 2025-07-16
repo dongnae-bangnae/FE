@@ -106,7 +106,7 @@ function CommentPage() {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="댓글을 입력하세요"
             className="flex-1 p-2 text-sm border w-[270px] h-[48px]"
-            style={{border: "1px solid rgba(0, 0, 0, 0.47"}}
+            style={{borderColor: colors.gray200}}
           />
           <button
             onClick={handleNewCommentSubmit}
