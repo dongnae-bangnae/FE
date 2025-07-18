@@ -28,7 +28,10 @@ function MyProfilePage() {
     localStorage.removeItem("user"); // 사용자 정보 저장해뒀다면 함께 제거
 
     // 로그인 페이지로 이동
-    navigate("/", { replace: true });
+    navigate("/", {
+      replace: true,
+      state: { message: "로그아웃되었어요" }
+    });
   };
 
   const handleDeleteAccount = () => {
@@ -40,7 +43,10 @@ function MyProfilePage() {
     localStorage.removeItem("user");
 
     // 로그인 페이지로 이동
-    navigate("/", { replace: true });
+    navigate("/", {
+      replace: true,
+      state: { message: "회원탈퇴가 완료되었어요" }
+    });
   };
 
   const handleRemoveArea = (area: string) => {
