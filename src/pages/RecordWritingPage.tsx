@@ -34,7 +34,7 @@ function RecordWritingPage() {
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
 
 
-  const handleSubmit = () => {
+  const handleSubmit = async() => {
     navigate('/record/:id/detail', {
         state: {
             title,
