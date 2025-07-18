@@ -35,7 +35,7 @@ function MyPage() {
       <div style={{ height: "16px" }} />
 
       {/* 상단바 (알림 + 설정 아이콘 그룹) */}
-      <div className="w-full flex justify-end items-center mt-2 mb-4 pr-2">
+      <div className="w-full flex justify-end items-center mt-1 mb-4">
         <div className="flex items-center" style={{ gap: "9px" }}>
           <img
             src={RingIcon}
@@ -62,13 +62,13 @@ function MyPage() {
         <img
           src={DefaultProfile}
           alt="프로필"
-          className="w-24 h-24 rounded-full mb-2"
+          className="w-20 h-20d rounded-full mb-3"
         />
-        <p className="text-lg font-semibold">@기영이</p>
+        <p className="text-md font-semibold">@기영이</p>
       </div>
 
       {/* 탭 버튼 */}
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-6">
         <button
           onClick={() => setSelectedTab("saved")}
           className={`w-[90px] h-9 rounded-lg text-sm font-medium
@@ -98,8 +98,8 @@ function MyPage() {
         </button>
       </div>
 
-      {/* 구분선 */}
-      <div className="w-full mt-4 border-b border-[#E5E5E5]" />
+      {/* 구분선 E5E5E5 */}
+      <div className="w-full mt-4 border-b border-[#999]" />
 
       {/* 저장 탭 */}
       {selectedTab === "saved" && (

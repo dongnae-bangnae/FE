@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import NextIcon from "../assets/icon-next.svg";
+import XIcon from "../assets/icon-x.svg";
 import ConfirmModal from "../components/common/ConfirmModal";
 import Header from "../components/common/Header";
 
@@ -11,6 +12,7 @@ function MyProfilePage() {
   const [profileUrl, setProfileUrl] = useState<string>("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [areas, setAreas] = useState<string[]>(["연남동", "종로 3가"]);
 
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,6 +43,10 @@ function MyProfilePage() {
     navigate("/login", { replace: true });
   };
 
+  const handleRemoveArea = (area: string) => {
+    setAreas((prev) => prev.filter((item) => item !== area));
+  };
+
   return (
     <>
       <Header title="회원정보" underline={true} />
@@ -65,7 +71,7 @@ function MyProfilePage() {
           />
 
           {/* 구분선 */}
-          <div className="w-full mt-4 mb-8 border-b border-[#E5E5E5]" />
+          <div className="w-full mt-4 mb-8 border-b border-[#999]" />
 
           {/* 닉네임 */}
           <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#D1D5DB] rounded-lg text-sm font-medium mb-3">
@@ -88,17 +94,25 @@ function MyProfilePage() {
 
           {/* 관심 동네 태그 */}
           <div className="flex flex-wrap gap-2 mt-3 w-[340px]">
-            <span className="bg-[#F3F4F6] text-sm text-black px-3 py-1 rounded-full">
-              연남동 ✕
-            </span>
-            <span className="bg-[#F3F4F6] text-sm text-black px-3 py-1 rounded-full">
-              종로 3가 ✕
-            </span>
+            {areas.map((area) => (
+              <span
+                key={area}
+                className="flex items-center gap-1 text-sm text-black px-3 py-1 rounded-full border border-gray-300"
+              >
+                {area}
+                <img
+                  src={XIcon}
+                  alt="삭제"
+                  className="w-3 h-3 cursor-pointer"
+                  onClick={() => handleRemoveArea(area)}
+                />
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#E5E5E5] px-4 py-3 flex justify-center gap-3 z-50">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#999] px-4 py-3 flex justify-center gap-3 z-50">
         <button
           onClick={() => setShowLogoutModal(true)}
           className="w-[120px] bg-[#E5E5E5] text-black py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-[#FFC064] transition-colors duration-200"

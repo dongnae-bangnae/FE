@@ -27,7 +27,7 @@ const Header = ({
   return (
     <div
       className={`w-full h-[56px] flex items-center ${bgColor} ${
-        underline ? "border-b border-[#999999]" : ""
+        underline ? "border-b border-[#000]" : ""
       }`}
     >
       {/* 왼쪽 */}

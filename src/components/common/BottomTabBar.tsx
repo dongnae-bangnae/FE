@@ -29,7 +29,7 @@ const BottomTabBar = () => {
             onClick={() => navigate(tab.path)}
             className="flex flex-1 flex-col items-center justify-center"
           >
-            <img src={tab.icon} alt={tab.label} className="w-[30px] h-[30px]" />
+            <img src={tab.icon} alt={tab.label} className="w-[26px] h-[26px]" />
           </button>
         ))}
       </div>
