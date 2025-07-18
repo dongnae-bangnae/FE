@@ -1,15 +1,33 @@
-import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.svg";
-import naverIcon from "../assets/icon-naver.svg";
-import kakaoIcon from "../assets/icon-kakao.svg";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
+import circleCheck from "../assets/icon-circleCheck.svg";
 import googleIcon from "../assets/icon-google.svg";
+import kakaoIcon from "../assets/icon-kakao.svg";
+import naverIcon from "../assets/icon-naver.svg";
+import logo from "../assets/logo.svg";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [toastMessage, setToastMessage] = useState("");
 
   const handleSocialLogin = (provider: "naver" | "kakao" | "google") => {
     navigate(`/oauth2/authorization/${provider}`);
   };
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setToastMessage(location.state.message);
+
+      // 2초 후 메시지 자동 사라짐
+      const timer = setTimeout(() => {
+        setToastMessage("");
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   return (
     <div className="flex flex-col justify-center items-center h-screen bg-[#F95F00] text-white px-6">
@@ -77,6 +95,14 @@ function LoginPage() {
         <span>|</span>
         <button>일반 회원가입</button>
       </div>
+
+      {/* 토스트 메시지 영역 */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[354px] px-4 py-2.5 bg-[#9A7B6F]/80 text-white text-sm rounded-lg flex items-center gap-2 z-50 shadow-md">
+          <img src={circleCheck} alt="체크 아이콘" className="w-5 h-5" />
+          <span className="truncate">{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
