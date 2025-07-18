@@ -1,6 +1,4 @@
-import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import BackIcon from "../assets/top/icon-top-backArrow.svg";
 import MenuIcon from "../assets/record/icon-menubar.svg";
 import fonts from "../styles/fonts";
 import RecordBottomNav from "../components/Record/RecordBottomNav";
@@ -11,7 +9,6 @@ import Header from "../components/common/Header";
 
 const RecordDetail = () => {
   const { state } = useLocation();
-  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
 
   const { title, content, images, date }: {
