@@ -6,6 +6,7 @@ import fonts from "../styles/fonts";
 import RecordBottomNav from "../components/Record/RecordBottomNav";
 import { useState } from "react";
 import MiniMap from "../components/Record/MiniMap";
+import Header from "../components/common/Header";
 
 
 const RecordDetail = () => {
@@ -23,26 +24,15 @@ const RecordDetail = () => {
 
   return (
     <>
-      {/* 상단 바 */}
-      <div
-        className="w-full relative flex items-center justify-between "
-        style={{ fontFamily: fonts.family, height: "56px",}}
-      >
-        <button onClick={() => navigate("/home")} style={{ all: "unset", cursor: "pointer" }} className="absolute left-[20px] flex-items-center justify-center">
-          <img src={BackIcon} alt="back" width={30} height={28} style={{marginLeft: "5px"}}/>
-        </button>
-    
-        <div className="absolute left-1/2 -translate-x-1/2" style={{ fontSize: "20px", fontWeight: fonts.weight.bold}}>
-          <span>{date}</span>
-        </div>
-
-        <button onClick={() => setShowMenu((prev) => !prev)} className="absolute right-[20px]">
-          <img src={MenuIcon} alt="menu" width={3} height={15} />
-        </button>
-
-      </div>
-      
-
+      {/* 상단바 */}
+      <Header title={date} 
+              underline={false}
+              right={
+              <button onClick={() => setShowMenu((prev) => !prev)} className="absolute right-[20px]">
+                <img src={MenuIcon} alt="menu" width={3} height={15} />
+             </button>}
+              
+      />
       {/* 본문 */}
       <div className="w-full flex justify-center" style={{fontFamily: fonts.family}}>
         <div style={{width: "375px"}} >
@@ -56,8 +46,6 @@ const RecordDetail = () => {
                           paddingTop: "20px",
                           paddingBottom: "70px",
                           paddingLeft: "20px"
-                    
-
           }}>
             <span>{title}</span>
           </div>
