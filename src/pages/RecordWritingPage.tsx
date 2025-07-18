@@ -14,6 +14,7 @@ import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
 import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
+import ImagePreview from "../components/Record/ImagePreview";
 
 
 function RecordWritingPage() {
@@ -79,18 +80,26 @@ function RecordWritingPage() {
   return (
     <div className="flex flex-col h-full relative" style={{ fontFamily: fonts.family }}>
       {/* 상단 바 */}
-      <div
-        className="w-full flex items-center justify-between border-b border-[#999999]"
-        style={{ padding: "14px 20px",  gap: "10px", height: "56px" }}
-      >
-        <button onClick={() => navigate("/")} style={{ all: "unset", cursor: "pointer" }}>
-          <img src={BackIcon} alt="back" width={30} height={28} />
-        </button>
+      <div className="w-full h-[56px] flex items-center border-b border-[#000] justify-between">
+        <div className="w-[60px] flex items-center justify-start pl-2">
+          <button onClick={() =>  navigate('/home')}>
+            <img
+              src={BackIcon}
+              alt="뒤로가기"
+              style={{
+                width: "25px",
+                height: "22px",
+                objectFit: "contain",
+                display: "block"
+              }}
+            />
+          </button>
+      </div>
         <div>
-          <div className="flex items-center gap-[6px]" style={{ fontSize: fonts.size.subtitle, fontWeight: fonts.weight.bold }}>
-            <span>{selectedCategory}</span>
+          <div className="flex items-center gap-[10px]">
+            <span className="text-base font-semibold text-center flex-1 truncate">{selectedCategory}</span>
             <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
-              <img src={SelectIcon} alt="select" width={15} height={15} />
+              <img src={SelectIcon} alt="select" width={15} height={15} style={{marginTop: "2px"}}/>
             </button>
           </div>
         </div>
@@ -99,11 +108,12 @@ function RecordWritingPage() {
             backgroundColor: colors.gray200,
             width: "65px",
             height: "39px",
-            fontSize: "15px",
+            fontSize: "14px",
             fontWeight: fonts.weight.medium,
             padding: "8px 18px",
-            borderRadius: "6px",
+            borderRadius: "9px",
             border: "none",
+            marginRight: "12px"
           }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primary)}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.gray200)}
@@ -146,87 +156,8 @@ function RecordWritingPage() {
           }}
         />
 
-          {/* 미리보기 */}
-          {selectedImages.length > 0 && (
-            <div className="w-full absolute left-1/2 -translate-x-1/2 px-2" style={{ bottom: "320px" }}>
-              {selectedImages.length === 1 ? (
-                <img
-                  src={selectedImages[0]}
-                  alt="preview-single"
-                  className="w-[375px] h-[184px] object-cover rounded-[15px]"
-                />
-              ) : selectedImages.length === 2 ? (
-                <div className="flex gap-[6px]">
-                  {selectedImages.map((src, index) => (
-                    <div key={index} className="w-[184px] h-[184px] relative">
-                      <img
-                        src={src}
-                        alt={`preview-${index}`}
-                        className="w-full h-full object-cover rounded-[15px]"
-                      />
-                      {index === 0 && (
-                        <div className="absolute top-[10px] right-[10px] bg-[orange] text-[black] w-[65px] h-[24px] rounded-full text-center"
-                            style={{ fontWeight: fonts.weight.regular }}
-                        >
-                          대표사진
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : selectedImages.length === 3 ? (
-                <div className="flex gap-[6px]">
-                  <div className="w-[184px] h-[184px] relative">
-                    <img
-                      src={selectedImages[0]}
-                      alt="대표"
-                      className="w-full h-full object-cover rounded-[15px]"
-                    />
-                    <div className="absolute top-[10px] right-[10px] bg-[orange] text-[black] w-[65px] h-[24px] rounded-full text-center"
-                        style={{ fontWeight: fonts.weight.regular }}
-                    >
-                      대표사진
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-[6px]">
-                    {selectedImages.slice(1).map((src, index) => (
-                      <img
-                        key={index}
-                        src={src}
-                        alt={`preview-${index}`}
-                        className="w-[184px] h-[89px] object-cover rounded-[15px]"
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-[6px] overflow-x-auto no-scrollbar">
-                  {selectedImages.map((src, index) => (
-                    <div
-                      key={index}
-                      className="relative flex-shrink-0 w-[184px] h-[184px] rounded-[12px] overflow-hidden"
-                    >
-                      <img
-                        src={src}
-                        alt={`scroll-preview-${index}`}
-                        className="w-full h-full object-cover"
-                      />
-                      {index === 0 && (
-                        <div className="absolute top-[10px] right-[10px] bg-[orange] text-[black] w-[65px] h-[24px] rounded-full"
-                             style={{fontWeight: fonts.weight.regular}}
-                        >
-                          <span className="px-[2px]">대표사진</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-      
-
+        {/* 미리보기 */}
+        <ImagePreview selectedImages={selectedImages} />
 
       </div>
 
