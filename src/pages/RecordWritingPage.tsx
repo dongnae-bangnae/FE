@@ -12,6 +12,7 @@ import CalendarIcon from "../assets/icon-calendar.svg";
 import GalleryIcon from "../assets/icon-gallery.svg";
 import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
+import CheckIcon from "../assets/icon-selected.svg";
 import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
@@ -166,7 +167,7 @@ function RecordWritingPage() {
         <div
           className="fixed left-1/2 -translate-x-1/2 z-50"
           style={{
-            bottom: "250px",
+            bottom: "240px",
             width: "390px",
             height: "58px",
             display: "flex",
@@ -248,7 +249,7 @@ function RecordWritingPage() {
       {showGallery && (
         <div
           className="fixed left-1/2 -translate-x-1/2 bottom-[0] z-40"
-          style={{ width: "390px", height: "250px", padding: "7px", overflowY: "auto" }}
+          style={{ width: "390px", height: "240px", padding: "7px", overflowY: "auto" }}
         >
           <div className="grid grid-cols-3">
             {galleryImages.map((src, idx) => {
@@ -264,7 +265,7 @@ function RecordWritingPage() {
                   />
                   {isSelected && (
                     <div className="absolute bottom-[10px] right-[10px] w-[24px] h-[24px] rounded-full bg-[orange] text-[white] flex items-center justify-center text-sm font-bold z-10">
-                      ✓
+                      <img src={CheckIcon}/>
                     </div>
                   )}
                 </div>
