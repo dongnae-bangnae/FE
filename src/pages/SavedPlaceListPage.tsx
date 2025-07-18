@@ -37,7 +37,7 @@ function SavedPlaceListPage() {
       </div>
 
       {/* 하단 버튼 */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#E5E5E5] px-4 py-3 flex justify-center gap-3 z-50">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#999] px-4 py-3 flex justify-center gap-3 z-50">
         <button
           onClick={() => {
             const selected = places.find((p) => p.id === selectedPlace);
