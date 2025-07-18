@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import NextIcon from "../assets/icon-next.svg";
 import XIcon from "../assets/icon-x.svg";
-import ConfirmModal from "../components/common/ConfirmModal";
 import Header from "../components/common/Header";
+import MypageModal from "../components/MypageModal";
 
 function MyProfilePage() {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ function MyProfilePage() {
     localStorage.removeItem("user"); // 사용자 정보 저장해뒀다면 함께 제거
 
     // 로그인 페이지로 이동
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   };
 
   const handleDeleteAccount = () => {
@@ -40,7 +40,7 @@ function MyProfilePage() {
     localStorage.removeItem("user");
 
     // 로그인 페이지로 이동
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   };
 
   const handleRemoveArea = (area: string) => {
@@ -128,24 +128,24 @@ function MyProfilePage() {
       </div>
 
       {showLogoutModal && (
-        <ConfirmModal
-          message="로그아웃 하시겠습니까?"
+        <MypageModal
+          title="로그아웃하시겠어요?"
+          description="다시 로그인해야 앱을 이용할 수 있어요"
           onConfirm={handleLogout}
           onCancel={() => setShowLogoutModal(false)}
+          confirmText="로그아웃"
+          cancelText="취소"
         />
       )}
 
       {showDeleteAccountModal && (
-        <ConfirmModal
-          message={
-            <>
-              회원 탈퇴하시겠습니까?
-              <br />
-              탈퇴 시, 계정은 복구되지 않습니다.
-            </>
-          }
+        <MypageModal
+          title="회원 탈퇴하시겠어요?"
+          description="삭제된 모든 정보는 복구할 수 없어요"
           onConfirm={handleDeleteAccount}
           onCancel={() => setShowDeleteAccountModal(false)}
+          confirmText="회원탈퇴"
+          cancelText="취소"
         />
       )}
     </>
