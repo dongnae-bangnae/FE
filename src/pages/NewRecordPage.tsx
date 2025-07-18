@@ -17,7 +17,7 @@ function NewRecordPage() {
       
       {/* 상단바 */}
       <div
-      className="w-full h-[56px] flex items-center px-4 bg-white border-b border-[#999999]"
+      className="w-full h-[56px] flex items-center px-4 bg-white border-b border-[#000]"
       style={{paddingLeft: "20px", fontSize: "20px", fontWeight: fonts.weight.bold}}
       >
         <span>기록</span>
