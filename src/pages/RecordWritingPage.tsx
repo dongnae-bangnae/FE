@@ -33,7 +33,6 @@ function RecordWritingPage() {
   const [content, setContent] = useState("");
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
 
-
   const handleSubmit = async() => {
     navigate('/record/:id/detail', {
         state: {
@@ -116,7 +115,7 @@ function RecordWritingPage() {
             border: "none",
             marginRight: "12px"
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primary)}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primaryDark)}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.gray200)}
         >
           등록
@@ -158,7 +157,9 @@ function RecordWritingPage() {
         />
 
         {/* 미리보기 */}
-        <ImagePreview selectedImages={selectedImages} />
+        <div>
+          <ImagePreview selectedImages={selectedImages} />
+        </div>
 
       </div>
 
@@ -167,7 +168,7 @@ function RecordWritingPage() {
         <div
           className="fixed left-1/2 -translate-x-1/2 z-50"
           style={{
-            bottom: "240px",
+            bottom: "231px",
             width: "390px",
             height: "58px",
             display: "flex",
