@@ -9,7 +9,7 @@ import GalleryIcon_w from "../assets/record/icon-gallery-white.svg";
 import FileIcon_w from "../assets/record/icon-file-white.svg";
 import PinIcon_w from "../assets/record/icon-map-white.svg";
 import CalendarIcon from "../assets/icon-calendar.svg";
-import GalleryIcon from "../assets/icon-gallery.svg";
+import GalleryIcon from "../assets/record/icon-image-yellow.svg";
 import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
 import CheckIcon from "../assets/icon-selected.svg";
@@ -166,36 +166,45 @@ function RecordWritingPage() {
       {/* 갤러리 모달 열렸을 때 가로 툴바 */}
       {!showCalendar && showGallery && (
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-50"
+          className="fixed left-1/2 -translate-x-1/2 z-50 rounded-[15px]"
           style={{
-            bottom: "231px",
-            width: "390px",
+            bottom: "232px",
+            width: "365px",
             height: "58px",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: "#F2F2F2",
+            backgroundColor: "white",
             padding: "0 53px",
+            boxShadow: "0px 4px 12px #D4D4D4",
           }}
         >
-          <div style={{ display: "flex", gap: "55px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "55px", alignItems: "center"}}>
             <button style={{ all: "unset" }} onClick={() => setShowCalendar(true)}>
-              <img src={CalendarIcon} alt="달력" className="w-[23.96px] h-[25px]" />
+              <img src={CalendarIcon} alt="달력" className="w-[25px] h-[25px]" 
+                   style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
+              />
             </button>
 
             <button style={{ all: "unset" }} onClick={() => setShowGallery(false)}>
-              <img src={GalleryIcon} alt="갤러리 닫기" className="w-[27px] h-[27px]" />
+              <img src={GalleryIcon} alt="갤러리 닫기" className="w-[28px] h-[28px]" 
+                   style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
+              />
             </button>
 
             <button style={{ all: "unset" }} onClick={handleGalleryClick}>
-              <img src={FileIcon} alt="카메라" className="w-[27px] h-[27px]" />
+              <img src={FileIcon} alt="카메라" className="w-[27px] h-[27px]" 
+                   style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
+              />
             </button>
 
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
 
             <button style={{ all: "unset" }} onClick={() => navigate("/map/new")}>
-              <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" />
+              <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
+                   style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
+              />
             </button>
           </div>
         </div>
