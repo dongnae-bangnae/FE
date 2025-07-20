@@ -28,8 +28,8 @@ const RecordBottomNav = ({comments}: Props) => {
 
   return (
     <div
-      className="fixed bottom-[0] left-1/2 -translate-x-1/2 z-50 w-[375px] h-[76px] flex items-center justify-end px-[15px] gap-[10px]"
-      style={{borderTop: "1px solid", fontFamily: fonts.family, fontSize: "30px", fontWeight: fonts.weight.regular}}
+      className="fixed bottom-[0] left-1/2 -translate-x-1/2 z-50 w-[375px] h-[60px] flex items-center justify-end px-[15px] gap-[10px] border-t border-neutral-400"
+      style={{fontFamily: fonts.family, fontSize: "30px", fontWeight: fonts.weight.regular}}
       >
       <div className="flex items-center">
         <button onClick={handleLike} className="flex gap-[15px]">
@@ -55,3 +55,6 @@ const RecordBottomNav = ({comments}: Props) => {
 };
 
 export default RecordBottomNav;
+
+
+

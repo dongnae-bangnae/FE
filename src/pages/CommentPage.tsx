@@ -73,7 +73,7 @@ function CommentPage() {
                 <button 
                     onClick={() => alert(`댓글 ${comment.id}에 답글`)}
                     style={{
-                    backgroundColor: "#D9D9D9",
+                    backgroundColor: colors.primaryDark,
                     fontSize: "12px",
                     fontWeight: fonts.weight.regular,
                     border: "none",
