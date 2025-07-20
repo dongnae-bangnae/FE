@@ -16,7 +16,7 @@ function MapPage() {
 		const script = document.createElement("script");
 		script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${
 			import.meta.env.VITE_KAKAO_MAP_KEY
-		}&autoload=false`;
+		}&autoload=false&libraries=services`;
 		script.async = true;
 
 		script.onload = () => {
@@ -69,13 +69,13 @@ function MapPage() {
 	}, []);
 
 	return (
-		<div className="w-full max-w-[375px] h-[calc(100vh-60px)]">
+		<div className="w-full h-full relative ">
 			{isMapLoaded && mapRef.current && (
 				<SearchMapBar map={mapRef.current} />
 			)}
 			<div
 				ref={mapContainerRef}
-				className="w-full h-[calc(100vh-126px)] border border-gray-200"
+				className="w-full h-[calc(100vh-60px)] border border-gray-200"
 			/>
 		</div>
 	);
