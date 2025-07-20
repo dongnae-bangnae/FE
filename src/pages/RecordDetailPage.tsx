@@ -52,11 +52,13 @@ const RecordDetail = () => {
               style={{fontSize: fonts.size.body, 
                       fontWeight: fonts.weight.regular,
                       paddingBottom: "70px",
-                      paddingTop: "20px",
+                      paddingTop: "10px",
                       marginLeft: "20px"
 
           }}>
-            <span>{content}</span>
+            <div
+              dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, "<br />") }}
+            />
           </div>
 
           {/* 이미지 슬라이드 전체 */}
@@ -67,7 +69,7 @@ const RecordDetail = () => {
                 className="overflow-x-auto no-scrollbar"
                 style={{
                   width: "375px",
-                  paddingBottom: "10px",
+                  paddingBottom: "15px",
                 }}
               >
                 <div className="flex gap-[6px] px-[10px]">
@@ -89,7 +91,7 @@ const RecordDetail = () => {
           )}
 
           {/* 지도 */}
-          <div className="mx-auto w-[370px] h-[250px] text-center mt-[75px] rounded-[10px] overflow-hidden">
+          <div className="mx-auto w-[370px] h-[250px] text-center rounded-[10px] overflow-hidden">
             <MiniMap lat={37.558514} lng={126.925911} />
           </div>
 
