@@ -22,7 +22,7 @@ const BottomTabBar = () => {
   return (
     <div className="w-full h-[60px] bg-white flex justify-center">
       {/* 탭바 wrapper */}
-      <div className="w-[375px] border-t border-neutral-400 bg-white flex h-[60px]">
+      <div className="w-[357px] border-t border-neutral-400 bg-white flex h-[60px]">
         {tabs.map((tab) => (
           <button
             key={tab.path}
