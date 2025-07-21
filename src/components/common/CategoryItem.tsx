@@ -28,7 +28,7 @@ function CategoryItem({ name, color, selected = false, onClick }: CategoryItemPr
 			}}>
 			<div className="flex items-center gap-1.5">
 				<StarIcon className="w-5 h-5" style={{ color: color, backgroundColor: "#FFFFFF", borderRadius: "9999px", }} />
-				<span className="text-sm text-black font-medium">{name}</span>
+				<span className="text-md text-black font-medium">{name}</span>
 			</div>
 
 			<CheckIcon

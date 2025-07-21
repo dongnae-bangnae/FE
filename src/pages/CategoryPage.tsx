@@ -4,10 +4,14 @@ import { CategoryColorName } from "../types/categoryColors";
 import { getColorCode } from "../utils/getColorCode";
 import CategoryItem from "../components/common/CategoryItem";
 import { useState } from "react";
+import IconOption from "../assets/top/icon-option.svg?react";
+import OptionMessage from "../components/common/OptionMessage";
+
 
 function CategoryPage() {
 	const navigate = useNavigate();
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+	const [showEditPopup, setShowEditPopup] = useState(false);
 
 	const categories: { name: string; color: CategoryColorName }[] = [
 		{ name: "종로3가", color: "red" },
@@ -16,8 +20,8 @@ function CategoryPage() {
 	];
 
 	return (
-		<div className="bg-[#F2F2F7] min-h-screen flex flex-col">
-			<Header title="카테고리 설정" underline={false} bgColor="bg-[#F2F2F7]" />
+		<div className="bg-[#F2F2F7] min-h-screen flex flex-col relative">
+			<Header title="카테고리 설정" underline={false} bgColor="bg-[#F2F2F7]" right={<button onClick={() => setShowEditPopup(!showEditPopup)}><IconOption className="w-6 h-6 mr-5" />{showEditPopup && <OptionMessage />}</button>} />
 			<div className="flex flex-col flex-1 items-center px-5 pt-5 pb-6">
 				<div className="bg-white rounded-xl w-full max-w-[400px] px-5 pt-5 pb-10">
 					{categories.map((cat) => (
