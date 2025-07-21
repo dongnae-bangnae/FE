@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import StarIcon from "../assets/category-star.png";
+import StarIcon from "../assets/category-star.svg";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import PencilIcon from "../assets/icon-pencil.svg";
 import RingIcon from "../assets/icon-ring.svg";

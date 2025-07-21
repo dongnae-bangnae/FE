@@ -14,7 +14,7 @@ function AddCategoryPage() {
 		<div className="flex flex-col min-h-screen">
 			<Header title="새 카테고리 추가" underline={false} />
 			<div className="flex flex-col justify-between flex-1 px-10 py-6 items-center">
-				<div>
+				<div className="w-full flex flex-wrap gap-2 ">
 					<input
 						type="text"
 						value={categoryName}
@@ -23,8 +23,8 @@ function AddCategoryPage() {
 						className="border-b px-1 py-2 outline-none w-full"
 					/>
 					<div className="py-4 flex flex-col justify-center">
-						<div className="text-sm mb-2">색상 선택</div>
-						<div className="flex">
+						<div className="text-sm mb-3">색상 선택</div>
+						<div className="flex gap-1.5">
 							{categoryColors.map(({ name, code }) => {
 								const isSelected = categoryColor === name;
 								return (

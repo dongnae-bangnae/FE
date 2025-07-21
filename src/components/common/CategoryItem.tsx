@@ -1,6 +1,7 @@
-import CheckedIcon from "../../assets/category-checked.png";
-import UncheckedIcon from "../../assets/category-unchecked.png";
-import StarIcon from "../../assets/category-star.png";
+import { useState } from 'react';
+import StarIcon from '../../assets/category-star.svg?react';
+import CheckIcon from '../../assets/icon-checked.svg?react';
+
 
 interface CategoryItemProps {
 	name: string;
@@ -10,21 +11,31 @@ interface CategoryItemProps {
 }
 
 function CategoryItem({ name, color, selected = false, onClick }: CategoryItemProps) {
+	const [focused, setFocused] = useState(false);
+
 	return (
 		<div
 			onClick={onClick}
-			className="flex items-center justify-between px-4 py-3 rounded-md mb-3 cursor-pointer"
-			style={{ backgroundColor: `${color}AA` }}
-		>
+			onMouseEnter={() => setFocused(true)}
+			onMouseLeave={() => setFocused(false)}
+			className={`flex items-center justify-between px-3 py-3 rounded-md mb-4 cursor-pointer transition-all`}
+			style={{
+				outlineStyle: "solid",
+				outlineWidth: "1px",
+				outlineColor: focused || selected ? color : "#D1D5DB", 
+				backgroundColor: selected ? `${color}30` : "transparent",
+				boxShadow: focused || selected ? `0 2px 3px  ${color}80` : "0 1px 2px #D1D5DB",
+			}}>
 			<div className="flex items-center gap-1.5">
-				<img src={StarIcon} className="w-5" />
+				<StarIcon className="w-5 h-5" style={{ color: color, backgroundColor: "#FFFFFF", borderRadius: "9999px", }} />
 				<span className="text-sm text-black font-medium">{name}</span>
 			</div>
 
-			<img
-				src={selected ? CheckedIcon : UncheckedIcon}
-				className="w-4 h-4"
-				alt={selected ? "선택됨" : "선택 안 됨"}
+			<CheckIcon
+				className={`w-5 h-5 transition-opacity duration-200 ${
+					focused ||selected ? "opacity-100" : "opacity-0"
+				}`}
+				style={{ color }}
 			/>
 		</div>
 	);
