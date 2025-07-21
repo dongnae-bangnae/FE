@@ -111,7 +111,7 @@ function NewPlacePage() {
 	};
 
 	return (
-		<div className="w-full max-w-[375px] h-screen overflow-hidden">
+		<div className="w-full h-screen relative">
 			{isMapLoaded && mapRef.current && (
 				<SearchMapBar map={mapRef.current} />
 			)}
