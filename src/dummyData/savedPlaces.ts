@@ -1,11 +1,11 @@
-import ArtsIcon from "../assets/place/place-arts.png";
-import BarIcon from "../assets/place/place-bar.png";
-import BooksIcon from "../assets/place/place-books.png";
-import CafeIcon from "../assets/place/place-cafe.png";
-import FoodIcon from "../assets/place/place-food.png";
-import OthersIcon from "../assets/place/place-others.png";
-import SportsIcon from "../assets/place/place-sports.png";
-import WalkIcon from "../assets/place/place-walk.png";
+import ArtsIcon from "../assets/place/place-arts.svg";
+import BarIcon from "../assets/place/place-bar.svg";
+import BooksIcon from "../assets/place/place-books.svg";
+import CafeIcon from "../assets/place/place-cafe.svg";
+import FoodIcon from "../assets/place/place-food.svg";
+import OthersIcon from "../assets/place/place-others.svg";
+import SportsIcon from "../assets/place/place-sports.svg";
+import WalkIcon from "../assets/place/place-walk.svg";
 
 export const savedPlaces: {
   [areaName: string]: {
