@@ -10,14 +10,14 @@ function CategoryPage() {
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
 	const categories: { name: string; color: CategoryColorName }[] = [
-		{ name: "종로 3가", color: "green" },
+		{ name: "종로3가", color: "red" },
 		{ name: "상수동", color: "orange" },
-		{ name: "연남동", color: "yellow" },
+		{ name: "연남동", color: "sky"}, 
 	];
 
 	return (
-		<div className="bg-[#F2F2F8] min-h-screen flex flex-col">
-			<Header title="카테고리 설정" underline={false} bgColor="bg-[#F2F2F8]" />
+		<div className="bg-[#F2F2F7] min-h-screen flex flex-col">
+			<Header title="카테고리 설정" underline={false} bgColor="bg-[#F2F2F7]" />
 			<div className="flex flex-col flex-1 items-center px-5 pt-5 pb-6">
 				<div className="bg-white rounded-xl w-full max-w-[400px] px-5 pt-5 pb-10">
 					{categories.map((cat) => (
@@ -34,7 +34,7 @@ function CategoryPage() {
 							onClick={() => navigate("/category/new")}
 							className="flex items-center text-sm text-black gap-1"
 						>
-							<span className="text-xl w-10 h-10 bg-gray-100 rounded-full flex flex-col justify-center items-center cursor-pointer">
+							<span className="text-lg w-10 h-10 bg-gray-100 rounded-full flex flex-col justify-center items-center cursor-pointer font-bold">
 								＋
 							</span>
 							<div className="ml-3 cursor-pointer flex items-center h-10">
