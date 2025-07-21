@@ -1,11 +1,12 @@
 export const categoryColors = [
-	{ name: "orange", code: "#FB8A1F" },
-	{ name: "yellow", code: "#FFDC5D" },
-	{ name: "green", code: "#77B255" },
-	{ name: "blue", code: "#4289C1" },
-	{ name: "purple", code: "#BB66CF" },
-	{ name: "rose", code: "#E0A1A1" },
-	{ name: "pink", code: "#DF87C7" },
+	{ name: "red", code: "#E94E77" },
+	{ name: "orange", code: "#FFA94D" },
+	{ name: "yellow", code: "#FFE174" },
+	{ name: "green", code: "#498C6D" },
+	{ name: "sky", code: "#419DCE" },
+	{ name: "blue", code: "#005B9D" },
+	{ name: "purple", code: "#7B61FF" },
+	{ name: "black", code: "#444444"}
 ] as const;
 
 export type CategoryColorName = (typeof categoryColors)[number]["name"];

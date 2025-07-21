@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Header from "../components/common/Header";
-import { Check } from "lucide-react";
 import { CategoryColorName, categoryColors } from "../types/categoryColors";
 import { useNavigate } from "react-router-dom";
 
@@ -8,7 +7,7 @@ function AddCategoryPage() {
 	const [categoryName, setCategoryName] = useState("");
 	const [categoryColor, setCategoryColor] = useState<CategoryColorName | null>(null);
 
-	const navigate = useNavigate(); 
+	const navigate = useNavigate();
 	const isFormValid = categoryName.trim() !== "" && categoryColor !== null;
 
 	return (
@@ -26,20 +25,25 @@ function AddCategoryPage() {
 					<div className="py-4 flex flex-col justify-center">
 						<div className="text-sm mb-2">색상 선택</div>
 						<div className="flex">
-							{categoryColors.map(({ name, code }) => (
-								<button
-									key={name}
-									onClick={() => setCategoryColor(name)}
-									style={{ backgroundColor: code }}
-									className="category-color-button relative"
-								>
-									{categoryColor === name && (
-										<div className="absolute inset-0 flex items-center justify-center pt-1">
-											<Check className="w-4 h-4 text-black" />
-										</div>
-									)}
-								</button>
-							))}
+							{categoryColors.map(({ name, code }) => {
+								const isSelected = categoryColor === name;
+								return (
+									<button
+										key={name}
+										onClick={() => setCategoryColor(name)}
+										className="w-6 h-6 rounded-full mx-1 flex items-center justify-center"
+										style={{ backgroundColor: code }}
+									>
+										{isSelected && (
+											<div
+												className="w-4.5 h-4.5 rounded-full border-3 border-white"
+												style={{ backgroundColor: code }}
+											/>
+										)}
+									</button>
+								);
+							})}
+
 						</div>
 					</div>
 				</div>
