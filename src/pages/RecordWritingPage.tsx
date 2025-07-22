@@ -13,6 +13,10 @@ import GalleryIcon from "../assets/record/icon-image-yellow.svg";
 import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
 import CheckIcon from "../assets/icon-selected.svg";
+import CalendarIcon_o from "../assets/record/icon-calendar-orange.svg";
+import GalleryIcon_o from "../assets/record/icon-gallery-orange.svg";
+import FileIcon_o from "../assets/record/icon-file-orange.svg";
+import PinIcon_o from "../assets/record/icon-map-orange.svg";
 import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
@@ -33,15 +37,24 @@ function RecordWritingPage() {
   const [content, setContent] = useState("");
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
 
-  const handleSubmit = async() => {
-    navigate('/record/:id/detail', {
+  const [ isLoading, setIsLoading ] = useState(false);
+  const [ hoveredIcon, setHoveredIcon ] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 스피너 보기 위한 딜레이
+      navigate('/record/:id/detail', {
         state: {
-            title,
-            content,
-            images: selectedImages,
-            date: selectedDate, 
-            },
-    });
+          title,
+          content,
+          images: selectedImages,
+          date: selectedDate,
+        },
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGalleryClick = () => {
@@ -104,6 +117,7 @@ function RecordWritingPage() {
           </div>
         </div>
         <button onClick={handleSubmit}
+          disabled={isLoading}
           style={{
             backgroundColor: colors.gray200,
             width: "65px",
@@ -113,12 +127,24 @@ function RecordWritingPage() {
             padding: "8px 18px",
             borderRadius: "9px",
             border: "none",
-            marginRight: "12px"
+            marginRight: "12px",
+         
+           cursor: isLoading ? "not-allowed" : "pointer"
           }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primaryDark)}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.gray200)}
         >
-          등록
+          {isLoading ? (
+             <div
+                className="w-4 h-4 border-2 border-t-2 border-white border-t-transparent rounded-full animate-spin"
+                style={{
+                  margin: "0 auto",
+                  borderTopColor: "#000", 
+                }}
+              />
+          ) : (
+            "등록"
+          )}
         </button>
       </div>
 
@@ -219,35 +245,59 @@ function RecordWritingPage() {
           <button
             className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
             onClick={() => setShowCalendar(true)}
+            onMouseEnter={() => setHoveredIcon("calendar")}
+            onMouseLeave={() => setHoveredIcon(null)}
             style={{backgroundColor: colors.primaryDark}}
           >
-            <img src={CalendarIcon_w} alt="달력" className="w-[24px] h-[24px]" />
+            <img
+              src={hoveredIcon === "calendar" ? CalendarIcon_o : CalendarIcon_w}
+              alt="달력"
+              className="w-[24px] h-[24px]"
+            />
           </button>
 
           <button
             className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
             onClick={() => setShowGallery(true)}
+            onMouseEnter={() => setHoveredIcon("gallery")}
+            onMouseLeave={() => setHoveredIcon(null)}
             style={{backgroundColor: colors.primaryDark}}
           >
-            <img src={GalleryIcon_w} alt="갤러리" className="w-[24px] h-[24px]" />
+            <img
+              src={hoveredIcon === "gallery" ? GalleryIcon_o : GalleryIcon_w}
+              alt="갤러리"
+              className="w-[24px] h-[24px]"
+            />
           </button>
 
           <button
-            className="w-[52px] h-[52px] rounded-full bg-[#E5AC45] flex justify-center items-center shadow"
+            className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
             onClick={handleGalleryClick}
+            onMouseEnter={() => setHoveredIcon("file")}
+            onMouseLeave={() => setHoveredIcon(null)}
             style={{backgroundColor: colors.primaryDark}}
           >
-            <img src={FileIcon_w} alt="카메라" className="w-[24px] h-[24px]" />
+            <img
+              src={hoveredIcon === "file" ? FileIcon_o : FileIcon_w}
+              alt="카메라"
+              className="w-[24px] h-[24px]"
+            />
           </button>
 
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
           <button
-            className="w-[52px] h-[52px] rounded-full bg-[#E5AC45] flex justify-center items-center shadow"
+            className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
             onClick={() => navigate("/map/new")}
+            onMouseEnter={() => setHoveredIcon("map")}
+            onMouseLeave={() => setHoveredIcon(null)}
             style={{backgroundColor: colors.primaryDark}}
           >
-            <img src={PinIcon_w} alt="지도" className="w-[24px] h-[24px]" />
+            <img
+              src={hoveredIcon === "map" ? PinIcon_o : PinIcon_w}
+              alt="지도"
+              className="w-[24px] h-[24px]"
+            />
           </button>
         </div>
       </div>
