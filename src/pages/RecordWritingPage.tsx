@@ -21,7 +21,6 @@ import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
 
-
 function RecordWritingPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -391,6 +390,8 @@ function RecordWritingPage() {
           }}
         />
       )}
+
+      
 </div>
 
 );
