@@ -30,6 +30,8 @@ import RecordWritingPage from "./pages/RecordWritingPage";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
 import SelectedPinTypePage from "./pages/SelectPinTypePage";
 import CommentPage from "./pages/CommentPage";
+import EditCategoryPage from "./pages/EditCategoryPage";
+import EditCategoryDetailPage from "./pages/EditCategoryDetailPage";
 
 const routes: RouteObject[] = [
   {
@@ -58,7 +60,9 @@ const routes: RouteObject[] = [
       { path: "mypage/saved/:placeId/list", element: <MyPostListPage /> },
       { path: "mypage/locationposts", element: <LocationPostsPage /> },
       { path: "category", element: <CategoryPage /> },
-      { path: "category/new", element: <AddCategoryPage /> }
+      { path: "category/new", element: <AddCategoryPage /> },
+      { path: "category/edit", element: <EditCategoryPage/> },
+      { path: "category/edit/:categoryId", element: <EditCategoryDetailPage /> },
     ]
   }
 ];
