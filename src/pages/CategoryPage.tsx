@@ -21,7 +21,8 @@ function CategoryPage() {
 
 	return (
 		<div className="bg-[#F2F2F7] min-h-screen flex flex-col relative">
-			<Header title="카테고리 설정" underline={false} bgColor="bg-[#F2F2F7]" right={<button onClick={() => setShowEditPopup(!showEditPopup)}><IconOption className="w-6 h-6 mr-5" />{showEditPopup && <OptionMessage />}</button>} />
+			<Header title="카테고리 설정" underline={false} bgColor="bg-[#F2F2F7]" 
+					right={<button onClick={() => setShowEditPopup(!showEditPopup)}><IconOption className="w-6 h-6 mr-5" />{showEditPopup && <OptionMessage message="기존 카테고리 편집하기" onClick={() => navigate('/category/edit')}/>}</button>} />
 			<div className="flex flex-col flex-1 items-center px-5 pt-5 pb-6">
 				<div className="bg-white rounded-xl w-full max-w-[400px] px-5 pt-5 pb-10">
 					{categories.map((cat) => (
