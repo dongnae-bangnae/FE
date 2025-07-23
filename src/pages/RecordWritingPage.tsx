@@ -43,7 +43,7 @@ function RecordWritingPage() {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 스피너 보기 위한 딜레이
+      await new Promise((resolve) => setTimeout(resolve, 800)); // 로딩 스피너 보기 위한 딜레이
       navigate('/record/:id/detail', {
         state: {
           title,
@@ -91,11 +91,12 @@ function RecordWritingPage() {
   // pinLocation !== null;
 
   return (
+    
     <div className="flex flex-col h-full relative" style={{ fontFamily: fonts.family }}>
       {/* 상단 바 */}
       <div className="w-full h-[56px] flex items-center border-b border-[#000] justify-between">
         <div className="w-[60px] flex items-center justify-start pl-2">
-          <button onClick={() =>  navigate('/home')}>
+          <button onClick={() => navigate('/home')}>
             <img
               src={BackIcon}
               alt="뒤로가기"
@@ -107,45 +108,89 @@ function RecordWritingPage() {
               }}
             />
           </button>
-      </div>
+        </div>
+
         <div>
           <div className="flex items-center gap-[10px]">
             <span className="text-base font-semibold text-center flex-1 truncate">{selectedCategory}</span>
             <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
-              <img src={SelectIcon} alt="select" width={15} height={15} style={{marginTop: "2px"}}/>
+              <img src={SelectIcon} alt="select" width={15} height={15} style={{ marginTop: "2px" }} />
             </button>
           </div>
         </div>
-        <button onClick={handleSubmit}
-          disabled={isLoading}
-          style={{
-            backgroundColor: colors.gray200,
-            width: "65px",
-            height: "39px",
-            fontSize: "14px",
-            fontWeight: fonts.weight.medium,
-            padding: "8px 18px",
-            borderRadius: "9px",
-            border: "none",
-            marginRight: "12px",
-         
-           cursor: isLoading ? "not-allowed" : "pointer"
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primaryDark)}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.gray200)}
-        >
-          {isLoading ? (
-             <div
-                className="w-4 h-4 border-2 border-t-2 border-white border-t-transparent rounded-full animate-spin"
-                style={{
-                  margin: "0 auto",
-                  borderTopColor: "#000", 
-                }}
-              />
-          ) : (
-            "등록"
-          )}
-        </button>
+
+        <>
+          {/* 스타일 정의 (컴포넌트 내부에 유지) */}
+          <style>
+            {`
+              @keyframes flash1 {
+                0%, 100% { opacity: 1; }
+                33%, 66% { opacity: 0.3; }
+              }
+              @keyframes flash2 {
+                0%, 33% { opacity: 0.3; }
+                34%, 66% { opacity: 1; }
+                67%, 100% { opacity: 0.3; }
+              }
+              @keyframes flash3 {
+                0%, 66% { opacity: 0.3; }
+                67%, 100% { opacity: 1; }
+              }
+
+              .submit-button {
+                background-color: ${colors.gray200};
+                width: 65px;
+                height: 39px;
+                font-size: 14px;
+                font-weight: ${fonts.weight.medium};
+                padding: 8px 18px;
+                border-radius: 9px;
+                border: none;
+                margin-right: 12px;
+                cursor: pointer;
+                transition: background-color 0.2s ease-in-out;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+
+              .submit-button:hover {
+                background-color: ${colors.primaryDark};
+              }
+
+              .dot {
+                width: 6px;
+                height: 6px;
+                margin: 0 3px;
+                border-radius: 50%;
+                background-color: #D57F00;
+                display: inline-block;
+                vertical-align: middle;
+              }
+
+              .dot:nth-child(1) { animation: flash1 1.2s infinite; }
+              .dot:nth-child(2) { animation: flash2 1.2s infinite; }
+              .dot:nth-child(3) { animation: flash3 1.2s infinite; }
+            `}
+          </style>
+
+          {/* 등록 버튼 */}
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="submit-button"
+          >
+            {isLoading ? (
+              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                <span className="dot" />
+                <span className="dot" />
+                <span className="dot" />
+              </div>
+            ) : (
+              "등록"
+            )}
+          </button>
+        </>
       </div>
 
       {/* 본문 */}
