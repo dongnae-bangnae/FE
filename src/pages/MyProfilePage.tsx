@@ -118,16 +118,16 @@ function MyProfilePage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#999] px-4 py-3 flex justify-center gap-3 z-50">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#D9D9D9] px-6 py-4 flex justify-center gap-[17px] z-50">
         <button
           onClick={() => setShowLogoutModal(true)}
-          className="w-[120px] bg-[#E5E5E5] text-black py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-[#FFC064] transition-colors duration-200"
+          className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[15px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
         >
           로그아웃
         </button>
         <button
           onClick={() => setShowDeleteAccountModal(true)}
-          className="w-[120px] bg-[#E5E5E5] text-black py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-[#FFC064] transition-colors duration-200"
+          className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[15px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
         >
           회원탈퇴
         </button>

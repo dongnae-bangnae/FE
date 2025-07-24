@@ -27,13 +27,13 @@ const MypageModal = ({
         <div className="flex justify-between gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 bg-[#f0f0f0] text-black py-2 rounded-md text-sm font-medium hover:bg-[#FF9700]"
+            className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[15px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 bg-[#f0f0f0] text-black py-2 rounded-md text-sm font-medium hover:bg-[#FF9700]"
+            className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[15px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
           >
             {confirmText}
           </button>
