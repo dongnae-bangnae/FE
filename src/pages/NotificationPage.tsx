@@ -22,33 +22,44 @@ const NotificationPage = () => {
 
   return (
     <div className="w-full max-w-[375px] mx-auto bg-white min-h-screen">
-      <Header title="내 소식" underline />
+      <Header title="내 소식" underline={false} bgColor="bg-[#F3F4F5]" />
 
-      <div className="flex justify-center mt-4">
+      {/* 탭 네비게이션 */}
+      <div className="flex justify-around items-center pt-2 relative bg-[#F3F4F5]">
+        {/* 댓글 탭 */}
         <button
           onClick={() => setTab("comment")}
-          className={`w-[100px] h-[40px] rounded-lg text-sm font-medium ${
-            tab === "comment" ? "bg-[#FFAC33]" : "bg-[#D9D9D99E] text-black"
+          className={`pb-2 text-sm font-medium ${
+            tab === "comment" ? "text-black" : "text-[#888888]"
           }`}
         >
           댓글
         </button>
 
-        <div style={{ width: "17px" }} />
-
+        {/* 광고 의심 탭 */}
         <button
           onClick={() => setTab("ad")}
-          className={`w-[100px] h-[40px] rounded-lg text-sm font-medium ${
-            tab === "ad" ? "bg-[#FFAC33]" : "bg-[#D9D9D99E] text-black"
+          className={`pb-2 text-sm font-medium ${
+            tab === "ad" ? "text-black" : "text-[#888888]"
           }`}
         >
           광고 의심
         </button>
+
+        {/* 하단 바 (주황색) */}
+        <div
+          className={`absolute bottom-0 h-[2px] bg-[#FFA521] transition-all duration-300`}
+          style={{
+            width: "140px",
+            left:
+              tab === "comment" ? "calc(25% - 70px - 4px)" : "calc(75% - 75px)"
+          }}
+        />
       </div>
 
       {/* 구분선 */}
-      <div className="w-full px-4 mt-4">
-        <div className="w-full border-b border-[#E5E5E5]" />
+      <div className="w-full px-4">
+        <div className="w-full border-b border-[#888888]" />
       </div>
 
       {/* 알림 목록 */}
