@@ -13,7 +13,7 @@ export const commentNotifications: NotificationType[] = [
   {
     id: 2,
     type: "comment",
-    nickname: "유엔씨",
+    nickname: "유엠씨",
     postTitle: "연남동 산책길",
     postId: 102,
     isReply: false,
@@ -26,7 +26,8 @@ export const commentNotifications: NotificationType[] = [
     postTitle: "망원동 복카페",
     postId: 103,
     isReply: false,
-    subText: "다양한 고양이 체험이 있어요. 조용한 분위기입니다."
+    subText:
+      "다양한 고양이 체험이 있어요. 조용한 분위기입니다. 사장님도 매우 친절하세요 ㅎㅎ"
   }
 ];
 
