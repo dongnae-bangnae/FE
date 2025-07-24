@@ -1,37 +1,63 @@
 import { useLocation, useNavigate } from "react-router-dom";
 
 import homeIcon from "../../assets/bottom/icon-bottom-home.svg";
+import homeIconActive from "../../assets/bottom/icon-bottom-home-active.svg";
 import mapIcon from "../../assets/bottom/icon-bottom-map.svg";
+import mapIconActive from "../../assets/bottom/icon-bottom-map-active.svg";
 import profileIcon from "../../assets/bottom/icon-bottom-profile.svg";
+import profileIconActive from "../../assets/bottom/icon-bottom-profile-active.svg";
 import writeIcon from "../../assets/bottom/icon-bottom-write.svg";
+import writeIconActive from "../../assets/bottom/icon-bottom-write-active.svg";
 
 const BottomTabBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const visiblePaths = ["/home", "/map", "/record/new", "/mypage"];
-  if (!visiblePaths.includes(location.pathname)) return null;
-
   const tabs = [
-    { path: "/home", icon: homeIcon, label: "홈" },
-    { path: "/map", icon: mapIcon, label: "지도" },
-    { path: "/record/new", icon: writeIcon, label: "작성" },
-    { path: "/mypage", icon: profileIcon, label: "마이" }
+    { path: "/home", label: "홈", icon: homeIcon, activeIcon: homeIconActive },
+    { path: "/map", label: "지도", icon: mapIcon, activeIcon: mapIconActive },
+    {
+      path: "/record/new",
+      label: "작성",
+      icon: writeIcon,
+      activeIcon: writeIconActive
+    },
+    {
+      path: "/mypage",
+      label: "마이",
+      icon: profileIcon,
+      activeIcon: profileIconActive
+    }
   ];
 
   return (
     <div className="w-full h-[60px] bg-white flex justify-center">
-      {/* 탭바 wrapper */}
-      <div className="w-[357px] border-t border-neutral-400 bg-white flex h-[60px]">
-        {tabs.map((tab) => (
-          <button
-            key={tab.path}
-            onClick={() => navigate(tab.path)}
-            className="flex flex-1 flex-col items-center justify-center"
-          >
-            <img src={tab.icon} alt={tab.label} className="w-[26px] h-[26px]" />
-          </button>
-        ))}
+      <div className="w-[357px] border-t border-neutral-300 bg-white flex h-[60px]">
+        {tabs.map((tab) => {
+          const isActive = location.pathname === tab.path;
+
+          return (
+            <button
+              key={tab.path}
+              onClick={() => navigate(tab.path)}
+              className="flex flex-1 items-center justify-center relative"
+            >
+              {/* 강조선 (선택된 탭만) */}
+              {isActive && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[30px] h-[2px] bg-orange-400" />
+              )}
+
+              {/* 실제 아이콘 */}
+              <img
+                src={isActive ? tab.activeIcon : tab.icon}
+                alt={tab.label}
+                className={`object-contain ${
+                  isActive ? "w-[32px] h-[32px]" : "w-[26px] h-[26px]"
+                }`}
+              />
+            </button>
+          );
+        })}
       </div>
     </div>
   );
