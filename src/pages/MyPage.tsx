@@ -71,8 +71,11 @@ function MyPage() {
       <div className="flex justify-center mt-6">
         <button
           onClick={() => setSelectedTab("saved")}
-          className={`w-[90px] h-9 rounded-lg text-sm font-medium
-      ${selectedTab === "saved" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
+          className={`w-[90px] h-9 text-center text-black font-medium text-[14px] rounded-[10px]
+            shadow-[0_2px_4px_rgba(0,0,0,0.25)]
+            ${
+              selectedTab === "saved" ? "bg-[#FFC064]" : "bg-[#D9D9D980]"
+            } transition-all duration-200`}
         >
           저장
         </button>
@@ -81,8 +84,11 @@ function MyPage() {
 
         <button
           onClick={() => setSelectedTab("myPosts")}
-          className={`w-[90px] h-9 rounded-lg text-sm font-medium
-      ${selectedTab === "myPosts" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
+          className={`w-[90px] h-9 text-center text-black font-medium text-[14px] rounded-[10px]
+            shadow-[0_2px_4px_rgba(0,0,0,0.25)]
+            ${
+              selectedTab === "myPosts" ? "bg-[#FFC064]" : "bg-[#D9D9D980]"
+            } transition-all duration-200`}
         >
           내 글
         </button>
@@ -91,8 +97,11 @@ function MyPage() {
 
         <button
           onClick={() => setSelectedTab("pro")}
-          className={`w-[90px] h-9 rounded-lg text-sm font-medium
-      ${selectedTab === "pro" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
+          className={`w-[90px] h-9 text-center text-black font-medium text-[14px] rounded-[10px]
+            shadow-[0_2px_4px_rgba(0,0,0,0.25)]
+            ${
+              selectedTab === "pro" ? "bg-[#FFC064]" : "bg-[#D9D9D980]"
+            } transition-all duration-200`}
         >
           PRO 구독
         </button>
