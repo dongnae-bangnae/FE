@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import NextIcon from "../assets/icon-next.svg";
 import XIcon from "../assets/icon-x.svg";
+import XActivateIcon from "../assets/icon-x-activate.svg";
 import Header from "../components/common/Header";
 import MypageModal from "../components/MypageModal";
 
@@ -103,15 +104,29 @@ function MyProfilePage() {
             {areas.map((area) => (
               <span
                 key={area}
-                className="flex items-center gap-1 text-sm text-black px-3 py-1 rounded-full border border-gray-300"
+                className="group flex items-center gap-1 text-sm text-black px-2 py-[5px] rounded-full
+      border border-[#B3B3B3] outline outline-[2px] outline-[#B3B3B3] outline-offset-[-2px]
+      shadow-[0_2px_4px_rgba(0,0,0,0.25)]
+      hover:border-[#FFA521] hover:outline-[#FFA521] hover:shadow-[0_2px_4px_rgba(255,151,0,0.87)] transition-all"
               >
                 {area}
-                <img
-                  src={XIcon}
-                  alt="삭제"
+                <div
                   className="w-3 h-3 cursor-pointer"
                   onClick={() => handleRemoveArea(area)}
-                />
+                >
+                  {/* hover 시 보여줄 아이콘 */}
+                  <img
+                    src={XActivateIcon}
+                    alt="삭제"
+                    className="hidden group-hover:block"
+                  />
+                  {/* 기본 상태 아이콘 */}
+                  <img
+                    src={XIcon}
+                    alt="삭제"
+                    className="block group-hover:hidden"
+                  />
+                </div>
               </span>
             ))}
           </div>
