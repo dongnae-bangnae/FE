@@ -77,10 +77,10 @@ function MyProfilePage() {
           />
 
           {/* 구분선 */}
-          <div className="w-full mt-4 mb-8 border-b border-[#999]" />
+          <div className="w-[357px] mt-4 mx-auto mb-8 border-b border-[#999]" />
 
           {/* 닉네임 */}
-          <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#D1D5DB] rounded-lg text-sm font-medium mb-3">
+          <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#00000078] rounded-lg text-sm font-medium mb-3 shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
             <span className="text-black px-4">닉네임</span>
             <div className="flex items-center">
               <span className="text-[#6B7280]">푸짐바오</span>
@@ -91,7 +91,7 @@ function MyProfilePage() {
           </div>
 
           {/* 관심 동네 설정 */}
-          <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#D1D5DB] rounded-lg text-sm font-medium">
+          <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#00000078] rounded-lg text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
             <span className="text-black px-4">관심 동네 설정</span>
             <button onClick={() => navigate("/mypage/profile/likeplace")}>
               <img src={NextIcon} alt=">" className="w-3 h-3 mr-2" />
@@ -118,16 +118,16 @@ function MyProfilePage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#D9D9D9] px-6 py-4 flex justify-center gap-[17px] z-50">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[357px] bg-white border-t border-[#999999] px-6 py-4 flex justify-center gap-[17px] z-50">
         <button
           onClick={() => setShowLogoutModal(true)}
-          className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[15px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
+          className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[14px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
         >
           로그아웃
         </button>
         <button
           onClick={() => setShowDeleteAccountModal(true)}
-          className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[15px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
+          className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[14px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
         >
           회원탈퇴
         </button>

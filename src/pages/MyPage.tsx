@@ -98,8 +98,8 @@ function MyPage() {
         </button>
       </div>
 
-      {/* 구분선 E5E5E5 */}
-      <div className="w-full mt-4 border-b border-[#999]" />
+      {/* 구분선 */}
+      <div className="w-[357px] mt-4 mx-auto border-b border-[#999]" />
 
       {/* 저장 탭 */}
       {selectedTab === "saved" && (
