@@ -44,7 +44,12 @@ function CategoryPage() {
 						</button>
 					</div>
 				</div>
-				<button className="mt-auto w-[320px] h-11 bg-[#FFC064] hover:bg-[#FFB347] rounded-md cursor-pointer"
+				<button className={`mt-auto w-[320px] h-11 rounded-md ${
+							selectedCategory
+								? "bg-[#FFC064] hover:bg-[#FFB347] cursor-pointer"
+								: "bg-[#D9D9D9] cursor-not-allowed"
+						}`}
+						disabled={!selectedCategory}
 						onClick={() => {
 							if (selectedCategory) {
 							navigate("/record/:id", {

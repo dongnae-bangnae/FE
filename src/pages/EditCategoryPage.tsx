@@ -1,18 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
-import { CategoryColorName } from "../types/categoryColors";
 import { getColorCode } from "../utils/getColorCode";
 import DeleteCategoryItem from "../components/common/DeleteCategoryItem";
+import useFetchCategories from "../hooks/queries/useFetchCategories";
+import useDeleteCategory from "../hooks/mutations/useDeleteCategory";
+
 
 
 function EditCategoryPage() {
 	const navigate = useNavigate();
 
-	const categories: { categoryId: number, name: string, color: CategoryColorName }[] = [
-		{ categoryId: 0, name: "종로3가", color: "RED" },
-		{ categoryId: 1, name: "상수동", color: "ORANGE" },
-		{ categoryId: 2, name: "연남동", color: "SKYBLUE"}, 
-	];
+	const {data: categories = [], isLoading, isError} = useFetchCategories(); 
+	const { mutate: deleteCategory } = useDeleteCategory();
+
+	const handleDelete = (id: number) => {
+	if (confirm("정말 삭제하시겠어요?")) {
+		deleteCategory(id);
+	}
+};
 
 	return (
 		<div className="bg-[#F2F2F7] min-h-screen flex flex-col relative">
@@ -31,6 +36,7 @@ function EditCategoryPage() {
 									color: cat.color,
 								}
 							})}
+							onDelete={() => handleDelete(cat.categoryId)}
 						/>
 					))}
 				</div>
