@@ -2,6 +2,7 @@ import { useState } from "react";
 import Header from "../components/common/Header";
 import { CategoryColorName, categoryColors } from "../types/categoryColors";
 import { useNavigate } from "react-router-dom";
+import useCreateCategory from "../hooks/mutations/useCreateCategory";
 
 function AddCategoryPage() {
 	const [categoryName, setCategoryName] = useState("");
@@ -9,6 +10,21 @@ function AddCategoryPage() {
 
 	const navigate = useNavigate();
 	const isFormValid = categoryName.trim() !== "" && categoryColor !== null;
+
+	const { mutate: createCategory } = useCreateCategory(); 
+
+	const handleSubmit = () => {
+		if (!categoryName || !categoryColor) return; 
+
+		createCategory(
+			{name: categoryName, color: categoryColor}, 
+			{
+				onSuccess: () => {
+					navigate("/category");
+				},
+			}
+		);
+	}
 
 	return (
 		<div className="flex flex-col min-h-screen">
@@ -49,7 +65,7 @@ function AddCategoryPage() {
 				</div>
 
 				<button
-					onClick={() => navigate("/category")}
+					onClick={handleSubmit}
 					disabled={!isFormValid}
 					className={`items-center w-[320px] h-11 rounded-md ${
 						isFormValid

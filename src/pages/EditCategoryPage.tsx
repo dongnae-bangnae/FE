@@ -9,9 +9,9 @@ function EditCategoryPage() {
 	const navigate = useNavigate();
 
 	const categories: { categoryId: number, name: string, color: CategoryColorName }[] = [
-		{ categoryId: 0, name: "종로3가", color: "red" },
-		{ categoryId: 1, name: "상수동", color: "orange" },
-		{ categoryId: 2, name: "연남동", color: "sky"}, 
+		{ categoryId: 0, name: "종로3가", color: "RED" },
+		{ categoryId: 1, name: "상수동", color: "ORANGE" },
+		{ categoryId: 2, name: "연남동", color: "SKYBLUE"}, 
 	];
 
 	return (
