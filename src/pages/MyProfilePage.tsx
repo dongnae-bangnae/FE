@@ -1,6 +1,8 @@
 import { ChangeEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
+import circleCheck from "../assets/icon-circleCheck.svg";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import NextIcon from "../assets/icon-next.svg";
 import XIcon from "../assets/icon-x.svg";
@@ -10,6 +12,9 @@ import MypageModal from "../components/MypageModal";
 
 function MyProfilePage() {
   const navigate = useNavigate();
+  const [toastMessage, setToastMessage] = useState("");
+  const location = useLocation();
+
   const [profileUrl, setProfileUrl] = useState<string>("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
@@ -53,6 +58,19 @@ function MyProfilePage() {
   const handleRemoveArea = (area: string) => {
     setAreas((prev) => prev.filter((item) => item !== area));
   };
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setToastMessage(location.state.message);
+
+      // 2초 후 메시지 자동 사라짐
+      const timer = setTimeout(() => {
+        setToastMessage("");
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   return (
     <>
@@ -168,6 +186,14 @@ function MyProfilePage() {
           confirmText="회원탈퇴"
           cancelText="취소"
         />
+      )}
+
+      {/* 토스트 메시지 영역 */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[354px] px-4 py-2.5 bg-[#9A7B6F]/80 text-white text-sm rounded-lg flex items-center gap-2 z-50 shadow-md">
+          <img src={circleCheck} alt="체크 아이콘" className="w-5 h-5" />
+          <span className="truncate">{toastMessage}</span>
+        </div>
       )}
     </>
   );
