@@ -5,11 +5,13 @@ import RecordBottomNav from "../components/Record/RecordBottomNav";
 import { useState } from "react";
 import MiniMap from "../components/Record/MiniMap";
 import Header from "../components/common/Header";
+import RecordSpinner from "../components/Record/RecordSpinner";
 
 
 const RecordDetail = () => {
   const { state } = useLocation();
   const [showMenu, setShowMenu] = useState(false);
+  const [ isLoading, setIsLoading ] = useState(false);
 
   const { title, content, images, date }: {
     title: string;
@@ -82,6 +84,9 @@ const RecordDetail = () => {
                         src={src}
                         alt={`preview-${index}`}
                         className="w-full h-full object-cover"
+                        onLoad={() => setIsLoading(false)}
+                        onError={() => setIsLoading(false)}
+                        onLoadStart={() => setIsLoading(true)}
                       />
                     </div>
                   ))}
@@ -133,6 +138,8 @@ const RecordDetail = () => {
         </button>
       </div>
     )}
+
+    {isLoading && <RecordSpinner />}
 
 
     </>
