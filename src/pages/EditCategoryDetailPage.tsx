@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Header from "../components/common/Header";
 import { CategoryColorName, categoryColors } from "../types/categoryColors";
+import useEditCategory from "../hooks/mutations/useEditCategory";
 
 function EditCategoryDetailPage() {
 	const { categoryId } = useParams();
@@ -9,13 +10,30 @@ function EditCategoryDetailPage() {
 	const navigate = useNavigate();
 
 	const { name, color } = location.state || {};
-
 	const [categoryName, setCategoryName] = useState(name || "");
-	const [categoryColor, setCategoryColor] = useState<CategoryColorName | null>(
-		color || null
-	);
+	const [categoryColor, setCategoryColor] = useState<CategoryColorName | null>(color || null);
+	const { mutate: editCategory, isPending } = useEditCategory();
 
 	const isFormValid = categoryName.trim() !== "" && categoryColor !== null;
+
+	const handleSubmit = () => {
+		if (!categoryId || !categoryColor) return;
+
+		editCategory(
+			{
+				categoryId: Number(categoryId),
+				body: {
+					name: categoryName.trim(),
+					color: categoryColor
+				}
+			},
+			{
+				onSuccess: () => {
+					navigate("/category/edit");
+				},
+			}
+		)
+	}; 
 
 	return (
 		<div className="flex flex-col min-h-screen">
@@ -54,7 +72,7 @@ function EditCategoryDetailPage() {
 				</div>
 
 				<button
-					onClick={() => navigate("/category/edit")}
+					onClick={handleSubmit}
 					disabled={!isFormValid}
 					className={`items-center w-[320px] h-11 rounded-md ${
 						isFormValid

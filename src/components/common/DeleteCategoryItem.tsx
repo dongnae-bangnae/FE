@@ -6,9 +6,10 @@ interface CategoryItemProps {
 	name: string;
 	color: string;
 	onClick?: () => void;
+	onDelete?: () => void;
 }
 
-function DeleteCategoryItem({ name, color, onClick }: CategoryItemProps) {
+function DeleteCategoryItem({ name, color, onClick, onDelete }: CategoryItemProps) {
 
 	return (
 		<div
@@ -25,7 +26,13 @@ function DeleteCategoryItem({ name, color, onClick }: CategoryItemProps) {
 				<span className="text-md text-black font-medium">{name}</span>
 			</div>
 
-			<DeleteIcon />
+			<div className=' hover:bg-[#FDF3F7] transition-colors'
+				onClick={(e) => {
+				e.stopPropagation();
+				onDelete?.(); 
+			}}>
+				<DeleteIcon />
+			</div>
 		</div>
 	);
 }
