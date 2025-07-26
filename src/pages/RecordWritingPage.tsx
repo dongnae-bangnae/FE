@@ -4,22 +4,15 @@ import colors from "../styles/colors";
 import fonts from "../styles/fonts";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
 import SelectIcon from "../assets/top/icon-top-select.svg";
-import CalendarIcon_w from "../assets/record/icon-calendar-white.svg";
-import GalleryIcon_w from "../assets/record/icon-gallery-white.svg";
-import FileIcon_w from "../assets/record/icon-file-white.svg";
-import PinIcon_w from "../assets/record/icon-map-white.svg";
 import CalendarIcon from "../assets/icon-calendar.svg";
 import GalleryIcon from "../assets/record/icon-image-yellow.svg";
 import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
-import CalendarIcon_o from "../assets/record/icon-calendar-orange.svg";
-import GalleryIcon_o from "../assets/record/icon-gallery-orange.svg";
-import FileIcon_o from "../assets/record/icon-file-orange.svg";
-import PinIcon_o from "../assets/record/icon-map-orange.svg";
 import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
 import GalleryPreview from "../components/Record/GalleryPreview";
+import VerticalToolbar from "../components/Record/VerticalToolbar";
 
 function RecordWritingPage() {
   const location = useLocation();
@@ -37,7 +30,6 @@ function RecordWritingPage() {
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
 
   const [ isLoading, setIsLoading ] = useState(false);
-  const [ hoveredIcon, setHoveredIcon ] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -223,73 +215,13 @@ function RecordWritingPage() {
         </div>
       )}
 
-      {/* 기본 세로형 플로팅 버튼 툴바 (갤러리/달력 모달 off시) */}
-      {!showCalendar && !showGallery && (
-        <div className="fixed left-1/2 -translate-x-1/2 bottom-0 z-50" style={{ width: "390px", height: "100%", pointerEvents: "none"}}>
-        <div className="absolute bottom-[20px] right-[20px] flex flex-col gap-[6px]"
-             style={{pointerEvents: "auto"}}  
-        >
-          <button
-            className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
-            onClick={() => setShowCalendar(true)}
-            onMouseEnter={() => setHoveredIcon("calendar")}
-            onMouseLeave={() => setHoveredIcon(null)}
-            style={{backgroundColor: colors.primaryDark}}
-          >
-            <img
-              src={hoveredIcon === "calendar" ? CalendarIcon_o : CalendarIcon_w}
-              alt="달력"
-              className="w-[24px] h-[24px]"
-            />
-          </button>
-
-          <button
-            className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
-            onClick={() => setShowGallery(true)}
-            onMouseEnter={() => setHoveredIcon("gallery")}
-            onMouseLeave={() => setHoveredIcon(null)}
-            style={{backgroundColor: colors.primaryDark}}
-          >
-            <img
-              src={hoveredIcon === "gallery" ? GalleryIcon_o : GalleryIcon_w}
-              alt="갤러리"
-              className="w-[24px] h-[24px]"
-            />
-          </button>
-
-          <button
-            className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
-            onClick={handleGalleryClick}
-            onMouseEnter={() => setHoveredIcon("file")}
-            onMouseLeave={() => setHoveredIcon(null)}
-            style={{backgroundColor: colors.primaryDark}}
-          >
-            <img
-              src={hoveredIcon === "file" ? FileIcon_o : FileIcon_w}
-              alt="카메라"
-              className="w-[24px] h-[24px]"
-            />
-          </button>
-
-          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-
-          <button
-            className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
-            onClick={() => navigate("/map/new")}
-            onMouseEnter={() => setHoveredIcon("map")}
-            onMouseLeave={() => setHoveredIcon(null)}
-            style={{backgroundColor: colors.primaryDark}}
-          >
-            <img
-              src={hoveredIcon === "map" ? PinIcon_o : PinIcon_w}
-              alt="지도"
-              className="w-[24px] h-[24px]"
-            />
-          </button>
-        </div>
-      </div>
-
-      )}
+      {/* 세로형 툴바*/}
+      <VerticalToolbar
+        show={!showCalendar && !showGallery}
+        onCalendarClick={() => setShowCalendar(true)}
+        onGalleryClick={() => setShowGallery(true)}
+        onFileChange={handleFileChange}
+      />
 
 
       {/* 갤러리 팝업 */}
