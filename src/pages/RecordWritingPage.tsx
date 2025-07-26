@@ -12,7 +12,6 @@ import CalendarIcon from "../assets/icon-calendar.svg";
 import GalleryIcon from "../assets/record/icon-image-yellow.svg";
 import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
-import CheckIcon from "../assets/icon-selected.svg";
 import CalendarIcon_o from "../assets/record/icon-calendar-orange.svg";
 import GalleryIcon_o from "../assets/record/icon-gallery-orange.svg";
 import FileIcon_o from "../assets/record/icon-file-orange.svg";
@@ -20,6 +19,7 @@ import PinIcon_o from "../assets/record/icon-map-orange.svg";
 import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
+import GalleryPreview from "../components/Record/GalleryPreview";
 
 function RecordWritingPage() {
   const location = useLocation();
@@ -118,78 +118,21 @@ function RecordWritingPage() {
           </div>
         </div>
 
-        <>
-          {/* 스타일 정의 (컴포넌트 내부에 유지) */}
-          <style>
-            {`
-              @keyframes flash1 {
-                0%, 100% { opacity: 1; }
-                33%, 66% { opacity: 0.3; }
-              }
-              @keyframes flash2 {
-                0%, 33% { opacity: 0.3; }
-                34%, 66% { opacity: 1; }
-                67%, 100% { opacity: 0.3; }
-              }
-              @keyframes flash3 {
-                0%, 66% { opacity: 0.3; }
-                67%, 100% { opacity: 1; }
-              }
-
-              .submit-button {
-                background-color: ${colors.gray200};
-                width: 65px;
-                height: 39px;
-                font-size: 14px;
-                font-weight: ${fonts.weight.medium};
-                padding: 8px 18px;
-                border-radius: 9px;
-                border: none;
-                margin-right: 12px;
-                cursor: pointer;
-                transition: background-color 0.2s ease-in-out;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              }
-
-              .submit-button:hover {
-                background-color: ${colors.primaryDark};
-              }
-
-              .dot {
-                width: 6px;
-                height: 6px;
-                margin: 0 3px;
-                border-radius: 50%;
-                background-color: #D57F00;
-                display: inline-block;
-                vertical-align: middle;
-              }
-
-              .dot:nth-child(1) { animation: flash1 1.2s infinite; }
-              .dot:nth-child(2) { animation: flash2 1.2s infinite; }
-              .dot:nth-child(3) { animation: flash3 1.2s infinite; }
-            `}
-          </style>
-
-          {/* 등록 버튼 */}
-          <button
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className="submit-button"
-          >
-            {isLoading ? (
-              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-                <span className="dot" />
-                <span className="dot" />
-                <span className="dot" />
-              </div>
-            ) : (
-              "등록"
-            )}
-          </button>
-        </>
+        <button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="submit-button"
+        >
+          {isLoading ? (
+            <div className="submit-loading-dots">
+              <span className="submit-dot" />
+              <span className="submit-dot" />
+              <span className="submit-dot" />
+            </div>
+          ) : (
+            "등록"
+          )}
+        </button>
       </div>
 
       {/* 본문 */}
@@ -349,35 +292,20 @@ function RecordWritingPage() {
       )}
 
 
-      {/* 선택 사진 미리보기 */}
+      {/* 갤러리 팝업 */}
       {showGallery && (
         <div
           className="fixed left-1/2 -translate-x-1/2 bottom-[0] z-40"
           style={{ width: "390px", height: "240px", padding: "7px", overflowY: "auto" }}
         >
-          <div className="grid grid-cols-3">
-            {galleryImages.map((src, idx) => {
-              const isSelected = selectedImages.includes(src);
-              return (
-                <div key={idx} className="relative h-[126px] w-[126px]">
-                  <img
-                    src={src}
-                    alt={`gallery-${idx}`}
-                    className="object-cover w-full h-full rounded-[10px] cursor-pointer"
-                    onClick={() => handleImageSelect(src)}
-                    style={{padding: "3px 4px"}}
-                  />
-                  {isSelected && (
-                    <div className="absolute bottom-[10px] right-[10px] w-[24px] h-[24px] rounded-full bg-[orange] text-[white] flex items-center justify-center text-sm font-bold z-10">
-                      <img src={CheckIcon}/>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <GalleryPreview
+            images={galleryImages}
+            selectedImages={selectedImages}
+            onSelect={handleImageSelect}
+          />
         </div>
       )}
+
 
       {/* CalendarModal */}
       {showCalendar && (
