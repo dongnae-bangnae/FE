@@ -8,6 +8,7 @@ import RingIcon from "../assets/icon-ring.svg";
 import SettingIcon from "../assets/icon-setting.svg";
 import Header from "../components/common/Header";
 import MyPostItem from "../components/MyPostItem";
+import { useMyInfo } from "../hooks/queries/useMyInfo.ts";
 import { CategoryColorName } from "../types/categoryColors";
 import { getColorCode } from "../utils/getColorCode";
 
@@ -16,6 +17,7 @@ function MyPage() {
   const [selectedTab, setSelectedTab] = useState<"saved" | "myPosts" | "pro">(
     "saved"
   );
+  const { data: myInfo, isLoading } = useMyInfo();
 
   const savedCategories: { name: string; color: CategoryColorName }[] = [
     { name: "종로 3가", color: "green" },
@@ -60,11 +62,11 @@ function MyPage() {
       {/* 프로필 */}
       <div className="flex flex-col items-center">
         <img
-          src={DefaultProfile}
+          src={myInfo?.profileImage || DefaultProfile}
           alt="프로필"
-          className="w-20 h-20d rounded-full mb-3"
+          className="w-20 h-20 rounded-full mb-3 object-cover"
         />
-        <p className="text-md font-semibold">@기영이</p>
+        <p className="text-md font-semibold">@{myInfo?.nickname || "닉네임"}</p>
       </div>
 
       {/* 탭 버튼 */}
