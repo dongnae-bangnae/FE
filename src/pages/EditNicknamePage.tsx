@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Header from "../components/common/Header";
+import { usePatchNickname } from "../hooks/mutations/usePatchNickname";
 
 function EditNicknamePage() {
   const navigate = useNavigate();
   const [nickname, setNickname] = useState("");
+  const { mutate } = usePatchNickname();
 
   // 닉네임 변경 입력 핸들러
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -14,11 +16,15 @@ function EditNicknamePage() {
     }
   };
 
-  // 변경 완료 버튼 클릭 시 회원 정보 페이지로 이동
+  // 닉네임 변경 후 회원 정보 페이지로 이동
   const handleSubmit = () => {
-    navigate("/mypage/profile", {
-      replace: true,
-      state: { message: "닉네임이 변경되었어요" }
+    mutate(nickname, {
+      onSuccess: () => {
+        navigate("/mypage/profile", {
+          replace: true,
+          state: { message: "닉네임이 변경되었어요" }
+        });
+      }
     });
   };
 
