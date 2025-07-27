@@ -27,7 +27,7 @@ function NewRecordPage() {
       {/* 본문 */}
       <div className="flex-1 flex items-center justify-center">
         <button
-          onClick={() => navigate("/record/:id")}
+          onClick={() => navigate("/record/new/write")}
           className="flex items-center justify-center gap-[9px]"
           style={{
             backgroundColor: colors.primaryLight,
