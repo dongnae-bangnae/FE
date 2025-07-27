@@ -10,7 +10,7 @@ import XActivateIcon from "../assets/icon-x-activate.svg";
 import Header from "../components/common/Header";
 import MypageModal from "../components/MypageModal";
 import { usePatchProfileImage } from "../hooks/mutations/usePatchProfileImage";
-import { useMyInfo } from "../hooks/queries/useMyInfo";
+import { useMyInfo } from "../hooks/queries/useMyInfo.ts";
 
 function MyProfilePage() {
   const navigate = useNavigate();
@@ -91,7 +91,7 @@ function MyProfilePage() {
           {/* 프로필 사진 */}
           <label htmlFor="profile-upload" className="cursor-pointer">
             <img
-              src={myInfo?.profileImageUrl || DefaultProfile}
+              src={myInfo?.profileImage || DefaultProfile}
               alt="프로필"
               className="w-24 h-24 rounded-full object-cover mb-4"
             />

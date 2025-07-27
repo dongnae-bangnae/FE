@@ -10,7 +10,7 @@ export const usePatchNickname = () => {
     onSuccess: (data) => {
       if (data?.isSuccess) {
         alert("닉네임이 성공적으로 변경되었습니다!");
-        queryClient.invalidateQueries(["myInfo"]); // 변경 필요 (회원 정보 refetch 등_
+        queryClient.invalidateQueries({ queryKey: ["myInfo"] }); // 변경 필요 (회원 정보 refetch 등_
       } else {
         alert(data?.message || "닉네임 변경에 실패했습니다.");
       }

@@ -8,7 +8,7 @@ import RingIcon from "../assets/icon-ring.svg";
 import SettingIcon from "../assets/icon-setting.svg";
 import Header from "../components/common/Header";
 import MyPostItem from "../components/MyPostItem";
-import { useMyInfo } from "../hooks/queries/useMyInfo";
+import { useMyInfo } from "../hooks/queries/useMyInfo.ts";
 import { CategoryColorName } from "../types/categoryColors";
 import { getColorCode } from "../utils/getColorCode";
 
@@ -62,7 +62,7 @@ function MyPage() {
       {/* 프로필 */}
       <div className="flex flex-col items-center">
         <img
-          src={myInfo?.profileImageUrl || DefaultProfile}
+          src={myInfo?.profileImage || DefaultProfile}
           alt="프로필"
           className="w-20 h-20 rounded-full mb-3 object-cover"
         />
