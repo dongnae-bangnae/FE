@@ -12,3 +12,16 @@ export const patchNickname = async (nickname: string) => {
   );
   return response.data;
 };
+
+export const patchRegions = async (regionIds: number[]) => {
+  const response = await axiosInstance.patch(
+    "/member/regions",
+    { regionIds },
+    {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  );
+  return response.data;
+};

@@ -22,7 +22,7 @@ function MyProfilePage() {
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
-  const [areas, setAreas] = useState<string[]>(["연남동", "종로 3가"]);
+  const [areas, setAreas] = useState<string[]>([]);
 
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -80,6 +80,15 @@ function MyProfilePage() {
       return () => clearTimeout(timer);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    console.log("myInfo", myInfo);
+    console.log("✅ myInfo.likePlaces", myInfo?.likePlaces);
+    console.log("✅ areas", areas);
+    if (myInfo?.likePlaces) {
+      setAreas(myInfo.likePlaces.map((place) => place.name));
+    }
+  }, [myInfo]);
 
   return (
     <>

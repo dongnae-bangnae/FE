@@ -27,7 +27,16 @@ export const useMyInfo = () => {
         throw new Error("유저 정보가 없습니다.");
       }
 
-      return result;
+      const likePlaces =
+        result.likeRegions?.map((r: any) => ({
+          regionId: r.id,
+          name: r.name
+        })) ?? [];
+
+      return {
+        ...result,
+        likePlaces
+      };
     }
   });
 };
