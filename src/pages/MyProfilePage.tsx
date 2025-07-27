@@ -9,23 +9,32 @@ import XIcon from "../assets/icon-x.svg";
 import XActivateIcon from "../assets/icon-x-activate.svg";
 import Header from "../components/common/Header";
 import MypageModal from "../components/MypageModal";
+import { usePatchProfileImage } from "../hooks/mutations/usePatchProfileImage";
+import { useMyInfo } from "../hooks/queries/useMyInfo";
 
 function MyProfilePage() {
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState("");
   const location = useLocation();
 
-  const [profileUrl, setProfileUrl] = useState<string>("");
+  const { data: myInfo } = useMyInfo();
+  const { mutate: patchProfileImage } = usePatchProfileImage();
+
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [areas, setAreas] = useState<string[]>(["연남동", "종로 3가"]);
 
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setProfileUrl(previewUrl);
+    if (!file) return;
+
+    // 최대 10MB 제한
+    if (file.size > 10 * 1024 * 1024) {
+      setToastMessage("10MB 이하의 이미지만 업로드할 수 있어요");
+      return;
     }
+
+    patchProfileImage(file); // 성공 시 자동으로 invalidate → 이미지 리렌더됨
   };
 
   const handleLogout = () => {
@@ -82,7 +91,7 @@ function MyProfilePage() {
           {/* 프로필 사진 */}
           <label htmlFor="profile-upload" className="cursor-pointer">
             <img
-              src={profileUrl || DefaultProfile}
+              src={myInfo?.profileImageUrl || DefaultProfile}
               alt="프로필"
               className="w-24 h-24 rounded-full object-cover mb-4"
             />
@@ -102,7 +111,9 @@ function MyProfilePage() {
           <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#00000078] rounded-lg text-sm font-medium mb-3 shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
             <span className="text-black px-4">닉네임</span>
             <div className="flex items-center">
-              <span className="text-[#6B7280]">푸짐바오</span>
+              <span className="text-[#6B7280]">
+                {myInfo?.nickname || "닉네임"}
+              </span>
               <button onClick={() => navigate("/mypage/profile/nickname")}>
                 <img src={NextIcon} alt=">" className="w-3 h-3 ml-1 mr-2" />
               </button>
