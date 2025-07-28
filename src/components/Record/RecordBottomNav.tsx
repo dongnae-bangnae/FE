@@ -4,20 +4,34 @@ import CommentIcon from "../../assets/icon-comment.svg";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import fonts from "../../styles/fonts";
+import { useLikeArticle } from "../../hooks/mutations/useLikearticle";
+// import { LikeResponse } from "../../types/article";
 
 
 interface Props {
+  articleId: number,
   likes: number;
   ban: number;
   comments: number;
   // active?: "comment"; 
 }
 
-const RecordBottomNav = ({comments}: Props) => {
+const RecordBottomNav = ({articleId, likes, comments}: Props) => {
   const navigate = useNavigate();
-  const [likeCount, setLikeCount] = useState(0);
+  const { mutate: like } = useLikeArticle(articleId);
+
+  const [likeCount, setLikeCount] = useState(likes);
+
   const handleLike = () => {
-    setLikeCount((prev) => prev + 1);
+     like(undefined, {
+      onSuccess: (res) => {
+        alert("좋아요가 등록되었습니다");
+        setLikeCount(res.likeCount);
+      },
+      onError: () => {
+        alert("좋아요 등록 실패");
+      },
+    });
   }
 
   const [banCount, setBanCount] = useState(0);
@@ -55,6 +69,8 @@ const RecordBottomNav = ({comments}: Props) => {
 };
 
 export default RecordBottomNav;
+
+
 
 
 
