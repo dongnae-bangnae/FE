@@ -6,7 +6,7 @@ import { useState } from "react";
 import fonts from "../../styles/fonts";
 import { useLikeArticle } from "../../hooks/mutations/useLikearticle";
 // import { LikeResponse } from "../../types/article";
-
+import { useReportSpam } from "../../hooks/mutations/useReportSpam";
 
 interface Props {
   articleId: number,
@@ -16,9 +16,11 @@ interface Props {
   // active?: "comment"; 
 }
 
-const RecordBottomNav = ({articleId, likes, comments}: Props) => {
+const RecordBottomNav = ({articleId, likes, comments}: Props) => { 
   const navigate = useNavigate();
+
   const { mutate: like } = useLikeArticle(articleId);
+  const { mutate: reportSpam } = useReportSpam(articleId);
 
   const [likeCount, setLikeCount] = useState(likes);
 
@@ -36,8 +38,19 @@ const RecordBottomNav = ({articleId, likes, comments}: Props) => {
 
   const [banCount, setBanCount] = useState(0);
   const handleBan = () => {
-    setBanCount((prev) => prev + 1);
-  }
+    const confirmed = window.confirm("해당 게시글을 광고로 신고하시겠습니까?");
+    if (!confirmed) return;
+
+    reportSpam(undefined, {
+      onSuccess: () => {
+        alert("신고가 접수되었습니다.");
+        setBanCount((prev) => prev + 1);
+      },
+      onError: () => {
+        alert("신고 접수에 실패했습니다.");
+      }
+    });
+  };
 
 
   return (

@@ -23,7 +23,7 @@ const toFormData = (form: ArticleForm) => {
   return formData;
 };
 
-/** 게시글 작성 */
+//게시글 작성
 export const createArticle = async (data: ArticleForm): Promise<number> => {
   const formData = toFormData(data);
   const { data: response } = await axiosInstance.post<ApiResponse<{ articleId: number }>>(
@@ -33,31 +33,37 @@ export const createArticle = async (data: ArticleForm): Promise<number> => {
   return response.result.articleId;
 };
 
-/** 게시글 수정 */
-export const editArticle = async (articleId: number, data: ArticleForm): Promise<void> => {
-  const formData = toFormData(data);
-  await axiosInstance.patch(`/api/articles/${articleId}`, formData);
-};
+//게시글 수정
+// export const editArticle = async (articleId: number, data: ArticleForm): Promise<void> => {
+//   const formData = toFormData(data);
+//   await axiosInstance.patch(`/api/articles/${articleId}`, formData);
+// };
 
-/** 게시글 삭제 */
-export const deleteArticle = async (articleId: number): Promise<void> => {
-  await axiosInstance.delete(`/api/articles/${articleId}`);
-};
+//게시글 삭제
+// export const deleteArticle = async (articleId: number): Promise<void> => {
+//   await axiosInstance.delete(`/api/articles/${articleId}`);
+// };
 
-/** 게시글 상세 조회 */
+//게시글 상세 조회
 export const getArticleDetail = async (articleId: number): Promise<ArticleDetail> => {
   const { data } = await axiosInstance.get<ApiResponse<ArticleDetail>>(`/api/articles/${articleId}`);
   return data.result;
 };
 
-/** 좋아요 등록 */
+//좋아요 등록
 export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
   const { data } = await axiosInstance.post<ApiResponse<LikeResponse>>(`/api/articles/${articleId}/likes`);
   return data.result;
 };
 
-/** 좋아요 취소 */
+//좋아요 취소
 export const unlikeArticle = async (articleId: number): Promise<LikeResponse> => {
   const { data } = await axiosInstance.delete<ApiResponse<LikeResponse>>(`/api/articles/${articleId}/likes`);
   return data.result;
+};
+
+//신고 등록
+export const reportSpam = async (articleId: number): Promise<ApiResponse<null>> => {
+  const response = await axiosInstance.post(`/api/articles/${articleId}/spams`);
+  return response.data;
 };
