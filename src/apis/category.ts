@@ -8,12 +8,20 @@ export const fetchCategory = async (): Promise<Category[]> => {
 }
 
 export const createCategory = async (payload: CreateCategoryRequest): Promise<CreateCategoryResponse> => {
-    const {data} = await axiosInstance.post<ApiResponse<CreateCategoryResponse>>("/api/categories", payload);
+    const {data} = await axiosInstance.post<ApiResponse<CreateCategoryResponse>>("/api/categories", payload, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
     return data.result;
 }
 
 export const editCategory = async (categoryId: number, body: EditCategoryRequest) => {
-	const { data } = await axiosInstance.put(`/api/categories/${categoryId}`, body);
+	const { data } = await axiosInstance.put(`/api/categories/${categoryId}`, body, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
 	return data;
 };
 

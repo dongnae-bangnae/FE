@@ -35,7 +35,7 @@ function RecordWritingPage() {
     setIsLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 800)); // 로딩 스피너 보기 위한 딜레이
-      navigate('/record/:id/detail', {
+      navigate('/record/:id', {
         state: {
           title,
           content,

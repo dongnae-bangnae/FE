@@ -1,4 +1,4 @@
-/* 중앙 스피너 오버레이 */
+/* 중앙 스피너  */
 .spinner-overlay {
   position: fixed;
   top: 0;
@@ -12,7 +12,7 @@
   align-items: center;
 }
 
-/* 회전 점 12개용 (MiniSpinner) */
+/* 회전 점  */
 .spinner-circle {
   position: relative;
   width: 72px;
@@ -29,7 +29,6 @@
   animation: blink 1.2s infinite;
 }
 
-/* 각 점에 회전 지연 */
 .spinner-dot:nth-child(1) { transform: rotate(0deg) translate(30px); animation-delay: 0s; }
 .spinner-dot:nth-child(2) { transform: rotate(30deg) translate(30px); animation-delay: 0.1s; }
 .spinner-dot:nth-child(3) { transform: rotate(60deg) translate(30px); animation-delay: 0.2s; }

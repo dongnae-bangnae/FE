@@ -10,7 +10,7 @@ import useFetchCategories from "../hooks/queries/useFetchCategories";
 
 function CategoryPage() {
 	const navigate = useNavigate();
-	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+	const [selectedCategory, setSelectedCategory] = useState<{categoryId: number; name: string;} | null>(null);
 	const [showEditPopup, setShowEditPopup] = useState(false);
 
 	const {data: categories = [], isLoading, isError} = useFetchCategories(); 
@@ -23,11 +23,11 @@ function CategoryPage() {
 				<div className="bg-white rounded-xl w-full max-w-[400px] px-5 pt-5 pb-10">
 					{!isLoading && !isError && categories.map((cat) => (
 						<CategoryItem
-							key={cat.name}
+							key={cat.categoryId}
 							name={cat.name}
 							color={getColorCode(cat.color)}
-							selected={selectedCategory === cat.name}
-							onClick={() => setSelectedCategory(cat.name)}
+							selected={selectedCategory?.name === cat.name}
+							onClick={() => setSelectedCategory({ categoryId: cat.categoryId, name: cat.name })}
 						/>
 					))}
 					<div className="mt-5">
@@ -52,9 +52,10 @@ function CategoryPage() {
 						disabled={!selectedCategory}
 						onClick={() => {
 							if (selectedCategory) {
-							navigate("/record/:id", {
+							navigate("/record/new/write", {
 								state: {
-								selectedCategory: selectedCategory,
+									categoryId: selectedCategory.categoryId,
+									categoryName: selectedCategory.name,
 								},
 							});
 							}

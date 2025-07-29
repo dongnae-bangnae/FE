@@ -45,7 +45,7 @@ const GalleryPreview = ({ images, selectedImages, onSelect }: GalleryPreviewProp
                 onClick={() => onSelect(src)}
                 onLoad={() => handleImageLoad(src)}
                 onError={() => handleImageError(src)}
-                style={{ padding: "2px 3px" }}
+                style={{ padding: "1px 5px" }}
               />
 
               {isLoading && (
