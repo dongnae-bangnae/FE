@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import StarIcon from "../assets/category-star.svg";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
-import PencilIcon from "../assets/icon-pencil.svg";
 import RingIcon from "../assets/icon-ring.svg";
 import SettingIcon from "../assets/icon-setting.svg";
+import CategoryItem from "../components/common/CategoryItem.tsx";
 import Header from "../components/common/Header";
-import MyPostItem from "../components/MyPostItem";
 import { useMyInfo } from "../hooks/queries/useMyInfo.ts";
 import { CategoryColorName } from "../types/categoryColors";
 import { getColorCode } from "../utils/getColorCode";
@@ -116,10 +114,9 @@ function MyPage() {
       {selectedTab === "saved" && (
         <div className="w-full px-5 mt-6">
           {savedCategories.map((cat) => (
-            <MyPostItem
+            <CategoryItem
               key={cat.name}
               name={cat.name}
-              image={StarIcon}
               color={getColorCode(cat.color)}
               onClick={() => navigate(`/mypage/saved/${cat.name}`)} // 저장 장소 상세 페이지로 이동
             />
@@ -131,11 +128,11 @@ function MyPage() {
       {selectedTab === "myPosts" && (
         <div className="w-full px-5 mt-6">
           {myPostCategories.map((cat) => (
-            <MyPostItem
+            <CategoryItem
               key={cat.name}
               name={cat.name}
-              image={PencilIcon}
               color={getColorCode(cat.color)}
+              iconType="pencil"
               onClick={() => navigate(`/mypage/locationposts`)}
             />
           ))}
