@@ -34,7 +34,7 @@ function RecordWritingPage() {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800)); // 로딩 스피너 보기 위한 딜레이
+      await new Promise((resolve) => setTimeout(resolve, 800)); // 로딩 스피너 
       navigate('/record/:id', {
         state: {
           title,
@@ -73,13 +73,6 @@ function RecordWritingPage() {
       return [...prev, src];
     });
   };
-
-
-  // const isFormValid =
-  // title.trim() !== "" &&
-  // content.trim() !== "" &&
-  // selectedImages.length > 0 &&
-  // pinLocation !== null;
 
   return (
     
