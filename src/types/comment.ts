@@ -14,15 +14,4 @@ export interface CreateCommentResponse {
   parentCommentId: number | null;
 }
 
-export interface CommentItem {
-  commentId: number;
-  articleId: number;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  parentCommentId: number | null;
-}
-
 export type CreateCommentApiResponse = ApiResponse<CreateCommentResponse>;
-
-export type GetCommentsResponse = ApiResponse<CommentItem[]>;
