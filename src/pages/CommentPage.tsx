@@ -14,7 +14,7 @@ interface LocationState {
 function CommentPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const articleId = (state as LocationState)?.articleId ?? 1; //임시지정
+  const articleId = (state as LocationState)?.articleId ?? 3; //임시지정
 
   const [newComment, setNewComment] = useState("");
   const { mutate: createComment } = useCreateComment(articleId);
@@ -25,11 +25,11 @@ function CommentPage() {
     createComment(
       {
         content: newComment,
-        parentCommentId: 0,
+        parentCommentId: null,
       },
       {
-        onSuccess: () => {
-          alert("댓글이 등록되었습니다.");
+        onSuccess: (data) => {
+          console.log("댓글 정보: ", data.result)
           setNewComment("");
         },
         onError: () => {
