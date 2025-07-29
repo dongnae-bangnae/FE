@@ -2,23 +2,32 @@
 import { useEffect, useState } from "react";
 import CheckIcon from "../../assets/icon-selected.svg";
 import MiniSpinner from "./MiniSpinner";
+import { useDefaultImages } from "../../hooks/queries/useDefaultImgaes";
+import { getDefaultImageUrl } from "../../apis/defaultImages";
 
 interface GalleryPreviewProps {
-  images: string[];
   selectedImages: string[];
   onSelect: (src: string) => void;
 }
 
-const GalleryPreview = ({ images, selectedImages, onSelect }: GalleryPreviewProps) => {
+const GalleryPreview = ({ selectedImages, onSelect }: GalleryPreviewProps) => {
+  const { data: images = [], isLoading, isError } = useDefaultImages();
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    const newKeys = images.map((img) => getDefaultImageUrl(img.uuid)).sort();
+    const currentKeys = Object.keys(loadingMap).sort();
+
+    const isSame = JSON.stringify(newKeys) === JSON.stringify(currentKeys);
+    if (isSame) return; // 이미 같은 key면 setState 안함
+
     const map: Record<string, boolean> = {};
-    images.forEach((src) => {
-      map[src] = true;
+    newKeys.forEach((url) => {
+      map[url] = true;
     });
     setLoadingMap(map);
   }, [images]);
+
 
   const handleImageLoad = (src: string) => {
     setLoadingMap((prev) => ({ ...prev, [src]: false }));
@@ -32,12 +41,13 @@ const GalleryPreview = ({ images, selectedImages, onSelect }: GalleryPreviewProp
   return (
     <>
       <div className="grid grid-cols-3">
-        {images.map((src, idx) => {
+        {images.map((img, idx) => {
+          const src = getDefaultImageUrl(img.uuid);
           const isSelected = selectedImages.includes(src);
           const isLoading = loadingMap[src];
 
           return (
-            <div key={idx} className="relative h-[126px] w-[126px]">
+            <div key={img.uuid} className="relative h-[126px] w-[126px]">
               <img
                 src={src}
                 alt={`gallery-${idx}`}

@@ -8,7 +8,6 @@ import CalendarIcon from "../assets/icon-calendar.svg";
 import GalleryIcon from "../assets/record/icon-image-yellow.svg";
 import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
-import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
 import GalleryPreview from "../components/Record/GalleryPreview";
@@ -224,7 +223,6 @@ function RecordWritingPage() {
           style={{ width: "390px", height: "240px", padding: "7px", overflowY: "auto" }}
         >
           <GalleryPreview
-            images={galleryImages}
             selectedImages={selectedImages}
             onSelect={handleImageSelect}
           />
