@@ -34,7 +34,7 @@ const NotificationItem = ({ item, onDelete }: Props) => {
 
   return (
     <div
-      className="relative bg-white px-4 py-3 border-b border-[#D9D9D9] cursor-pointer"
+      className="relative bg-white px-4 py-3 border-b border-[#888888] cursor-pointer"
       onClick={handleClick}
     >
       {/* 닫기 버튼 */}

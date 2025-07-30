@@ -4,26 +4,57 @@ import CommentIcon from "../../assets/icon-comment.svg";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import fonts from "../../styles/fonts";
-
+import { useLikeArticle } from "../../hooks/mutations/useLikeArticle";
+// import { LikeResponse } from "../../types/article";
+import { useReportSpam } from "../../hooks/mutations/useReportSpam";
 
 interface Props {
+  articleId: number,
   likes: number;
   ban: number;
   comments: number;
-  // active?: "comment"; 
+  onShowConfirm?: () => void;
 }
 
-const RecordBottomNav = ({comments}: Props) => {
+const RecordBottomNav = ({articleId, likes, comments, onShowConfirm}: Props) => { 
   const navigate = useNavigate();
-  const [likeCount, setLikeCount] = useState(0);
+
+  const { mutate: like } = useLikeArticle(articleId);
+  const { mutate: reportSpam } = useReportSpam();
+
+  const [likeCount, setLikeCount] = useState(likes);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const handleLike = () => {
-    setLikeCount((prev) => prev + 1);
+     like(undefined, {
+      onSuccess: (res) => {
+        alert("좋아요가 등록되었습니다");
+        setLikeCount(res.likeCount);
+      },
+      onError: () => {
+        alert("좋아요 등록 실패");
+      },
+    });
   }
 
   const [banCount, setBanCount] = useState(0);
   const handleBan = () => {
-    setBanCount((prev) => prev + 1);
-  }
+    onShowConfirm?.();
+  };
+  
+  const confirmReport = () => {
+    reportSpam(articleId, {
+      onSuccess: () => {
+        setBanCount((prev) => prev + 1);
+        setShowConfirm(false);
+      },
+      onError: () => {
+        alert("신고 접수에 실패했습니다.");
+        setShowConfirm(false);
+      },
+    });
+  };
+
 
 
   return (
@@ -45,8 +76,9 @@ const RecordBottomNav = ({comments}: Props) => {
         </button>
       </div>
       <div className="relative flex items-center gap-[15px]">
-        <button onClick={()=>navigate("/record/:id/detail/comments")} className="flex gap-[15px]">
-          <img src={CommentIcon} width={23} height={23} />
+        <button onClick={()=>navigate(`/record/${articleId}/comments`,{ state: { articleId: 3} })} className="flex gap-[15px]">
+          <img src={CommentIcon} width={23} height={23} /> 
+          {/* articleId임시지정 */}
           <span>{comments}</span>
         </button>
       </div>
@@ -55,6 +87,10 @@ const RecordBottomNav = ({comments}: Props) => {
 };
 
 export default RecordBottomNav;
+
+
+
+
 
 
 

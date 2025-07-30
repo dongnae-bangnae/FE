@@ -1,36 +1,33 @@
 import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
-import { CategoryColorName } from "../types/categoryColors";
 import { getColorCode } from "../utils/getColorCode";
 import CategoryItem from "../components/common/CategoryItem";
 import { useState } from "react";
 import IconOption from "../assets/top/icon-option.svg?react";
 import OptionMessage from "../components/common/OptionMessage";
+import useFetchCategories from "../hooks/queries/useFetchCategories";
 
 
 function CategoryPage() {
 	const navigate = useNavigate();
-	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+	const [selectedCategory, setSelectedCategory] = useState<{categoryId: number; name: string; color: string;} | null>(null);
 	const [showEditPopup, setShowEditPopup] = useState(false);
 
-	const categories: { name: string; color: CategoryColorName }[] = [
-		{ name: "종로3가", color: "red" },
-		{ name: "상수동", color: "orange" },
-		{ name: "연남동", color: "sky"}, 
-	];
+	const {data: categories = [], isLoading, isError} = useFetchCategories(); 
 
 	return (
 		<div className="bg-[#F2F2F7] min-h-screen flex flex-col relative">
-			<Header title="카테고리 설정" underline={false} bgColor="bg-[#F2F2F7]" right={<button onClick={() => setShowEditPopup(!showEditPopup)}><IconOption className="w-6 h-6 mr-5" />{showEditPopup && <OptionMessage />}</button>} />
+			<Header title="카테고리 설정" underline={false} bgColor="bg-[#F2F2F7]" 
+					right={<button onClick={() => setShowEditPopup(!showEditPopup)}><IconOption className="w-6 h-6 mr-5" />{showEditPopup && <OptionMessage message="기존 카테고리 편집하기" onClick={() => navigate('/category/edit')}/>}</button>} />
 			<div className="flex flex-col flex-1 items-center px-5 pt-5 pb-6">
 				<div className="bg-white rounded-xl w-full max-w-[400px] px-5 pt-5 pb-10">
-					{categories.map((cat) => (
+					{!isLoading && !isError && categories.map((cat) => (
 						<CategoryItem
-							key={cat.name}
+							key={cat.categoryId}
 							name={cat.name}
 							color={getColorCode(cat.color)}
-							selected={selectedCategory === cat.name}
-							onClick={() => setSelectedCategory(cat.name)}
+							selected={selectedCategory?.name === cat.name}
+							onClick={() => setSelectedCategory({ categoryId: cat.categoryId, name: cat.name , color: cat.color})}
 						/>
 					))}
 					<div className="mt-5">
@@ -47,12 +44,19 @@ function CategoryPage() {
 						</button>
 					</div>
 				</div>
-				<button className="mt-auto w-[320px] h-11 bg-[#FFC064] hover:bg-[#FFB347] rounded-md cursor-pointer"
+				<button className={`mt-auto w-[320px] h-11 rounded-md ${
+							selectedCategory
+								? "bg-[#FFC064] hover:bg-[#FFB347] cursor-pointer"
+								: "bg-[#D9D9D9] cursor-not-allowed"
+						}`}
+						disabled={!selectedCategory}
 						onClick={() => {
 							if (selectedCategory) {
-							navigate("/record/:id", {
+							navigate("/record/new/write", {
 								state: {
-								selectedCategory: selectedCategory,
+									categoryId: selectedCategory.categoryId,
+									categoryColor: selectedCategory.color,
+									categoryName: selectedCategory.name,
 								},
 							});
 							}

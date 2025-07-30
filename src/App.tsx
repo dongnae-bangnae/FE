@@ -28,8 +28,9 @@ import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
-import SelectedPinTypePage from "./pages/SelectPinTypePage";
 import CommentPage from "./pages/CommentPage";
+import EditCategoryPage from "./pages/EditCategoryPage";
+import EditCategoryDetailPage from "./pages/EditCategoryDetailPage";
 
 const routes: RouteObject[] = [
   {
@@ -43,12 +44,11 @@ const routes: RouteObject[] = [
       { path: "home", element: <HomePage /> },
       { path: "record/list", element: <RecordListPage /> },
       { path: "record/new", element: <NewRecordPage /> },
-      { path: "record/:id", element: <RecordWritingPage /> },
-      { path: "record/:id/detail", element: <RecordDetailPage /> },
-      { path: "record/:id/detail/comments", element: <CommentPage /> },
+      { path: "record/new/write", element: <RecordWritingPage /> },
+      { path: "record/:id", element: <RecordDetailPage /> },
+      { path: "record/:id/comments", element: <CommentPage /> },
       { path: "map", element: <MapPage /> },
       { path: "map/new", element: <NewPlacePage /> },
-      { path: "map/select-pin", element: <SelectedPinTypePage /> },
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/notification", element: <NotificationPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
@@ -58,7 +58,9 @@ const routes: RouteObject[] = [
       { path: "mypage/saved/:placeId/list", element: <MyPostListPage /> },
       { path: "mypage/locationposts", element: <LocationPostsPage /> },
       { path: "category", element: <CategoryPage /> },
-      { path: "category/new", element: <AddCategoryPage /> }
+      { path: "category/new", element: <AddCategoryPage /> },
+      { path: "category/edit", element: <EditCategoryPage/> },
+      { path: "category/edit/:categoryId", element: <EditCategoryDetailPage /> },
     ]
   }
 ];

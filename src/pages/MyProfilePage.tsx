@@ -1,25 +1,40 @@
 import { ChangeEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
+import circleCheck from "../assets/icon-circleCheck.svg";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import NextIcon from "../assets/icon-next.svg";
 import XIcon from "../assets/icon-x.svg";
+import XActivateIcon from "../assets/icon-x-activate.svg";
 import Header from "../components/common/Header";
 import MypageModal from "../components/MypageModal";
+import { usePatchProfileImage } from "../hooks/mutations/usePatchProfileImage";
+import { useMyInfo } from "../hooks/queries/useMyInfo.ts";
 
 function MyProfilePage() {
   const navigate = useNavigate();
-  const [profileUrl, setProfileUrl] = useState<string>("");
+  const [toastMessage, setToastMessage] = useState("");
+  const location = useLocation();
+
+  const { data: myInfo } = useMyInfo();
+  const { mutate: patchProfileImage } = usePatchProfileImage();
+
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
-  const [areas, setAreas] = useState<string[]>(["연남동", "종로 3가"]);
+  const [areas, setAreas] = useState<string[]>([]);
 
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setProfileUrl(previewUrl);
+    if (!file) return;
+
+    // 최대 10MB 제한
+    if (file.size > 10 * 1024 * 1024) {
+      setToastMessage("10MB 이하의 이미지만 업로드할 수 있어요");
+      return;
     }
+
+    patchProfileImage(file); // 성공 시 자동으로 invalidate → 이미지 리렌더됨
   };
 
   const handleLogout = () => {
@@ -53,6 +68,28 @@ function MyProfilePage() {
     setAreas((prev) => prev.filter((item) => item !== area));
   };
 
+  useEffect(() => {
+    if (location.state?.message) {
+      setToastMessage(location.state.message);
+
+      // 2초 후 메시지 자동 사라짐
+      const timer = setTimeout(() => {
+        setToastMessage("");
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    console.log("myInfo", myInfo);
+    console.log("✅ myInfo.likePlaces", myInfo?.likePlaces);
+    console.log("✅ areas", areas);
+    if (myInfo?.likePlaces) {
+      setAreas(myInfo.likePlaces.map((place) => place.name));
+    }
+  }, [myInfo]);
+
   return (
     <>
       <Header title="회원정보" underline={true} />
@@ -63,7 +100,7 @@ function MyProfilePage() {
           {/* 프로필 사진 */}
           <label htmlFor="profile-upload" className="cursor-pointer">
             <img
-              src={profileUrl || DefaultProfile}
+              src={myInfo?.profileImage || DefaultProfile}
               alt="프로필"
               className="w-24 h-24 rounded-full object-cover mb-4"
             />
@@ -77,13 +114,15 @@ function MyProfilePage() {
           />
 
           {/* 구분선 */}
-          <div className="w-full mt-4 mb-8 border-b border-[#999]" />
+          <div className="w-[357px] mt-4 mx-auto mb-8 border-b border-[#999]" />
 
           {/* 닉네임 */}
-          <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#D1D5DB] rounded-lg text-sm font-medium mb-3">
+          <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#00000078] rounded-lg text-sm font-medium mb-3 shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
             <span className="text-black px-4">닉네임</span>
             <div className="flex items-center">
-              <span className="text-[#6B7280]">푸짐바오</span>
+              <span className="text-[#6B7280]">
+                {myInfo?.nickname || "닉네임"}
+              </span>
               <button onClick={() => navigate("/mypage/profile/nickname")}>
                 <img src={NextIcon} alt=">" className="w-3 h-3 ml-1 mr-2" />
               </button>
@@ -91,7 +130,7 @@ function MyProfilePage() {
           </div>
 
           {/* 관심 동네 설정 */}
-          <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#D1D5DB] rounded-lg text-sm font-medium">
+          <div className="w-[340px] flex justify-between items-center py-2.5 border border-[#00000078] rounded-lg text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
             <span className="text-black px-4">관심 동네 설정</span>
             <button onClick={() => navigate("/mypage/profile/likeplace")}>
               <img src={NextIcon} alt=">" className="w-3 h-3 mr-2" />
@@ -103,31 +142,45 @@ function MyProfilePage() {
             {areas.map((area) => (
               <span
                 key={area}
-                className="flex items-center gap-1 text-sm text-black px-3 py-1 rounded-full border border-gray-300"
+                className="group flex items-center gap-1 text-sm text-black px-2 py-[5px] rounded-full
+      border border-[#B3B3B3] outline outline-[2px] outline-[#B3B3B3] outline-offset-[-2px]
+      shadow-[0_2px_4px_rgba(0,0,0,0.25)]
+      hover:border-[#FFA521] hover:outline-[#FFA521] hover:shadow-[0_2px_4px_rgba(255,151,0,0.87)] transition-all"
               >
                 {area}
-                <img
-                  src={XIcon}
-                  alt="삭제"
+                <div
                   className="w-3 h-3 cursor-pointer"
                   onClick={() => handleRemoveArea(area)}
-                />
+                >
+                  {/* hover 시 보여줄 아이콘 */}
+                  <img
+                    src={XActivateIcon}
+                    alt="삭제"
+                    className="hidden group-hover:block"
+                  />
+                  {/* 기본 상태 아이콘 */}
+                  <img
+                    src={XIcon}
+                    alt="삭제"
+                    className="block group-hover:hidden"
+                  />
+                </div>
               </span>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#999] px-4 py-3 flex justify-center gap-3 z-50">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[357px] bg-white border-t border-[#999999] px-6 py-4 flex justify-center gap-[17px] z-50">
         <button
           onClick={() => setShowLogoutModal(true)}
-          className="w-[120px] bg-[#E5E5E5] text-black py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-[#FFC064] transition-colors duration-200"
+          className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[14px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
         >
           로그아웃
         </button>
         <button
           onClick={() => setShowDeleteAccountModal(true)}
-          className="w-[120px] bg-[#E5E5E5] text-black py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-[#FFC064] transition-colors duration-200"
+          className="w-[105px] h-[40px] px-4 py-[10px] bg-[#ECECEC] hover:bg-[#FFB54D] text-black text-[14px] font-normal rounded-[9px] outline outline-[2px] outline-[#ECECEC] hover:outline-[#FFB54D] outline-offset-[-2px] shadow-[2px_2px_4px_rgba(245,245,245,0.75)] hover:shadow-[2px_2px_4px_rgba(255,170,51,0.25)] transition-all duration-200"
         >
           회원탈퇴
         </button>
@@ -153,6 +206,14 @@ function MyProfilePage() {
           confirmText="회원탈퇴"
           cancelText="취소"
         />
+      )}
+
+      {/* 토스트 메시지 영역 */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[354px] px-4 py-2.5 bg-[#9A7B6F]/80 text-white text-sm rounded-lg flex items-center gap-2 z-50 shadow-md">
+          <img src={circleCheck} alt="체크 아이콘" className="w-5 h-5" />
+          <span className="truncate">{toastMessage}</span>
+        </div>
       )}
     </>
   );

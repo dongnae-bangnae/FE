@@ -1,10 +1,52 @@
+import { useEffect, useState } from "react";
 import RepresentativeBadge from "./RepresentativeBadge";
+import MiniSpinner from "./MiniSpinner";
 
 interface ImagePreviewProps {
   selectedImages: string[];
 }
 
 const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
+  const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const map: Record<string, boolean> = {};
+    selectedImages.forEach((src) => {
+      map[src] = true;
+    });
+    setLoadingMap(map);
+  }, [selectedImages]);
+
+  const handleImageLoad = (src: string) => {
+    setLoadingMap((prev) => {
+      if (!prev[src]) return prev;
+      return { ...prev, [src]: false };
+    });
+  };
+
+  const renderImage = (
+    src: string,
+    width: number,
+    height: number,
+    index: number,
+    showBadge = false
+  ) => (
+    <div className="relative" style={{ width, height }} key={index}>
+      <img
+        src={src}
+        alt={`preview-${index}`}
+        className="w-full h-full object-cover rounded-[15px]"
+        onLoad={() => handleImageLoad(src)}
+      />
+      {loadingMap[src] && (
+        <div className="absolute inset-0 flex justify-center items-center bg-[#D9D9D9] rounded-[15px]">
+          <MiniSpinner size={height <= 89 ? 24 : 48} />
+        </div>
+      )}
+      {showBadge && <RepresentativeBadge />}
+    </div>
+  );
+
   if (selectedImages.length === 0) return null;
 
   const FiveImageGrid = ({ images }: { images: string[] }) => {
@@ -12,27 +54,16 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
 
     if (length === 1) {
       return (
-        <img
-          src={images[0]}
-          alt="preview-single"
-          className="w-[375px] h-[184px] object-cover rounded-[15px]"
-        />
+        <div className="flex gap-[6px]">
+          {renderImage(images[0], 375, 184, 0)}
+        </div>
       );
     }
 
     if (length === 2) {
       return (
         <div className="flex gap-[6px]">
-          {images.map((src, index) => (
-            <div key={index} className="w-[184px] h-[184px] relative">
-              <img
-                src={src}
-                alt={`preview-${index}`}
-                className="w-full h-full object-cover rounded-[15px]"
-              />
-              {index === 0 && <RepresentativeBadge />}
-            </div>
-          ))}
+          {images.map((src, index) => renderImage(src, 184, 184, index, index === 0))}
         </div>
       );
     }
@@ -40,23 +71,9 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
     if (length === 3) {
       return (
         <div className="flex gap-[6px]">
-          <div className="w-[184px] h-[184px] relative">
-            <img
-              src={images[0]}
-              alt="대표"
-              className="w-full h-full object-cover rounded-[15px]"
-            />
-            <RepresentativeBadge />
-          </div>
+          {renderImage(images[0], 184, 184, 0, true)}
           <div className="flex flex-col gap-[6px]">
-            {images.slice(1).map((src, index) => (
-              <img
-                key={index}
-                src={src}
-                alt={`preview-${index + 1}`}
-                className="w-[184px] h-[89px] object-cover rounded-[15px]"
-              />
-            ))}
+            {images.slice(1).map((src, index) => renderImage(src, 184, 89, index + 1))}
           </div>
         </div>
       );
@@ -65,29 +82,11 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
     if (length === 4) {
       return (
         <div className="flex gap-[6px]">
-          <div className="w-[184px] h-[184px] relative">
-            <img
-              src={images[0]}
-              alt="대표"
-              className="w-full h-full object-cover rounded-[15px]"
-            />
-            <RepresentativeBadge />
-          </div>
+          {renderImage(images[0], 184, 184, 0, true)}
           <div className="flex flex-col gap-[6px]">
-            <img
-              src={images[1]}
-              alt="preview-2"
-              className="w-[184px] h-[89px] object-cover rounded-[15px]"
-            />
+            {renderImage(images[1], 184, 89, 1)}
             <div className="flex gap-[6px]">
-              {images.slice(2, 4).map((src, index) => (
-                <img
-                  key={index}
-                  src={src}
-                  alt={`preview-${index + 3}`}
-                  className="w-[89px] h-[89px] object-cover rounded-[15px]"
-                />
-              ))}
+              {images.slice(2, 4).map((src, index) => renderImage(src, 89, 89, index + 2))}
             </div>
           </div>
         </div>
@@ -96,23 +95,9 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
 
     return (
       <div className="flex gap-[6px]">
-        <div className="w-[184px] h-[184px] relative">
-          <img
-            src={images[0]}
-            alt="대표"
-            className="w-full h-full object-cover rounded-[15px]"
-          />
-          <RepresentativeBadge />
-        </div>
+        {renderImage(images[0], 184, 184, 0, true)}
         <div className="grid grid-cols-2 grid-rows-2 gap-[6px]">
-          {images.slice(1, 5).map((src, index) => (
-            <img
-              key={index}
-              src={src}
-              alt={`preview-${index + 2}`}
-              className="w-[89px] h-[89px] object-cover rounded-[15px]"
-            />
-          ))}
+          {images.slice(1, 5).map((src, index) => renderImage(src, 89, 89, index + 1))}
         </div>
       </div>
     );
@@ -139,87 +124,48 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
         {selectedImages.length <= 5 ? (
           <FiveImageGrid images={selectedImages} />
         ) : (
-          <div className="overflow-x-auto hide-scrollbar w-full">
+          <div className="overflow-x-auto hide-scrollbar">
             <div className="flex items-start w-max">
               <div className="flex-shrink-0">
                 <FiveImageGrid images={selectedImages.slice(0, 5)} />
               </div>
 
               <div className="flex gap-[6px] flex-shrink-0 ml-[6px]">
-                {selectedImages.length === 6 && (
-                  <img
-                    src={selectedImages[5]}
-                    alt="preview-6"
-                    className="w-[184px] h-[184px] object-cover rounded-[15px]"
-                  />
-                )}
+                {selectedImages.length === 6 && renderImage(selectedImages[5], 184, 184, 5)}
 
                 {selectedImages.length === 7 && (
                   <div className="flex flex-col gap-[6px]">
-                    <img
-                      src={selectedImages[5]}
-                      alt="preview-6"
-                      className="w-[184px] h-[89px] object-cover rounded-[15px]"
-                    />
-                    <img
-                      src={selectedImages[6]}
-                      alt="preview-7"
-                      className="w-[184px] h-[89px] object-cover rounded-[15px]"
-                    />
+                    {renderImage(selectedImages[5], 184, 89, 5)}
+                    {renderImage(selectedImages[6], 184, 89, 6)}
                   </div>
                 )}
 
                 {selectedImages.length === 8 && (
                   <div className="flex flex-col gap-[6px]">
-                    <img
-                      src={selectedImages[5]}
-                      alt="preview-6"
-                      className="w-[184px] h-[89px] object-cover rounded-[15px]"
-                    />
+                    {renderImage(selectedImages[5], 184, 89, 5)}
                     <div className="flex gap-[6px]">
-                      {selectedImages.slice(6, 8).map((src, index) => (
-                        <img
-                          key={index}
-                          src={src}
-                          alt={`preview-${index + 7}`}
-                          className="w-[89px] h-[89px] object-cover rounded-[15px]"
-                        />
-                      ))}
+                      {selectedImages.slice(6, 8).map((src, index) =>
+                        renderImage(src, 89, 89, index + 6)
+                      )}
                     </div>
                   </div>
                 )}
 
                 {selectedImages.length === 9 && (
                   <div className="grid grid-cols-2 grid-rows-2 gap-[6px]">
-                    {selectedImages.slice(5, 9).map((src, index) => (
-                      <img
-                        key={index}
-                        src={src}
-                        alt={`preview-${index + 6}`}
-                        className="w-[89px] h-[89px] object-cover rounded-[15px]"
-                      />
-                    ))}
+                    {selectedImages.slice(5, 9).map((src, index) =>
+                      renderImage(src, 89, 89, index + 5)
+                    )}
                   </div>
                 )}
 
                 {selectedImages.length === 10 && (
                   <>
-                    <div className="w-[184px] h-[184px]">
-                      <img
-                        src={selectedImages[5]}
-                        alt="preview-6"
-                        className="w-full h-full object-cover rounded-[15px]"
-                      />
-                    </div>
+                    {renderImage(selectedImages[5], 184, 184, 5)}
                     <div className="grid grid-cols-2 grid-rows-2 gap-[6px]">
-                      {selectedImages.slice(6, 10).map((src, index) => (
-                        <img
-                          key={index}
-                          src={src}
-                          alt={`preview-${index + 7}`}
-                          className="w-[89px] h-[89px] object-cover rounded-[15px]"
-                        />
-                      ))}
+                      {selectedImages.slice(6, 10).map((src, index) =>
+                        renderImage(src, 89, 89, index + 6)
+                      )}
                     </div>
                   </>
                 )}

@@ -24,7 +24,7 @@ function CategoryItem({ name, color, selected = false, onClick }: CategoryItemPr
 				outlineWidth: "1px",
 				outlineColor: focused || selected ? color : "#D1D5DB", 
 				backgroundColor: selected ? `${color}30` : "transparent",
-				boxShadow: focused || selected ? `0 2px 3px  ${color}80` : "0 1px 2px #D1D5DB",
+				boxShadow: focused || selected ? `2px 3px 4px  ${color}80` : "0 2px 4px #D1D5DB80",
 			}}>
 			<div className="flex items-center gap-1.5">
 				<StarIcon className="w-5 h-5" style={{ color: color, backgroundColor: "#FFFFFF", borderRadius: "9999px", }} />

@@ -4,19 +4,15 @@ import colors from "../styles/colors";
 import fonts from "../styles/fonts";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
 import SelectIcon from "../assets/top/icon-top-select.svg";
-import CalendarIcon_w from "../assets/record/icon-calendar-white.svg";
-import GalleryIcon_w from "../assets/record/icon-gallery-white.svg";
-import FileIcon_w from "../assets/record/icon-file-white.svg";
-import PinIcon_w from "../assets/record/icon-map-white.svg";
 import CalendarIcon from "../assets/icon-calendar.svg";
 import GalleryIcon from "../assets/record/icon-image-yellow.svg";
 import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
-import CheckIcon from "../assets/icon-selected.svg";
-import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
-
+import GalleryPreview from "../components/Record/GalleryPreview";
+import VerticalToolbar from "../components/Record/VerticalToolbar";
+import MiniMap from "../components/Record/MiniMap";
 
 function RecordWritingPage() {
   const location = useLocation();
@@ -32,16 +28,26 @@ function RecordWritingPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
+  const lat = location.state?.latitude ?? 37.5665;
+  const lng = location.state?.longitutde ?? 126.9080; //임시 위도, 경도 지정
 
-  const handleSubmit = async() => {
-    navigate('/record/:id/detail', {
+  const [ isLoading, setIsLoading ] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800)); // 로딩 스피너 보기 위한 딜레이
+      navigate('/record/:id', {
         state: {
-            title,
-            content,
-            images: selectedImages,
-            date: selectedDate, 
-            },
-    });
+          title,
+          content,
+          images: selectedImages,
+          date: selectedDate,
+        },
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGalleryClick = () => {
@@ -78,11 +84,12 @@ function RecordWritingPage() {
   // pinLocation !== null;
 
   return (
+    
     <div className="flex flex-col h-full relative" style={{ fontFamily: fonts.family }}>
       {/* 상단 바 */}
       <div className="w-full h-[56px] flex items-center border-b border-[#000] justify-between">
         <div className="w-[60px] flex items-center justify-start pl-2">
-          <button onClick={() =>  navigate('/home')}>
+          <button onClick={() => navigate('/home')}>
             <img
               src={BackIcon}
               alt="뒤로가기"
@@ -94,31 +101,31 @@ function RecordWritingPage() {
               }}
             />
           </button>
-      </div>
+        </div>
+
         <div>
           <div className="flex items-center gap-[10px]">
             <span className="text-base font-semibold text-center flex-1 truncate">{selectedCategory}</span>
             <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
-              <img src={SelectIcon} alt="select" width={15} height={15} style={{marginTop: "2px"}}/>
+              <img src={SelectIcon} alt="select" width={15} height={15} style={{ marginTop: "2px" }} />
             </button>
           </div>
         </div>
-        <button onClick={handleSubmit}
-          style={{
-            backgroundColor: colors.gray200,
-            width: "65px",
-            height: "39px",
-            fontSize: "14px",
-            fontWeight: fonts.weight.medium,
-            padding: "8px 18px",
-            borderRadius: "9px",
-            border: "none",
-            marginRight: "12px"
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primaryDark)}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.gray200)}
+
+        <button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="submit-button"
         >
-          등록
+          {isLoading ? (
+            <div className="submit-loading-dots">
+              <span className="submit-dot" />
+              <span className="submit-dot" />
+              <span className="submit-dot" />
+            </div>
+          ) : (
+            "등록"
+          )}
         </button>
       </div>
 
@@ -161,6 +168,24 @@ function RecordWritingPage() {
           <ImagePreview selectedImages={selectedImages} />
         </div>
 
+        {/* 지도 미리보기 */}
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[293px]"
+          style={{
+            bottom: "15px"
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            <MiniMap lat={lat} lng={lng} />
+          </div>
+        </div>
+
       </div>
 
       {/* 갤러리 모달 열렸을 때 가로 툴바 */}
@@ -168,7 +193,7 @@ function RecordWritingPage() {
         <div
           className="fixed left-1/2 -translate-x-1/2 z-50 rounded-[15px]"
           style={{
-            bottom: "232px",
+            bottom: "250px",
             width: "365px",
             height: "58px",
             display: "flex",
@@ -201,7 +226,13 @@ function RecordWritingPage() {
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
 
-            <button style={{ all: "unset" }} onClick={() => navigate("/map/new")}>
+            <button style={{ all: "unset" }} 
+                    onClick={() => navigate("/map/new", {
+                      state: {
+                        categoryColor: location.state?.categoryColor,
+                        categoryName: location.state?.categoryName,
+                      }
+                    })}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
                    style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
               />
@@ -210,80 +241,28 @@ function RecordWritingPage() {
         </div>
       )}
 
-      {/* 기본 세로형 플로팅 버튼 툴바 (갤러리/달력 모달 off시) */}
-      {!showCalendar && !showGallery && (
-        <div className="fixed left-1/2 -translate-x-1/2 bottom-0 z-50" style={{ width: "390px", height: "100%", pointerEvents: "none"}}>
-        <div className="absolute bottom-[20px] right-[20px] flex flex-col gap-[6px]"
-             style={{pointerEvents: "auto"}}  
-        >
-          <button
-            className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
-            onClick={() => setShowCalendar(true)}
-            style={{backgroundColor: colors.primaryDark}}
-          >
-            <img src={CalendarIcon_w} alt="달력" className="w-[24px] h-[24px]" />
-          </button>
-
-          <button
-            className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
-            onClick={() => setShowGallery(true)}
-            style={{backgroundColor: colors.primaryDark}}
-          >
-            <img src={GalleryIcon_w} alt="갤러리" className="w-[24px] h-[24px]" />
-          </button>
-
-          <button
-            className="w-[52px] h-[52px] rounded-full bg-[#E5AC45] flex justify-center items-center shadow"
-            onClick={handleGalleryClick}
-            style={{backgroundColor: colors.primaryDark}}
-          >
-            <img src={FileIcon_w} alt="카메라" className="w-[24px] h-[24px]" />
-          </button>
-
-          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-
-          <button
-            className="w-[52px] h-[52px] rounded-full bg-[#E5AC45] flex justify-center items-center shadow"
-            onClick={() => navigate("/map/new")}
-            style={{backgroundColor: colors.primaryDark}}
-          >
-            <img src={PinIcon_w} alt="지도" className="w-[24px] h-[24px]" />
-          </button>
-        </div>
-      </div>
-
-      )}
+      {/* 세로형 툴바*/}
+      <VerticalToolbar
+        show={!showCalendar && !showGallery}
+        onCalendarClick={() => setShowCalendar(true)}
+        onGalleryClick={() => setShowGallery(true)}
+        onFileChange={handleFileChange}
+      />
 
 
-      {/* 선택 사진 미리보기 */}
+      {/* 갤러리 팝업 */}
       {showGallery && (
         <div
           className="fixed left-1/2 -translate-x-1/2 bottom-[0] z-40"
           style={{ width: "390px", height: "240px", padding: "7px", overflowY: "auto" }}
         >
-          <div className="grid grid-cols-3">
-            {galleryImages.map((src, idx) => {
-              const isSelected = selectedImages.includes(src);
-              return (
-                <div key={idx} className="relative h-[126px] w-[126px]">
-                  <img
-                    src={src}
-                    alt={`gallery-${idx}`}
-                    className="object-cover w-full h-full rounded-[10px] cursor-pointer"
-                    onClick={() => handleImageSelect(src)}
-                    style={{padding: "3px 4px"}}
-                  />
-                  {isSelected && (
-                    <div className="absolute bottom-[10px] right-[10px] w-[24px] h-[24px] rounded-full bg-[orange] text-[white] flex items-center justify-center text-sm font-bold z-10">
-                      <img src={CheckIcon}/>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <GalleryPreview
+            selectedImages={selectedImages}
+            onSelect={handleImageSelect}
+          />
         </div>
       )}
+
 
       {/* CalendarModal */}
       {showCalendar && (
@@ -296,6 +275,8 @@ function RecordWritingPage() {
           }}
         />
       )}
+
+      
 </div>
 
 );

@@ -8,6 +8,7 @@ import RingIcon from "../assets/icon-ring.svg";
 import SettingIcon from "../assets/icon-setting.svg";
 import Header from "../components/common/Header";
 import MyPostItem from "../components/MyPostItem";
+import { useMyInfo } from "../hooks/queries/useMyInfo.ts";
 import { CategoryColorName } from "../types/categoryColors";
 import { getColorCode } from "../utils/getColorCode";
 
@@ -16,6 +17,7 @@ function MyPage() {
   const [selectedTab, setSelectedTab] = useState<"saved" | "myPosts" | "pro">(
     "saved"
   );
+  const { data: myInfo, isLoading } = useMyInfo();
 
   const savedCategories: { name: string; color: CategoryColorName }[] = [
     { name: "종로 3가", color: "green" },
@@ -60,19 +62,22 @@ function MyPage() {
       {/* 프로필 */}
       <div className="flex flex-col items-center">
         <img
-          src={DefaultProfile}
+          src={myInfo?.profileImage || DefaultProfile}
           alt="프로필"
-          className="w-20 h-20d rounded-full mb-3"
+          className="w-20 h-20 rounded-full mb-3 object-cover"
         />
-        <p className="text-md font-semibold">@기영이</p>
+        <p className="text-md font-semibold">@{myInfo?.nickname || "닉네임"}</p>
       </div>
 
       {/* 탭 버튼 */}
       <div className="flex justify-center mt-6">
         <button
           onClick={() => setSelectedTab("saved")}
-          className={`w-[90px] h-9 rounded-lg text-sm font-medium
-      ${selectedTab === "saved" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
+          className={`w-[90px] h-9 text-center text-black font-medium text-[14px] rounded-[10px]
+            shadow-[0_2px_4px_rgba(0,0,0,0.25)]
+            ${
+              selectedTab === "saved" ? "bg-[#FFC064]" : "bg-[#D9D9D980]"
+            } transition-all duration-200`}
         >
           저장
         </button>
@@ -81,8 +86,11 @@ function MyPage() {
 
         <button
           onClick={() => setSelectedTab("myPosts")}
-          className={`w-[90px] h-9 rounded-lg text-sm font-medium
-      ${selectedTab === "myPosts" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
+          className={`w-[90px] h-9 text-center text-black font-medium text-[14px] rounded-[10px]
+            shadow-[0_2px_4px_rgba(0,0,0,0.25)]
+            ${
+              selectedTab === "myPosts" ? "bg-[#FFC064]" : "bg-[#D9D9D980]"
+            } transition-all duration-200`}
         >
           내 글
         </button>
@@ -91,15 +99,18 @@ function MyPage() {
 
         <button
           onClick={() => setSelectedTab("pro")}
-          className={`w-[90px] h-9 rounded-lg text-sm font-medium
-      ${selectedTab === "pro" ? "bg-[#FFC064]" : "bg-[#D9D9D99E] text-black"}`}
+          className={`w-[90px] h-9 text-center text-black font-medium text-[14px] rounded-[10px]
+            shadow-[0_2px_4px_rgba(0,0,0,0.25)]
+            ${
+              selectedTab === "pro" ? "bg-[#FFC064]" : "bg-[#D9D9D980]"
+            } transition-all duration-200`}
         >
           PRO 구독
         </button>
       </div>
 
-      {/* 구분선 E5E5E5 */}
-      <div className="w-full mt-4 border-b border-[#999]" />
+      {/* 구분선 */}
+      <div className="w-[357px] mt-4 mx-auto border-b border-[#999]" />
 
       {/* 저장 탭 */}
       {selectedTab === "saved" && (
