@@ -226,7 +226,13 @@ function RecordWritingPage() {
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
 
-            <button style={{ all: "unset" }} onClick={() => navigate("/map/new")}>
+            <button style={{ all: "unset" }} 
+                    onClick={() => navigate("/map/new", {
+                      state: {
+                        categoryColor: location.state?.categoryColor,
+                        categoryName: location.state?.categoryName,
+                      }
+                    })}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
                    style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
               />
