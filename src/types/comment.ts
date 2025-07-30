@@ -2,7 +2,7 @@ import { ApiResponse } from "./common";
 
 export interface CreateCommentRequest {
   content: string;
-  parentCommentId: number;
+  parentCommentId: number | null;
 }
 
 export interface CreateCommentResponse {
@@ -11,7 +11,7 @@ export interface CreateCommentResponse {
   content: string;
   createdAt: string;
   updatedAt: string;
-  parentCommentId: number;
+  parentCommentId: number | null;
 }
 
 export type CreateCommentApiResponse = ApiResponse<CreateCommentResponse>;

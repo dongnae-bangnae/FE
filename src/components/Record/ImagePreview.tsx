@@ -10,15 +10,11 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    setLoadingMap((prev) => {
-      const updatedMap: Record<string, boolean> = { ...prev };
-      selectedImages.forEach((src) => {
-        if (!(src in updatedMap)) {
-          updatedMap[src] = true;
-        }
-      });
-      return updatedMap;
+    const map: Record<string, boolean> = {};
+    selectedImages.forEach((src) => {
+      map[src] = true;
     });
+    setLoadingMap(map);
   }, [selectedImages]);
 
   const handleImageLoad = (src: string) => {

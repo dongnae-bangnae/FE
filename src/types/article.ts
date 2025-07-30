@@ -19,3 +19,8 @@ export interface ArticleDetail extends ArticleForm {
   updatedAt: string;
   createdAt: string;
 }
+
+// 좋아요 등록, 취소
+export interface LikeResponse {
+  likeCount: number;
+}
