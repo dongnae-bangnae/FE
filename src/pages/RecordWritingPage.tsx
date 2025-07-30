@@ -55,15 +55,25 @@ function RecordWritingPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const imageUrl = reader.result as string;
-      setSelectedImages([imageUrl]);
-    };
-    reader.readAsDataURL(file);
+    const fileArray = Array.from(files);
+    const readers = fileArray.map((file) => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then((imageUrls) => {
+      setSelectedImages((prev) => {
+        const merged = [...prev, ...imageUrls];
+        return merged.slice(0, 10); // 최대 10개 제한
+      });
+    });
   };
 
   const handleImageSelect = (src: string) => {

@@ -6,8 +6,8 @@ import { useState } from "react";
 import MiniMap from "../components/Record/MiniMap";
 import Header from "../components/common/Header";
 import RecordSpinner from "../components/Record/RecordSpinner";
-import ConfirmModal from "../components/common/ConfirmModal";
 import { useReportSpam } from "../hooks/mutations/useReportSpam";
+import MypageModal from "../components/MypageModal";
 
 
 const RecordDetail = () => {
@@ -31,8 +31,14 @@ const RecordDetail = () => {
 
 
   const handleConfirmReport = () => {
-    reportSpam.mutate(articleId);
-    setShowConfirm(false);
+    reportSpam.mutate(articleId, {
+    onSuccess: () => {
+      setShowConfirm(false); // 성공
+    },
+    onError: () => {
+      alert("신고에 실패했습니다. 다시 시도해주세요."); // 실패
+    },
+  });
   };
 
   return (
@@ -171,11 +177,11 @@ const RecordDetail = () => {
     )}
 
     {showConfirm && (
-        <ConfirmModal
+          <MypageModal
           title="정말 광고 의심 신고를 하시겠어요?"
-          content="허위 신고는 제재 대상이 될 수 있습니다."
-          button1="취소"
-          button2="신고"
+          description="허위 신고는 제재 대상이 될 수 있습니다."
+          cancelText="취소"
+          confirmText="신고"
           onCancel={() => setShowConfirm(false)}
           onConfirm={handleConfirmReport}
         />
