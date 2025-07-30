@@ -76,6 +76,7 @@ function CommentPage() {
                   onReplyClick={() =>
                     setActiveReplyId((prev) => (prev === comment.id ? null : comment.id))
                   }
+                  isMine={true}
                 />
 
                 {/* 답글 입력창 */}

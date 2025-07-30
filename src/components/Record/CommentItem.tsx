@@ -2,6 +2,8 @@ import MenuBarIcon from "../../assets/record/icon-menubar.svg";
 import DefaultProfileIcon from "../../assets/icon-defaultProfile.svg";
 import ResponseIcon from "../../assets/record/icon-comment.svg";
 import fonts from "../../styles/fonts";
+import { useState } from "react";
+import CommentModal from "./CommentModal";
 
 interface CommentItemProps {
   nickname: string;
@@ -10,6 +12,7 @@ interface CommentItemProps {
   onReplyClick?: () => void;
   children?: React.ReactNode;
   isReply?: boolean;
+  isMine?: boolean;
 }
 
 const CommentItem = ({
@@ -19,7 +22,11 @@ const CommentItem = ({
   onReplyClick,
   children,
   isReply = false,
+  isMine = true, //임시
 }: CommentItemProps) => {
+   
+  const [showModal, setShowModal] = useState(false);
+
   return (
     <div
       className="border rounded-xl w-full max-w-[355px]"
@@ -49,9 +56,26 @@ const CommentItem = ({
             @{nickname}
           </span>
         </div>
-        <button className="mr-[12px]">
+        <button className="mr-[12px]"
+                onClick={() => setShowModal(true)}
+        >
           <img src={MenuBarIcon} />
         </button>
+
+        {/* 모달 렌더링 */}
+        {showModal && isMine && (
+            <CommentModal
+            onClose={() => setShowModal(false)}
+            onEdit={() => {
+                alert("수정 기능 연결 예정");
+                setShowModal(false);
+            }}
+            onDelete={() => {
+                alert("삭제 기능 연결 예정");
+                setShowModal(false);
+            }}
+            />
+        )}
       </div>
 
       <div className="w-full border-b border-[#999999] mb-2" />
