@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
+import MenuBarIcon from "../assets/record/icon-menubar.svg";
 import fonts from "../styles/fonts";
 import colors from "../styles/colors";
 import { commentNotifications } from "../../src/dummyData/notificationData";
@@ -68,22 +69,27 @@ function CommentPage() {
               className="border rounded-xl w-full max-w-[355px]"
               style={{ border: "1px solid rgba(0, 0, 0, 0.47)" }}
             >
-              {/* 프로필 & 닉네임 */}
-              <div className="flex items-center gap-2 mb-2 ml-2 mt-2">
-                <img
-                  src={DefaultProfileIcon}
-                  alt="avatar"
-                  className="w-[25px] h-[25px] rounded-full"
-                />
-                <span
-                  className="text-sm"
-                  style={{
-                    fontSize: fonts.size.caption,
-                    fontWeight: fonts.weight.regular,
-                  }}
-                >
-                  @{comment.nickname}
-                </span>
+              {/* 프로필 & 닉네임 & menubar */}
+              <div className="flex justify-between">
+                <div className="flex items-center gap-2 mb-2 ml-2 mt-2">
+                  <img
+                    src={DefaultProfileIcon}
+                    alt="avatar"
+                    className="w-[25px] h-[25px] rounded-full"
+                  />
+                  <span
+                    className="text-sm"
+                    style={{
+                      fontSize: fonts.size.caption,
+                      fontWeight: fonts.weight.regular,
+                    }}
+                  >
+                    @{comment.nickname}
+                  </span>
+                </div>
+                <button className="mr-[12px]">
+                  <img src={MenuBarIcon}/>
+                </button>
               </div>
 
               <div className="w-full border-b border-[#999999] mb-2" />
