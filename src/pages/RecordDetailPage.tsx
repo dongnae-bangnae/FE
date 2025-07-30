@@ -13,13 +13,17 @@ const RecordDetail = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [ isLoading, setIsLoading ] = useState(false);
 
-  const { title, content, images, date }: {
+  const { articleId, title, content,date, mainImageUuid, imageUuids, likeCount=0, }: {
+    articleId: number,
     title: string;
     content: string;
-    images: string[];
     date: string;
-
+    mainImageUuid: string;
+    imageUuids: string[];
+    likeCount?: number ;
   } = state || {};
+
+  const allImages = mainImageUuid ? [mainImageUuid, ...imageUuids] : [];
 
   return (
     <>
@@ -64,7 +68,7 @@ const RecordDetail = () => {
           </div>
 
           {/* 이미지 슬라이드 전체 */}
-          {images.length > 0 && (
+          {allImages.length > 0 && (
             <div className="flex flex-col items-center">
               {/* 가로 슬라이드 */}
               <div
@@ -75,7 +79,7 @@ const RecordDetail = () => {
                 }}
               >
                 <div className="flex gap-[6px] px-[10px]">
-                  {images.map((src, index) => (
+                  {allImages.map((src, index) => (
                     <div
                       key={index}
                       className="flex-shrink-0 w-[147px] h-[147px] rounded-[12px] overflow-hidden relative"
@@ -95,17 +99,33 @@ const RecordDetail = () => {
             </div>
           )}
 
-          {/* 지도 */}
-          <div className="mx-auto w-[370px] h-[250px] text-center rounded-[10px] overflow-hidden">
-            <MiniMap lat={37.558514} lng={126.925911} />
+          {/* 지도 (위도, 경도 임시 지정 */}
+          <div
+            className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[293px]"
+            style={{
+              bottom: "70px"
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                overflow: "hidden",
+              }}
+            >
+              <MiniMap lat={37.558514} lng={126.925911} />
+            </div>
           </div>
-
-
         </div>
       </div>
     
     {/* 하단바 */}
-    <RecordBottomNav likes={8} ban={1} comments={3}/>
+    <RecordBottomNav
+      articleId={articleId}
+      likes={likeCount}
+      ban={3} //임시
+      comments={3} //임시
+    />
       
     {showMenu && (
       <div

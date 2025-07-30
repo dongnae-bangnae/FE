@@ -12,6 +12,7 @@ import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
 import GalleryPreview from "../components/Record/GalleryPreview";
 import VerticalToolbar from "../components/Record/VerticalToolbar";
+import MiniMap from "../components/Record/MiniMap";
 
 function RecordWritingPage() {
   const location = useLocation();
@@ -27,6 +28,8 @@ function RecordWritingPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
+  const lat = location.state?.latitude ?? 37.5665;
+  const lng = location.state?.longitutde ?? 126.9080; //임시 위도, 경도 지정
 
   const [ isLoading, setIsLoading ] = useState(false);
 
@@ -165,6 +168,24 @@ function RecordWritingPage() {
           <ImagePreview selectedImages={selectedImages} />
         </div>
 
+        {/* 지도 미리보기 */}
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[293px]"
+          style={{
+            bottom: "15px"
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            <MiniMap lat={lat} lng={lng} />
+          </div>
+        </div>
+
       </div>
 
       {/* 갤러리 모달 열렸을 때 가로 툴바 */}
@@ -172,7 +193,7 @@ function RecordWritingPage() {
         <div
           className="fixed left-1/2 -translate-x-1/2 z-50 rounded-[15px]"
           style={{
-            bottom: "232px",
+            bottom: "250px",
             width: "365px",
             height: "58px",
             display: "flex",
@@ -205,7 +226,13 @@ function RecordWritingPage() {
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
 
-            <button style={{ all: "unset" }} onClick={() => navigate("/map/new")}>
+            <button style={{ all: "unset" }} 
+                    onClick={() => navigate("/map/new", {
+                      state: {
+                        categoryColor: location.state?.categoryColor,
+                        categoryName: location.state?.categoryName,
+                      }
+                    })}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
                    style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
               />

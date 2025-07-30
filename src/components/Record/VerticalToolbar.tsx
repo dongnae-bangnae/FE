@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import colors from "../../styles/colors";
 import CalendarIcon_w from "../../assets/record/icon-calendar-white.svg";
 import CalendarIcon_o from "../../assets/record/icon-calendar-orange.svg";
@@ -24,6 +24,7 @@ const VerticalToolbar = ({
   onFileChange,
 }: VerticalToolbarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const [visible, setVisible] = useState(true);
@@ -107,7 +108,7 @@ const VerticalToolbar = ({
         >
           <img
             src={hoveredIcon === "file" ? FileIcon_o : FileIcon_w}
-            alt="카메라"
+            alt="파일"
             className="w-[24px] h-[24px]"
           />
         </button>
@@ -122,7 +123,12 @@ const VerticalToolbar = ({
 
         <button
           className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
-          onClick={() => navigate("/map/new")}
+          onClick={() => navigate("/map/new", {
+            state: {
+              categoryColor: location.state?.categoryColor,
+              categoryName: location.state?.categoryName,
+            }
+          })}
           onMouseEnter={() => setHoveredIcon("map")}
           onMouseLeave={() => setHoveredIcon(null)}
           style={{ backgroundColor: colors.primaryDark }}
