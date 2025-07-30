@@ -1,4 +1,3 @@
-// components/Record/GalleryPreview.tsx
 import { useEffect, useState } from "react";
 import CheckIcon from "../../assets/icon-selected.svg";
 import MiniSpinner from "./MiniSpinner";

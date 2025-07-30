@@ -1,5 +1,3 @@
-import React from "react";
-
 interface CommentActionModalProps {
   onClose: () => void;
   onEdit: () => void;
