@@ -99,14 +99,29 @@ const RecordDetail = () => {
             </div>
           )}
 
-          {/* 지도 */}
-          <div className="mx-auto w-[370px] h-[250px] text-center rounded-[10px] overflow-hidden">
+          {/* 지도 (위도, 경도 임시 지정 */}
+          <div
+          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[293px]"
+          style={{
+            bottom: "70px"
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
             <MiniMap lat={37.558514} lng={126.925911} />
           </div>
+        </div>
 
+          
 
         </div>
       </div>
+       
     
     {/* 하단바 */}
     <RecordBottomNav

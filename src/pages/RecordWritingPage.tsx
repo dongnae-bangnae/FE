@@ -12,6 +12,7 @@ import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
 import GalleryPreview from "../components/Record/GalleryPreview";
 import VerticalToolbar from "../components/Record/VerticalToolbar";
+import MiniMap from "../components/Record/MiniMap";
 
 function RecordWritingPage() {
   const location = useLocation();
@@ -27,6 +28,8 @@ function RecordWritingPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const selectedCategory = location.state?.selectedCategory ?? "카테고리";
+  const lat = location.state?.latitude ?? 37.5665;
+  const lng = location.state?.longitutde ?? 126.9080;
 
   const [ isLoading, setIsLoading ] = useState(false);
 
@@ -157,6 +160,25 @@ function RecordWritingPage() {
         <div>
           <ImagePreview selectedImages={selectedImages} />
         </div>
+
+        {/* 지도 미리보기 (하단 고정, 390px 꽉 채우기) */}
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[293px]"
+          style={{
+            bottom: "15px"
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            <MiniMap lat={lat} lng={lng} />
+          </div>
+        </div>
+
 
       </div>
 

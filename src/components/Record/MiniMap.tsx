@@ -42,7 +42,7 @@ const MiniMap = ({ lat, lng }: MiniMapProps) => {
     document.head.appendChild(script);
   }, [lat, lng]);
 
-  return <div ref={mapRef} className="w-full h-full rounded-[10px]" />;
+  return <div ref={mapRef} className="w-full h-full" />;
 };
 
 export default MiniMap;
