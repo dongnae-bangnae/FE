@@ -13,16 +13,17 @@ interface Props {
   likes: number;
   ban: number;
   comments: number;
-  // active?: "comment"; 
+  onShowConfirm?: () => void;
 }
 
-const RecordBottomNav = ({articleId, likes, comments}: Props) => { 
+const RecordBottomNav = ({articleId, likes, comments, onShowConfirm}: Props) => { 
   const navigate = useNavigate();
 
   const { mutate: like } = useLikeArticle(articleId);
-  const { mutate: reportSpam } = useReportSpam(articleId);
+  const { mutate: reportSpam } = useReportSpam();
 
   const [likeCount, setLikeCount] = useState(likes);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleLike = () => {
      like(undefined, {
@@ -38,19 +39,22 @@ const RecordBottomNav = ({articleId, likes, comments}: Props) => {
 
   const [banCount, setBanCount] = useState(0);
   const handleBan = () => {
-    const confirmed = window.confirm("해당 게시글을 광고로 신고하시겠습니까?");
-    if (!confirmed) return;
-
-    reportSpam(undefined, {
+    onShowConfirm?.();
+  };
+  
+  const confirmReport = () => {
+    reportSpam(articleId, {
       onSuccess: () => {
-        alert("신고가 접수되었습니다.");
         setBanCount((prev) => prev + 1);
+        setShowConfirm(false);
       },
       onError: () => {
         alert("신고 접수에 실패했습니다.");
-      }
+        setShowConfirm(false);
+      },
     });
   };
+
 
 
   return (

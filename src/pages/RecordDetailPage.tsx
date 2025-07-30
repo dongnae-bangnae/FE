@@ -6,12 +6,16 @@ import { useState } from "react";
 import MiniMap from "../components/Record/MiniMap";
 import Header from "../components/common/Header";
 import RecordSpinner from "../components/Record/RecordSpinner";
+import ConfirmModal from "../components/common/ConfirmModal";
+import { useReportSpam } from "../hooks/mutations/useReportSpam";
 
 
 const RecordDetail = () => {
   const { state } = useLocation();
   const [showMenu, setShowMenu] = useState(false);
   const [ isLoading, setIsLoading ] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const reportSpam = useReportSpam();
 
   const { articleId, title, content,date, mainImageUuid, imageUuids, likeCount=0, }: {
     articleId: number,
@@ -24,6 +28,12 @@ const RecordDetail = () => {
   } = state || {};
 
   const allImages = mainImageUuid ? [mainImageUuid, ...imageUuids] : [];
+
+
+  const handleConfirmReport = () => {
+    reportSpam.mutate(articleId);
+    setShowConfirm(false);
+  };
 
   return (
     <>
@@ -125,6 +135,7 @@ const RecordDetail = () => {
       likes={likeCount}
       ban={3} //임시
       comments={3} //임시
+      onShowConfirm={() => setShowConfirm(true)}
     />
       
     {showMenu && (
@@ -158,6 +169,17 @@ const RecordDetail = () => {
         </button>
       </div>
     )}
+
+    {showConfirm && (
+        <ConfirmModal
+          title="정말 광고 의심 신고를 하시겠어요?"
+          content="허위 신고는 제재 대상이 될 수 있습니다."
+          button1="취소"
+          button2="신고"
+          onCancel={() => setShowConfirm(false)}
+          onConfirm={handleConfirmReport}
+        />
+      )}
 
     {isLoading && <RecordSpinner />}
 
