@@ -193,7 +193,7 @@ function RecordWritingPage() {
         <div
           className="fixed left-1/2 -translate-x-1/2 z-50 rounded-[15px]"
           style={{
-            bottom: "232px",
+            bottom: "250px",
             width: "365px",
             height: "58px",
             display: "flex",
