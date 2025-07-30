@@ -139,7 +139,7 @@ const RecordDetail = () => {
     <RecordBottomNav
       articleId={articleId}
       likes={likeCount}
-      ban={3} //임시
+      spam={3} //임시
       comments={3} //임시
       onShowConfirm={() => setShowConfirm(true)}
     />
