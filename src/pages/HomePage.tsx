@@ -1,11 +1,14 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import BottomTabBar from "../components/common/BottomTabBar";
 import PreviewPost from "../components/Home/PostCardPreview";
-import { useNavigate } from "react-router-dom";
+import ChallengeRewardModal from "../components/Home/ChallengeRewardModal";
 import sampleImage from "../assets/record/img1.jpg";
 
 function HomePage() {
   const navigate = useNavigate();
+  const [isRewardOpen, setIsRewardOpen] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen relative bg-[#f5f5f5]">
@@ -16,13 +19,13 @@ function HomePage() {
       />
 
       {/* 메인 스크롤 영역 */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
+      <div className="relative flex-1 flex flex-col overflow-y-auto">
         {/* Section: 새글 */}
         <section className="w-full flex flex-col gap-2 bg-[#FFDEAE] px-0 py-4">
           <div className="flex justify-between items-center w-full px-4 py-[5px]">
             <h2 className="text-[20px] font-bold">새 글</h2>
             <button
-              onClick={() => navigate("/record/list")} // 여기!
+              onClick={() => navigate("/record/list")}
               className="text-[14px] bg-[#fff] rounded-[8px] px-4 py-1 border border-gray-300"
             >
               게시물 확인하기
@@ -124,11 +127,7 @@ function HomePage() {
             {/* 버튼 */}
             <div
               className="flex flex-col gap-[10px]"
-              style={{
-                position: "absolute",
-                top: "35px",
-                right: "19px"
-              }}
+              style={{ position: "absolute", top: "35px", right: "19px" }}
             >
               <button
                 style={{
@@ -146,6 +145,7 @@ function HomePage() {
                 기록하기
               </button>
               <button
+                onClick={() => setIsRewardOpen(true)}
                 style={{
                   width: "83px",
                   height: "30px",
@@ -188,6 +188,11 @@ function HomePage() {
 
       {/* 하단 탭바 */}
       <BottomTabBar />
+
+      <ChallengeRewardModal
+        isOpen={isRewardOpen}
+        onClose={() => setIsRewardOpen(false)}
+      />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-
+import { useLocation } from "react-router-dom";
 import circleCheck from "../assets/icon-circleCheck.svg";
 import googleIcon from "../assets/icon-google.svg";
 import kakaoIcon from "../assets/icon-kakao.svg";
@@ -8,19 +7,29 @@ import naverIcon from "../assets/icon-naver.svg";
 import logo from "../assets/logo.svg";
 
 function LoginPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const [toastMessage, setToastMessage] = useState("");
 
   const handleSocialLogin = (provider: "naver" | "kakao" | "google") => {
-    navigate(`/oauth2/authorization/${provider}`);
+    const loginUrls = {
+      naver: import.meta.env.VITE_NAVER_LOGIN_URL,
+      kakao: import.meta.env.VITE_KAKAO_LOGIN_URL,
+      google: import.meta.env.VITE_GOOGLE_LOGIN_URL
+    };
+
+    const redirectUrl = loginUrls[provider];
+
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    } else {
+      console.error(`Login URL for ${provider} is not defined`);
+    }
   };
 
   useEffect(() => {
     if (location.state?.message) {
       setToastMessage(location.state.message);
 
-      // 2초 후 메시지 자동 사라짐
       const timer = setTimeout(() => {
         setToastMessage("");
       }, 2000);
@@ -53,6 +62,7 @@ function LoginPage() {
             style={{ width: "33px", height: "33px" }}
           />
         </button>
+
         {/* Kakao */}
         <button
           onClick={() => handleSocialLogin("kakao")}
@@ -70,6 +80,7 @@ function LoginPage() {
             style={{ width: "33px", height: "33px" }}
           />
         </button>
+
         {/* Google */}
         <button
           onClick={() => handleSocialLogin("google")}
