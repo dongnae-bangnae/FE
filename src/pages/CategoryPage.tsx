@@ -10,7 +10,7 @@ import useFetchCategories from "../hooks/queries/useFetchCategories";
 
 function CategoryPage() {
 	const navigate = useNavigate();
-	const [selectedCategory, setSelectedCategory] = useState<{categoryId: number; name: string;} | null>(null);
+	const [selectedCategory, setSelectedCategory] = useState<{categoryId: number; name: string; color: string;} | null>(null);
 	const [showEditPopup, setShowEditPopup] = useState(false);
 
 	const {data: categories = [], isLoading, isError} = useFetchCategories(); 
@@ -27,7 +27,7 @@ function CategoryPage() {
 							name={cat.name}
 							color={getColorCode(cat.color)}
 							selected={selectedCategory?.name === cat.name}
-							onClick={() => setSelectedCategory({ categoryId: cat.categoryId, name: cat.name })}
+							onClick={() => setSelectedCategory({ categoryId: cat.categoryId, name: cat.name , color: cat.color})}
 						/>
 					))}
 					<div className="mt-5">
@@ -55,6 +55,7 @@ function CategoryPage() {
 							navigate("/record/new/write", {
 								state: {
 									categoryId: selectedCategory.categoryId,
+									categoryColor: selectedCategory.color,
 									categoryName: selectedCategory.name,
 								},
 							});

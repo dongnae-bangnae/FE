@@ -28,7 +28,6 @@ import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
-import SelectedPinTypePage from "./pages/SelectPinTypePage";
 import CommentPage from "./pages/CommentPage";
 import EditCategoryPage from "./pages/EditCategoryPage";
 import EditCategoryDetailPage from "./pages/EditCategoryDetailPage";
@@ -50,7 +49,6 @@ const routes: RouteObject[] = [
       { path: "record/:id/comments", element: <CommentPage /> },
       { path: "map", element: <MapPage /> },
       { path: "map/new", element: <NewPlacePage /> },
-      { path: "map/select-pin", element: <SelectedPinTypePage /> },
       { path: "mypage", element: <MyPage /> },
       { path: "mypage/notification", element: <NotificationPage /> },
       { path: "mypage/profile", element: <MyProfilePage /> },
