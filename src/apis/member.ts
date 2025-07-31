@@ -2,7 +2,7 @@ import { axiosInstance } from "./axiosInstance";
 
 export const patchNickname = async (nickname: string) => {
   const response = await axiosInstance.patch(
-    "/member/nickname",
+    "api/member/nickname",
     { nickname },
     {
       headers: {
@@ -15,7 +15,7 @@ export const patchNickname = async (nickname: string) => {
 
 export const patchRegions = async (regionIds: number[]) => {
   const response = await axiosInstance.patch(
-    "/member/regions",
+    "api/member/regions",
     { regionIds },
     {
       headers: {
