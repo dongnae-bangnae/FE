@@ -6,6 +6,7 @@ import { useState } from "react";
 import fonts from "../../styles/fonts";
 import { useLikeArticle } from "../../hooks/mutations/useLikeArticle";
 import { useReportSpam } from "../../hooks/mutations/useReportSpam";
+import { useToggleLikeArticle } from "../../hooks/mutations/useToggleLikeArticle";
 
 interface Props {
   articleId: number;
@@ -18,21 +19,27 @@ interface Props {
 const RecordBottomNav = ({ articleId, likes, spam, comments, onShowConfirm }: Props) => {
   const navigate = useNavigate();
 
-  const { mutate: like } = useLikeArticle(articleId);
   const { mutate: reportSpam } = useReportSpam();
+  const { mutate: toggleLike } = useToggleLikeArticle(articleId);
 
   const [likeCount, setLikeCount] = useState(likes);
+  const [liked, setLiked] = useState(false);
   const [spamCount, setSpamCount] = useState<number>(spam); // ← banCount → spamCount
   const [isReported, setIsReported] = useState(false);
 
   const handleLike = () => {
-    like(undefined, {
+    if (liked) {
+      const confirmCancel = window.confirm("좋아요를 취소하시겠습니까?");
+      if (!confirmCancel) return;
+    }
+
+    toggleLike(liked, {
       onSuccess: () => {
-        alert("좋아요가 등록되었습니다");
-        setLikeCount((prev) => prev +1);
+        setLiked((prev) => !prev);
+        setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
       },
       onError: () => {
-        alert("좋아요 등록 실패");
+        alert("좋아요 처리 중 오류가 발생했습니다.");
       },
     });
   };
