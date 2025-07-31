@@ -170,7 +170,7 @@ const RecordDetailPage = () => {
 
           {/* 지도 - 임시 위치 */}
           <div
-            className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[293px]"
+            className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[270px]"
             style={{ bottom: "70px" }}
           >
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
