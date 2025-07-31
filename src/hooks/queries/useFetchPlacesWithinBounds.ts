@@ -3,10 +3,10 @@ import { FetchPlacesParams, fetchPlacesWithinBounds } from "../../apis/place";
 
 export const useFetchPlacesWithinBounds = (
 	params: FetchPlacesParams,
-	enabled: boolean = true
+	enabled: boolean
 ) => {
 	return useQuery({
-		queryKey: ["places", params],
+		queryKey: ["places-within-bounds", params],
 		queryFn: () => fetchPlacesWithinBounds(params),
 		enabled,
 	});
