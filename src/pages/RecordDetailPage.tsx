@@ -21,6 +21,10 @@ const RecordDetailPage = () => {
     imageUuids,
     likeCount = 0,
     spamCount = 0,
+    latitude,
+    longitude,
+    placeName,
+    detailAddress,
   }: {
     articleId: number;
     title: string;
@@ -30,6 +34,10 @@ const RecordDetailPage = () => {
     imageUuids: string[];
     likeCount?: number;
     spamCount?: number;
+    latitude: number;
+    longitude: number;
+    placeName: string;
+    detailAddress: string;
   } = state || {};
 
   const [showMenu, setShowMenu] = useState(false);
@@ -143,7 +151,7 @@ const RecordDetailPage = () => {
             style={{ bottom: "70px" }}
           >
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-              <MiniMap latitude={37.558514} longitude={126.925911} />
+              <MiniMap latitude={latitude} longitude={longitude} />
             </div>
           </div>
         </div>
