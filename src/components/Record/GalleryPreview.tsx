@@ -1,26 +1,35 @@
-// components/Record/GalleryPreview.tsx
 import { useEffect, useState } from "react";
 import CheckIcon from "../../assets/icon-selected.svg";
 import MiniSpinner from "./MiniSpinner";
+import { useDefaultImages } from "../../hooks/queries/useDefaultImages";
 
 interface GalleryPreviewProps {
-  images: string[];
   selectedImages: string[];
   onSelect: (src: string) => void;
 }
 
-const GalleryPreview = ({ images, selectedImages, onSelect }: GalleryPreviewProps) => {
+const GalleryPreview = ({ selectedImages, onSelect }: GalleryPreviewProps) => {
+  const { data = [], isLoading, isError } = useDefaultImages();
+  const images: string[] = data;
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const map: Record<string, boolean> = {};
-    images.forEach((src) => {
-      map[src] = true;
-    });
-    setLoadingMap(map);
-  }, [images]);
+  const newKeys = images.sort();
+  const currentKeys = Object.keys(loadingMap).sort();
+
+  const isSame = JSON.stringify(newKeys) === JSON.stringify(currentKeys);
+  if (isSame) return;
+
+  const map: Record<string, boolean> = {};
+  newKeys.forEach((url) => {
+    map[url] = true;
+  });
+  setLoadingMap(map);
+}, [images]);
+
 
   const handleImageLoad = (src: string) => {
+    console.log("이미지 로딩 성공:", src);
     setLoadingMap((prev) => ({ ...prev, [src]: false }));
   };
 
@@ -28,6 +37,8 @@ const GalleryPreview = ({ images, selectedImages, onSelect }: GalleryPreviewProp
     console.warn("이미지 로딩 실패:", src);
     setLoadingMap((prev) => ({ ...prev, [src]: false }));
   };
+
+  // console.log("images for API: ", images);
 
   return (
     <>
@@ -37,7 +48,7 @@ const GalleryPreview = ({ images, selectedImages, onSelect }: GalleryPreviewProp
           const isLoading = loadingMap[src];
 
           return (
-            <div key={idx} className="relative h-[126px] w-[126px]">
+            <div key={src} className="relative h-[126px] w-[126px]">
               <img
                 src={src}
                 alt={`gallery-${idx}`}
@@ -45,7 +56,7 @@ const GalleryPreview = ({ images, selectedImages, onSelect }: GalleryPreviewProp
                 onClick={() => onSelect(src)}
                 onLoad={() => handleImageLoad(src)}
                 onError={() => handleImageError(src)}
-                style={{ padding: "1px 5px" }}
+                style={{ padding: "1px 2px" }}
               />
 
               {isLoading && (

@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import SearchMapBar from "../components/common/SearchMapBar";
+import PinInfoModal from "../components/PinInfoModal";
+import { useFetchPlacesWithinBounds } from "../hooks/queries/useFetchPlacesWithinBounds";
+import { Place } from "../types/place";
+import { getPinImageSrc } from "../utils/getPinImageSrc";
 
 declare global {
 	interface Window {
@@ -8,9 +12,29 @@ declare global {
 }
 
 function MapPage() {
+	// References 
 	const mapContainerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<any>(null);
+	const markerRefList = useRef<any[]>([]);
+
+	// States 
+	const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 	const [isMapLoaded, setIsMapLoaded] = useState(false);
+	const [currentLat, setCurrentLat] = useState<number | null>(null);
+	const [currentLng, setCurrentLng] = useState<number | null>(null);
+
+	const shouldFetch = currentLat !== null && currentLng !== null;
+	const { data: places = [] } = useFetchPlacesWithinBounds(
+		shouldFetch
+			? {
+				latMin: Number((currentLat! - 0.009).toFixed(5)),
+				latMax: Number((currentLat! + 0.009).toFixed(5)),
+				lngMin: Number((currentLng! - 0.0114).toFixed(5)),
+				lngMax: Number((currentLng! + 0.0114).toFixed(5)),
+				}
+			: { latMin: 0, latMax: 0, lngMin: 0, lngMax: 0 },
+		shouldFetch
+	);
 
 	useEffect(() => {
 		const script = document.createElement("script");
@@ -28,6 +52,9 @@ function MapPage() {
 						(position) => {
 							const lat = position.coords.latitude;
 							const lng = position.coords.longitude;
+							console.log(lat, lng);
+							setCurrentLat(lat);
+							setCurrentLng(lng);
 							const locPosition = new window.kakao.maps.LatLng(lat, lng);
 
 							const options = {
@@ -68,15 +95,60 @@ function MapPage() {
 		document.head.appendChild(script);
 	}, []);
 
+	useEffect(() => {
+		if (!mapRef.current || currentLat === null || currentLng === null) return;
+
+		// 1. 기존 마커 제거
+		markerRefList.current.forEach((marker) => marker.setMap(null));
+		markerRefList.current = [];
+
+		// 2. 새로운 마커 추가
+		const newMarkers = places.map((place:Place) => {
+			const imageSrc = getPinImageSrc(place.pinCategory);
+			const image = new window.kakao.maps.MarkerImage(
+				imageSrc,
+				new window.kakao.maps.Size(36, 36),
+				{ 
+					offset: new window.kakao.maps.Point(18, 36)
+				},
+			); 
+
+			const marker = new window.kakao.maps.Marker({
+				position: new window.kakao.maps.LatLng(place.latitude, place.longitude),
+				map: mapRef.current,
+				title: place.title,
+				image, 
+			});
+
+			window.kakao.maps.event.addListener(marker, "click", () => {
+				if (selectedPlace?.placeId !== place.placeId) {
+					setSelectedPlace(place);
+				}
+			});
+
+			return marker;
+		});
+
+		markerRefList.current = newMarkers;
+	}, [places, currentLat, currentLng]);
+
 	return (
 		<div className="w-full h-full relative ">
 			{isMapLoaded && mapRef.current && (
-				<SearchMapBar map={mapRef.current} />
+				<SearchMapBar 
+					map={mapRef.current}
+					onChangeCenter={(lat, lng) => {
+						setCurrentLat(lat);
+						setCurrentLng(lng);
+					}}/>
 			)}
 			<div
 				ref={mapContainerRef}
 				className="w-full h-[calc(100vh-60px)] border border-gray-200"
 			/>
+			<PinInfoModal 
+				place={selectedPlace}
+				onClose={() => setSelectedPlace(null)} />
 		</div>
 	);
 }

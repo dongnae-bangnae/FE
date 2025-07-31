@@ -1,4 +1,3 @@
-// src/components/common/MiniMap.tsx
 import { useEffect, useRef } from "react";
 
 declare global {
@@ -8,24 +7,26 @@ declare global {
 }
 
 interface MiniMapProps {
-  lat: number;
-  lng: number;
+  latitude: number | null;
+  longitude: number | null;
 }
 
-const MiniMap = ({ lat, lng }: MiniMapProps) => {
+const MiniMap = ({ latitude, longitude }: MiniMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${
-      import.meta.env.VITE_KAKAO_MAP_KEY
-    }&autoload=false`;
-    script.async = true;
+    if (latitude == null || longitude == null) return;
 
-    script.onload = () => {
+    const existingScript = document.querySelector(
+      "script[src^='https://dapi.kakao.com/v2/maps/sdk.js']"
+    );
+
+    const loadMap = () => {
+      if (!window.kakao || !window.kakao.maps) return;
+
       window.kakao.maps.load(() => {
         if (mapRef.current) {
-          const center = new window.kakao.maps.LatLng(lat, lng);
+          const center = new window.kakao.maps.LatLng(Number(latitude), Number(longitude));
           const map = new window.kakao.maps.Map(mapRef.current, {
             center,
             level: 5,
@@ -39,10 +40,20 @@ const MiniMap = ({ lat, lng }: MiniMapProps) => {
       });
     };
 
-    document.head.appendChild(script);
-  }, [lat, lng]);
+    if (!existingScript) {
+      const script = document.createElement("script");
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${
+        import.meta.env.VITE_KAKAO_MAP_KEY
+      }&autoload=false`;
+      script.async = true;
+      script.onload = loadMap;
+      document.head.appendChild(script);
+    } else {
+      loadMap(); // 이미 있으면 바로 로드
+    }
+  }, [latitude, longitude]);
 
-  return <div ref={mapRef} className="w-full h-full rounded-[10px]" />;
+  return <div ref={mapRef} className="w-full h-full" />;
 };
 
 export default MiniMap;

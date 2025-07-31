@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useCreateArticle } from "../hooks/mutations/useCreateArticle";
 import colors from "../styles/colors";
 import fonts from "../styles/fonts";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
@@ -8,41 +9,101 @@ import CalendarIcon from "../assets/icon-calendar.svg";
 import GalleryIcon from "../assets/record/icon-image-yellow.svg";
 import FileIcon from "../assets/icon-file.svg";
 import PinIcon from "../assets/icon-pin.svg";
-import { galleryImages } from "../../src/components/Record/GalleryImages";
 import CalendarModal from "../components/Record/CalendarModal";
 import ImagePreview from "../components/Record/ImagePreview";
 import GalleryPreview from "../components/Record/GalleryPreview";
 import VerticalToolbar from "../components/Record/VerticalToolbar";
+import MiniMap from "../components/Record/MiniMap";
 
 function RecordWritingPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [mainImageUuid, setMainImageUuid] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   )
+  const [latitude, setLatitude] = useState(location.state?.latitude ?? 37.5665);
+  const [longitude, setLongitude] = useState(location.state?.longitude ?? 126.9780);
+  const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
+  const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
+  const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
+  const [categoryId, setCategoryId] = useState(location.state?.categoryId ?? null);
+  const [categoryName, setCategoryName] = useState(location.state?.categoryName ?? "카테고리");
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const selectedCategory = location.state?.selectedCategory ?? "카테고리";
+  // 위치 관련 정보 
+  // const latitude = location.state?.latitude ?? 37.5665;
+  // const longitude = location.state?.longitude ?? 126.9080; //임시 위도, 경도 지정
+  // const detailAddress = location.state?.detailAddress ?? "";
+  // const placeName = location.state?.placeName ?? "";
+  // const pinCategory = location.state?.pinCategory ?? "";
+
+  // 카테고리 관련 정보 (게시글에 필요한 변수)
+  // const categoryName = location.state?.categoryName ?? "카테고리";
+  // const categoryId = location.state?.categoryId; 
 
   const [ isLoading, setIsLoading ] = useState(false);
 
+  const { mutateAsync: uploadArticle } = useCreateArticle();
+
+
+  useEffect(() => {
+    if (selectedImages.length > 0) {
+      setMainImageUuid(selectedImages[0]);
+    } else {
+      setMainImageUuid(null);
+    }
+  }, [selectedImages]);
+
   const handleSubmit = async () => {
+    if (!categoryId || selectedImages.length === 0) return;
+
     setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800)); // 로딩 스피너 보기 위한 딜레이
-      navigate('/record/:id', {
+   try {
+    const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
+
+    const articleData = {
+      categoryId,
+      latitude,
+      longitude, 
+      detailAddress, 
+      regionId: 1, // location.state.regionId,
+      title,
+      content,
+      date: selectedDate,
+      mainImageUuid: mainImageUuid ?? "",
+      imageUuids,
+      placeName,
+      pinCategory,
+    };
+
+    console.log("mainImageUuid:", mainImageUuid);
+    console.log("imageUuids:", imageUuids);
+
+    const articleId = await uploadArticle(articleData);
+      navigate(`/record/${articleId}`, {
         state: {
+          articleId,
           title,
           content,
-          images: selectedImages,
+          latitude,
+          longitude, 
+          detailAddress, 
           date: selectedDate,
+          mainImageUuid,
+          imageUuids,
+          likeCount: 0,
+          spamCount: 0,
         },
       });
+    } catch (e) {
+      console.error("게시글 등록 실패:", e);
     } finally {
       setIsLoading(false);
     }
@@ -53,15 +114,25 @@ function RecordWritingPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const imageUrl = reader.result as string;
-      setSelectedImages([imageUrl]);
-    };
-    reader.readAsDataURL(file);
+    const fileArray = Array.from(files);
+    const readers = fileArray.map((file) => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then((imageUrls) => {
+      setSelectedImages((prev) => {
+        const merged = [...prev, ...imageUrls];
+        return merged.slice(0, 10); // 최대 10개 제한
+      });
+    });
   };
 
   const handleImageSelect = (src: string) => {
@@ -73,13 +144,6 @@ function RecordWritingPage() {
       return [...prev, src];
     });
   };
-
-
-  // const isFormValid =
-  // title.trim() !== "" &&
-  // content.trim() !== "" &&
-  // selectedImages.length > 0 &&
-  // pinLocation !== null;
 
   return (
     
@@ -103,7 +167,7 @@ function RecordWritingPage() {
 
         <div>
           <div className="flex items-center gap-[10px]">
-            <span className="text-base font-semibold text-center flex-1 truncate">{selectedCategory}</span>
+            <span className="text-base font-semibold text-center flex-1 truncate">{categoryName}</span>
             <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
               <img src={SelectIcon} alt="select" width={15} height={15} style={{ marginTop: "2px" }} />
             </button>
@@ -166,6 +230,28 @@ function RecordWritingPage() {
           <ImagePreview selectedImages={selectedImages} />
         </div>
 
+        {/* 지도 미리보기 */}
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[240px]"
+          style={{
+            bottom: "15px"
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            {latitude !== null && longitude !== null && (
+              <>
+                <MiniMap latitude={latitude} longitude={longitude} />
+              </>
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* 갤러리 모달 열렸을 때 가로 툴바 */}
@@ -173,7 +259,7 @@ function RecordWritingPage() {
         <div
           className="fixed left-1/2 -translate-x-1/2 z-50 rounded-[15px]"
           style={{
-            bottom: "232px",
+            bottom: "250px",
             width: "365px",
             height: "58px",
             display: "flex",
@@ -206,7 +292,23 @@ function RecordWritingPage() {
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
 
-            <button style={{ all: "unset" }} onClick={() => navigate("/map/new")}>
+            <button style={{ all: "unset" }} 
+                    onClick={() => navigate("/map/new", {
+                      state: {
+                        categoryColor: location.state?.categoryColor,
+                        categoryName, 
+                        categoryId,
+                        pinCategory,
+                        placeName,
+                        detailAddress,
+                        latitude,
+                        longitude,
+                        title,
+                        content,
+                        selectedImages,
+                        selectedDate,
+                      }
+                    })}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
                    style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
               />
@@ -228,10 +330,9 @@ function RecordWritingPage() {
       {showGallery && (
         <div
           className="fixed left-1/2 -translate-x-1/2 bottom-[0] z-40"
-          style={{ width: "390px", height: "240px", padding: "7px", overflowY: "auto" }}
+          style={{ width: "390px", height: "255px", padding: "7px", overflowY: "auto" }}
         >
           <GalleryPreview
-            images={galleryImages}
             selectedImages={selectedImages}
             onSelect={handleImageSelect}
           />
