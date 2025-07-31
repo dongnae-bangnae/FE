@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useCreateArticle } from "../hooks/mutations/useCreateArticle";
 import colors from "../styles/colors";
 import fonts from "../styles/fonts";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
@@ -19,40 +20,74 @@ function RecordWritingPage() {
   const navigate = useNavigate();
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [mainImageUuid, setMainImageUuid] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   )
+  const [latitude, setLatitude] = useState(location.state?.latitude ?? 37.5665);
+  const [longitude, setLongitude] = useState(location.state?.longitude ?? 126.9780);
+  const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
+  const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
+  const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
+  const [categoryId, setCategoryId] = useState(location.state?.categoryId ?? null);
+  const [categoryName, setCategoryName] = useState(location.state?.categoryName ?? "카테고리");
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-
   // 위치 관련 정보 
-  const latitude = location.state?.latitude ?? 37.5665;
-  const longitude = location.state?.longitude ?? 126.9080; //임시 위도, 경도 지정
-  const detailAddress = location.state?.detailAddress ?? "";
-  const placeName = location.state?.placeName ?? "";
-  const pinCategory = location.state?.pinCategory ?? "";
+  // const latitude = location.state?.latitude ?? 37.5665;
+  // const longitude = location.state?.longitude ?? 126.9080; //임시 위도, 경도 지정
+  // const detailAddress = location.state?.detailAddress ?? "";
+  // const placeName = location.state?.placeName ?? "";
+  // const pinCategory = location.state?.pinCategory ?? "";
 
   // 카테고리 관련 정보 (게시글에 필요한 변수)
-  const categoryName = location.state?.categoryName ?? "카테고리";
-  const categoryId = location.state?.categoryId; 
+  // const categoryName = location.state?.categoryName ?? "카테고리";
+  // const categoryId = location.state?.categoryId; 
 
   const [ isLoading, setIsLoading ] = useState(false);
 
+  const { mutateAsync: uploadArticle } = useCreateArticle();
+
+
+  useEffect(() => {
+    if (selectedImages.length > 0) {
+      setMainImageUuid(selectedImages[0]);
+    } else {
+      setMainImageUuid(null);
+    }
+  }, [selectedImages]);
+
   const handleSubmit = async () => {
+    if (!categoryId || selectedImages.length === 0) return;
+
     setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800)); // 로딩 스피너 보기 위한 딜레이
-      navigate('/record/:id', {
-        state: {
-          title,
-          content,
-          images: selectedImages,
-          date: selectedDate,
-        },
-      });
+   try {
+    const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
+
+    const articleData = {
+      categoryId,
+      placeId: 1, // location.state.placeId,
+      regionId: 1, // location.state.regionId,
+      title,
+      content,
+      date: selectedDate,
+      mainImageUuid: mainImageUuid ?? "",
+      imageUuids,
+      placeName,
+      pinCategory,
+    };
+
+    console.log("mainImageUuid:", mainImageUuid);
+    console.log("imageUuids:", imageUuids);
+
+    const articleId = await uploadArticle(articleData);
+      navigate(`/record/${articleId}`);
+    } catch (e) {
+      console.error("게시글 등록 실패:", e);
     } finally {
       setIsLoading(false);
     }
@@ -93,13 +128,6 @@ function RecordWritingPage() {
       return [...prev, src];
     });
   };
-
-
-  // const isFormValid =
-  // title.trim() !== "" &&
-  // content.trim() !== "" &&
-  // selectedImages.length > 0 &&
-  // pinLocation !== null;
 
   return (
     
@@ -200,7 +228,12 @@ function RecordWritingPage() {
               overflow: "hidden",
             }}
           >
-            <MiniMap lat={latitude} lng={longitude} />
+            {latitude !== null && longitude !== null && (
+              <>
+                <p className="text-sm text-gray-500 mb-2">{placeName} · {detailAddress}</p>
+                <MiniMap latitude={latitude} longitude={longitude} />
+              </>
+            )}
           </div>
         </div>
 
@@ -249,7 +282,16 @@ function RecordWritingPage() {
                       state: {
                         categoryColor: location.state?.categoryColor,
                         categoryName, 
-                        categoryId, 
+                        categoryId,
+                        pinCategory,
+                        placeName,
+                        detailAddress,
+                        latitude,
+                        longitude,
+                        title,
+                        content,
+                        selectedImages,
+                        selectedDate,
                       }
                     })}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 

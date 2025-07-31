@@ -6,18 +6,23 @@ import { ArticleForm, ArticleDetail, LikeResponse } from "../types/article";
 const toFormData = (form: ArticleForm) => {
   const formData = new FormData();
 
-  Object.entries({
-    categoryId: form.categoryId,
-    placeId: form.placeId,
-    regionId: form.regionId,
-    title: form.title,
-    date: form.date,
-    content: form.content,
-    mainImageUuid: form.mainImageUuid,
-  }).forEach(([key, value]) => formData.append(key, String(value)));
+  formData.append("categoryId", String(form.categoryId));
+  formData.append("placeId", String(form.placeId));
+  formData.append("regionId", String(form.regionId));
+  formData.append("title", form.title);
+  formData.append("content", form.content);
+  formData.append("date", form.date);
+  // formData.append("placeName", form.placeName);
+  // formData.append("pinCategory", form.pinCategory);
+
+  if (form.mainImageUuid) {
+    formData.append("mainImageUuid", form.mainImageUuid);
+    console.log("main 추가: ", form.mainImageUuid);
+  }
 
   form.imageUuids.forEach((uuid) => {
     formData.append("imageUuids", uuid);
+    console.log("나머지 추가: ", form.imageUuids);
   });
 
   return formData;
