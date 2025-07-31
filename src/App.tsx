@@ -9,6 +9,9 @@ import {
 import Layout from "./layouts/Layout";
 import AddCategoryPage from "./pages/AddCategoryPage";
 import CategoryPage from "./pages/CategoryPage";
+import CommentPage from "./pages/CommentPage";
+import EditCategoryDetailPage from "./pages/EditCategoryDetailPage";
+import EditCategoryPage from "./pages/EditCategoryPage";
 import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
 import LikePlacePage from "./pages/LikePlacePage";
@@ -28,9 +31,6 @@ import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
-import CommentPage from "./pages/CommentPage";
-import EditCategoryPage from "./pages/EditCategoryPage";
-import EditCategoryDetailPage from "./pages/EditCategoryDetailPage";
 
 const routes: RouteObject[] = [
   {
@@ -56,11 +56,11 @@ const routes: RouteObject[] = [
       { path: "mypage/profile/likeplace", element: <LikePlacePage /> },
       { path: "mypage/saved/:placeId", element: <SavedPlaceListPage /> },
       { path: "mypage/saved/:placeId/list", element: <MyPostListPage /> },
-      { path: "mypage/locationposts", element: <LocationPostsPage /> },
+      { path: "mypage/locationposts/:placeId", element: <LocationPostsPage /> },
       { path: "category", element: <CategoryPage /> },
       { path: "category/new", element: <AddCategoryPage /> },
-      { path: "category/edit", element: <EditCategoryPage/> },
-      { path: "category/edit/:categoryId", element: <EditCategoryDetailPage /> },
+      { path: "category/edit", element: <EditCategoryPage /> },
+      { path: "category/edit/:categoryId", element: <EditCategoryDetailPage /> }
     ]
   }
 ];

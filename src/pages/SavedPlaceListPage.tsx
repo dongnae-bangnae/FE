@@ -1,37 +1,41 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import Header from "../components/common/Header";
 import SavedPlaceItem from "../components/SavedPlaceItem";
-import { savedPlaces } from "../dummyData/savedPlaces";
+import { useSavedPlaces } from "../hooks/queries/useSavedPlaces";
 
 function SavedPlaceListPage() {
   const navigate = useNavigate();
-  const { areaName = "연남동" } = useParams();
-  const [selectedPlace, setSelectedPlace] = useState<string | null>(null);
+  const { placeId } = useParams<{ placeId: string }>();
+  const categoryId = Number(placeId); // 저장된 장소 카테고리 ID
+  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
 
-  const places = savedPlaces[areaName] || [];
+  const location = useLocation();
+  const state = location.state as { categoryName?: string };
 
-  const isButtonActive = selectedPlace !== null;
+  const { data: places, isLoading } = useSavedPlaces(categoryId);
 
-  const handleRecordClick = () => {
-    if (!selectedPlace) return;
-    navigate(`/mypage/saved/${selectedPlace}/list`);
-  };
+  const isButtonActive = selectedPlaceId !== null;
+
+  const selectedPlace = places?.find((p) => p.placeId === selectedPlaceId);
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
-      <Header title={areaName} underline={true} />
+      <Header title={state?.categoryName ?? "저장된 장소"} underline={true} />
 
       <div className="flex flex-col px-4 pt-4 pb-28">
-        {places.map((place) => (
+        {isLoading && <div>불러오는 중...</div>}
+
+        {places?.map((place) => (
           <SavedPlaceItem
-            key={place.id}
-            name={place.name}
-            category={place.category}
-            icon={place.icon}
-            selected={selectedPlace === place.id}
-            onClick={() => setSelectedPlace(place.id)}
+            key={place.placeId}
+            name={place.title}
+            category={place.pinCategory}
+            icon={place.pinCategory}
+            selected={selectedPlaceId === place.placeId}
+            onClick={() => setSelectedPlaceId(place.placeId)}
           />
         ))}
       </div>
@@ -40,10 +44,9 @@ function SavedPlaceListPage() {
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#999] px-4 py-3 flex justify-center gap-3 z-50">
         <button
           onClick={() => {
-            const selected = places.find((p) => p.id === selectedPlace);
-            if (!selected) return;
+            if (!selectedPlace) return;
             navigate(
-              `/map?lat=${selected.lat}&lng=${selected.lng}&name=${selected.name}`
+              `/map?lat=${selectedPlace.latitude}&lng=${selectedPlace.longitude}&name=${selectedPlace.title}`
             );
           }}
           disabled={!isButtonActive}
@@ -58,7 +61,10 @@ function SavedPlaceListPage() {
         </button>
 
         <button
-          onClick={handleRecordClick}
+          onClick={() => {
+            if (!selectedPlace) return;
+            navigate(`/mypage/saved/${selectedPlace.placeId}/list`);
+          }}
           disabled={!isButtonActive}
           className={`w-[120px] py-2 rounded-md text-sm font-medium transition-colors duration-200
             ${

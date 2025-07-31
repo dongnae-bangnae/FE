@@ -121,7 +121,11 @@ function MyPage() {
               key={cat.name}
               name={cat.name}
               color={getColorCode(cat.color)}
-              onClick={() => navigate(`/mypage/saved/${cat.categoryId}`)} // 저장 장소 상세 페이지로 이동
+              onClick={() =>
+                navigate(`/mypage/saved/${cat.categoryId}`, {
+                  state: { categoryName: cat.name }
+                })
+              }
             />
           ))}
         </div>
@@ -137,7 +141,9 @@ function MyPage() {
               color={getColorCode(cat.color)}
               iconType="pencil"
               onClick={() =>
-                navigate(`/mypage/locationposts/${cat.categoryId}`)
+                navigate(`/mypage/locationposts/${cat.categoryId}`, {
+                  state: { categoryName: cat.name }
+                })
               }
             />
           ))}
