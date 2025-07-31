@@ -50,7 +50,7 @@ export const createArticle = async (data: ArticleForm): Promise<number> => {
 // };
 
 //게시글 상세 조회
-export const getArticleDetail = async (articleId: number): Promise<ArticleDetail> => {
+export const fetchArticleDetail = async (articleId: number): Promise<ArticleDetail> => {
   const { data } = await axiosInstance.get<ApiResponse<ArticleDetail>>(`/api/articles/${articleId}`);
   return data.result;
 };
