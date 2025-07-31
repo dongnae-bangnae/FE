@@ -6,7 +6,7 @@ export interface DefaultImage {
 
 export const fetchDefaultImages = async (): Promise<string[]> => {
   const res = await axiosInstance.get("/api/default-images");
-  console.log("default Image:", res.data);
+  // console.log("default Image:", res.data);
   
   if (!Array.isArray(res.data)) return [];
 

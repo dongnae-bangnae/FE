@@ -129,7 +129,7 @@ const RecordDetail = () => {
                 overflow: "hidden",
               }}
             >
-              <MiniMap lat={37.558514} lng={126.925911} />
+              <MiniMap latitude={37.558514} longitude={126.925911} />
             </div>
           </div>
         </div>

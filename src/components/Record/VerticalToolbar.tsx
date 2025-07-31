@@ -127,6 +127,11 @@ const VerticalToolbar = ({
             state: {
               categoryColor: location.state?.categoryColor,
               categoryName: location.state?.categoryName,
+              categoryId: location.state?.categoryId,
+              title: location.state?.title,
+              content: location.state?.content,
+              selectedImages: location.state?.selectedImages,
+              selectedDate: location.state?.selectedDate,
             }
           })}
           onMouseEnter={() => setHoveredIcon("map")}

@@ -38,7 +38,7 @@ const GalleryPreview = ({ selectedImages, onSelect }: GalleryPreviewProps) => {
     setLoadingMap((prev) => ({ ...prev, [src]: false }));
   };
 
-  console.log("images for API: ", images);
+  // console.log("images for API: ", images);
 
   return (
     <>
