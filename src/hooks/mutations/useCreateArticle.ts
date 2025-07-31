@@ -17,7 +17,7 @@ export const useCreateArticle = () => {
 
       formData.append("request", jsonBlob);
 
-      const response = await axiosInstance.post("/api/articles", formData, {
+      const response = await axiosInstance.post("/api/articles/with-location", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

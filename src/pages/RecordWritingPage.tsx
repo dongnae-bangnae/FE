@@ -70,7 +70,9 @@ function RecordWritingPage() {
 
     const articleData = {
       categoryId,
-      placeId: 1, // location.state.placeId,
+      latitude,
+      longitude, 
+      detailAddress, 
       regionId: 1, // location.state.regionId,
       title,
       content,
@@ -90,6 +92,9 @@ function RecordWritingPage() {
           articleId,
           title,
           content,
+          latitude,
+          longitude, 
+          detailAddress, 
           date: selectedDate,
           mainImageUuid,
           imageUuids,
