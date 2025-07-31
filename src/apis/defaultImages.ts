@@ -4,15 +4,11 @@ export interface DefaultImage {
   uuid: string;
 }
 
-export const fetchDefaultImages = async (): Promise<DefaultImage[]> => {
+export const fetchDefaultImages = async (): Promise<string[]> => {
   const res = await axiosInstance.get("/api/default-images");
+  // console.log("default Image:", res.data);
   
-  if (!res.data || !Array.isArray(res.data.result)) {
-    return [];
-  }
+  if (!Array.isArray(res.data)) return [];
 
-  return res.data.result;
+  return res.data;
 };
-
-export const getDefaultImageUrl = (uuid: string) =>
-  `https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com/default-images/${uuid}`;

@@ -52,13 +52,13 @@ function CategoryPage() {
 						disabled={!selectedCategory}
 						onClick={() => {
 							if (selectedCategory) {
-							navigate("/record/new/write", {
-								state: {
-									categoryId: selectedCategory.categoryId,
-									categoryColor: selectedCategory.color,
-									categoryName: selectedCategory.name,
-								},
-							});
+								navigate("/record/new/write", {
+									state: {
+										categoryId: selectedCategory.categoryId,
+										categoryColor: selectedCategory.color,
+										categoryName: selectedCategory.name,
+									},
+								});
 							}
 						}}
 				>

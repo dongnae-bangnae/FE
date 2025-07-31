@@ -1,36 +1,44 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
-import MenuBarIcon from "../assets/record/icon-menubar.svg";
 import fonts from "../styles/fonts";
 import colors from "../styles/colors";
 import { commentNotifications } from "../../src/dummyData/notificationData";
-import DefaultProfileIcon from "../assets/icon-defaultProfile.svg";
 import { useCreateComment } from "../hooks/mutations/useCreateComment";
+import CommentItem from "../components/Record/CommentItem";
 
 interface LocationState {
   articleId: number;
 }
+
 function CommentPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const articleId = (state as LocationState)?.articleId ?? 1; //임시지정
+  const articleId = (state as LocationState)?.articleId ?? 1;
 
   const [newComment, setNewComment] = useState("");
+  const [replyMap, setReplyMap] = useState<Record<number, string>>({});
+  const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
+
   const { mutate: createComment } = useCreateComment(articleId);
 
-  const handleNewCommentSubmit = () => {
-    if (!newComment.trim()) return;
+  const handleSubmitComment = (content: string, parentCommentId: number | null) => {
+    if (!content.trim()) return;
 
     createComment(
       {
-        content: newComment,
-        parentCommentId: 0,
+        content,
+        parentCommentId,
       },
       {
         onSuccess: () => {
           alert("댓글이 등록되었습니다.");
-          setNewComment("");
+          if (parentCommentId === null) {
+            setNewComment("");
+          } else {
+            setReplyMap((prev) => ({ ...prev, [parentCommentId]: "" }));
+            setActiveReplyId(null);
+          }
         },
         onError: () => {
           alert("댓글 등록에 실패했습니다.");
@@ -49,12 +57,7 @@ function CommentPage() {
         <button onClick={() => navigate(-1)} style={{ all: "unset", cursor: "pointer" }}>
           <img src={BackIcon} alt="back" width={30} height={28} />
         </button>
-        <div
-          style={{
-            fontSize: fonts.size.subtitle,
-            fontWeight: fonts.weight.bold,
-          }}
-        >
+        <div style={{ fontSize: fonts.size.subtitle, fontWeight: fonts.weight.bold }}>
           글 댓글
         </div>
         <div style={{ width: "30px" }} />
@@ -62,62 +65,69 @@ function CommentPage() {
 
       {/* 댓글 목록 */}
       <div className="flex-1 px-4 py-3 overflow-y-auto space-y-4">
-        {commentNotifications.map((comment) => (
-          comment.type === "comment" && (
-            <div
-              key={comment.id}
-              className="border rounded-xl w-full max-w-[355px]"
-              style={{ border: "1px solid rgba(0, 0, 0, 0.47)" }}
-            >
-              {/* 프로필 & 닉네임 & menubar */}
-              <div className="flex justify-between">
-                <div className="flex items-center gap-2 mb-2 ml-2 mt-2">
-                  <img
-                    src={DefaultProfileIcon}
-                    alt="avatar"
-                    className="w-[25px] h-[25px] rounded-full"
-                  />
-                  <span
-                    className="text-sm"
-                    style={{
-                      fontSize: fonts.size.caption,
-                      fontWeight: fonts.weight.regular,
-                    }}
+        {commentNotifications.map(
+          (comment) =>
+            comment.type === "comment" && (
+              <div key={comment.id}>
+                {/* 일반 댓글 */}
+                <CommentItem
+                  nickname={comment.nickname}
+                  content={comment.subText}
+                  onReplyClick={() =>
+                    setActiveReplyId((prev) => (prev === comment.id ? null : comment.id))
+                  }
+                  isMine={true}
+                />
+
+                {/* 답글 입력창 */}
+                {activeReplyId === comment.id && (
+                  <CommentItem
+                    nickname={comment.nickname}
+                    content=""
+                    isReply
+                    showReplyButton={false}
                   >
-                    @{comment.nickname}
-                  </span>
-                </div>
-                <button className="mr-[12px]">
-                  <img src={MenuBarIcon}/>
-                </button>
+                      <div className="flex items-center gap-2 ml-2 mb-2"
+                           style={{
+                            alignItems: "flex-start",
+                           }}      
+                      >
+                        <button
+                          style={{
+                            backgroundColor: "#FFAC33",
+                            fontSize: "12px",
+                            fontWeight: fonts.weight.regular,
+                            border: "none",
+                            borderRadius: "10px",
+                            cursor: "pointer",
+                            width: "46px",
+                            height: "27px",
+                            flexShrink: 0,
+                          }}
+                        >
+                          답글
+                        </button>
+                          <textarea
+                          value={replyMap[comment.id] || ""}
+                          onChange={(e) =>
+                            setReplyMap((prev) => ({
+                              ...prev,
+                              [comment.id]: e.target.value,
+                            }))
+                          }
+                          placeholder="답글을 입력하세요"
+                          className="flex-1 pl-2 mr-2 border rounded-sm"
+                          style={{
+                            borderColor: "#B3B3B3",
+                            fontSize: "13px"                          
+                          }}
+                        />
+                      </div>
+                  </CommentItem>
+                )}
               </div>
-
-              <div className="w-full border-b border-[#999999] mb-2" />
-
-              <div className="flex items-start gap-2 ml-2 mb-2">
-                <button
-                  onClick={() => alert(`댓글 ${comment.id}에 답글`)}
-                  style={{
-                    backgroundColor: colors.primaryDark,
-                    fontSize: "12px",
-                    fontWeight: fonts.weight.regular,
-                    border: "none",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    width: "46px",
-                    height: "27px",
-                    flexShrink: 0,
-                  }}
-                >
-                  답글
-                </button>
-                <p className="text-sm break-words w-full" style={{ fontSize: "13px" }}>
-                  {comment.subText}
-                </p>
-              </div>
-            </div>
-          )
-        ))}
+            )
+        )}
       </div>
 
       {/* 새 댓글 입력창 */}
@@ -129,10 +139,10 @@ function CommentPage() {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="댓글을 입력하세요"
             className="flex-1 p-2 text-sm border w-[270px] h-[48px] m-[10px] rounded-sm"
-            style={{ borderColor:  "#B3B3B3"}}
+            style={{ borderColor: "#B3B3B3" }}
           />
           <button
-            onClick={handleNewCommentSubmit}
+            onClick={() => handleSubmitComment(newComment, null)}
             style={{
               padding: "6px 12px",
               backgroundColor: colors.gray200,
@@ -144,8 +154,12 @@ function CommentPage() {
               width: "65px",
               height: "39px",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#FFAC33")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.gray200)}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#FFAC33")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = colors.gray200)
+            }
           >
             등록
           </button>
@@ -156,4 +170,3 @@ function CommentPage() {
 }
 
 export default CommentPage;
-
