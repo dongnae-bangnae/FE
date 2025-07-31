@@ -100,13 +100,6 @@ function LoginPage() {
         </button>
       </div>
 
-      {/* 일반 로그인 / 회원가입 */}
-      <div className="text-center text-[17px] font-semibold leading-[1.5] space-x-2">
-        <button>일반 로그인</button>
-        <span>|</span>
-        <button>일반 회원가입</button>
-      </div>
-
       {/* 토스트 메시지 영역 */}
       {toastMessage && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[354px] px-4 py-2.5 bg-[#9A7B6F]/80 text-white text-sm rounded-lg flex items-center gap-2 z-50 shadow-md">

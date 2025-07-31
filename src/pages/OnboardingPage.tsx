@@ -1,25 +1,77 @@
 import { useState } from "react";
+import axios from "axios";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import CameraIcon from "../assets/icon-camera.svg";
 import SearchIcon from "../assets/icon-search.svg";
 import Header from "../components/common/Header";
 import { useNavigate } from "react-router-dom";
+import { postOnboarding } from "../apis/onboarding";
 
 function OnboardingPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState("");
+  const [isNicknameValid, setIsNicknameValid] = useState(false);
   const [areaInput, setAreaInput] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
 
-  const handleNextFromNickname = () => {
-    if (nickname.trim() === "") {
-      setNicknameError("닉네임을 입력해주세요!");
-      return;
+  const handleRemoveArea = (areaToRemove: string) => {
+    setSelectedAreas(selectedAreas.filter((area) => area !== areaToRemove));
+  };
+
+  // 닉네임 중복 체크
+  const checkNicknameDuplicate = async (nickname: string): Promise<boolean> => {
+    try {
+      const res = await axios.get(
+        `/api/member/check-nickname?nickname=${nickname}`
+      );
+      return res.data.isDuplicated; // true면 중복
+    } catch (error) {
+      console.error("중복 확인 실패", error);
+      return true; // 실패 시 중복된 것으로 처리
     }
+  };
+
+  // validateNickname에서 성공 여부 리턴
+  const validateNickname = async (): Promise<boolean> => {
+    const trimmed = nickname.trim();
+
+    if (trimmed === "") {
+      setNicknameError("닉네임을 입력해주세요");
+      return false;
+    }
+
+    if (trimmed.length > 10) {
+      setNicknameError("닉네임은 최대 10자입니다.");
+      return false;
+    }
+
+    try {
+      const isDuplicated = await checkNicknameDuplicate(trimmed);
+      if (isDuplicated) {
+        setNicknameError("이미 사용 중인 닉네임입니다.");
+        return false;
+      }
+    } catch (error) {
+      console.error("중복 검사 에러", error);
+      setNicknameError("닉네임 중복 확인 중 오류가 발생했어요.");
+      return false;
+    }
+
     setNicknameError("");
-    setStep(2);
+    return true;
+  };
+
+  const handleNextFromNickname = async () => {
+    const isValid = await validateNickname();
+
+    if (isValid) {
+      setIsNicknameValid(true); // 상태도 갱신해줘서 후속 로직에서 활용 가능
+      setStep(2);
+    } else {
+      setIsNicknameValid(false);
+    }
   };
 
   const handleAreaKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -34,9 +86,29 @@ function OnboardingPage() {
     }
   };
 
-  const handleRemoveArea = (area: string) => {
-    setSelectedAreas(selectedAreas.filter((a) => a !== area));
+  const handleOnboardingSubmit = async () => {
+    if (!nickname || selectedAreas.length === 0) return;
+
+    const formData = new FormData();
+    formData.append("nickname", nickname);
+    formData.append("chosenRegionIds", JSON.stringify(selectedAreas));
+
+    if (imageFile) {
+      formData.append("profileImage", imageFile);
+    }
+
+    try {
+      const res = await postOnboarding(formData);
+      console.log("온보딩 성공:", res);
+      navigate("/home");
+    } catch (err) {
+      console.error("온보딩 실패", err);
+      alert("온보딩에 실패했습니다. 다시 시도해주세요.");
+    }
   };
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   return (
     <div className="w-full max-w-[390px] mx-auto min-h-screen bg-white flex flex-col">
@@ -48,36 +120,98 @@ function OnboardingPage() {
       {/* STEP 1 */}
       {step === 1 && (
         <>
-          {/* 이미지 */}
-          <div className="flex justify-center pt-[38.5px] pb-[40px]">
+          {/* 이미지 업로드 영역 */}
+          <div className="h-[188px] w-full flex justify-center items-center">
             <div className="relative w-[111px] h-[111px]">
-              <img
-                src={DefaultProfile}
-                alt="프로필"
-                className="w-full h-full"
+              {/* 숨겨진 파일 인풋 (바깥에 위치) */}
+              <input
+                type="file"
+                accept="image/*"
+                id="profile-upload"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setPreviewUrl(reader.result as string);
+                      setImageFile(file);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
               />
-              <img
-                src={CameraIcon}
-                alt="카메라"
-                className="absolute bottom-0 right-0 w-8 h-8"
-              />
+
+              {/* 프로필 & 카메라 묶은 클릭 라벨 */}
+              <label htmlFor="profile-upload" className="cursor-pointer">
+                <div className="relative w-[111px] h-[111px]">
+                  <img
+                    src={previewUrl || DefaultProfile}
+                    alt="프로필"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                  <img
+                    src={CameraIcon}
+                    alt="카메라"
+                    className="absolute bottom-0 right-0 w-[37.44px] h-[32.222px]
+                 filter contrast-[250%] brightness-[0.85] drop-shadow-[0_0_1px_black]"
+                  />
+                </div>
+              </label>
             </div>
           </div>
 
           {/* 닉네임 */}
-          <div className="px-6">
-            <label className="block mb-4 text-[14px] font-semibold">
+          <div className="w-[350px] h-[202px] relative">
+            <label
+              htmlFor="nickname"
+              className="absolute top-[61px] left-[20px] text-[#1E1E1E] font-pretendard text-[14px] font-semibold leading-[18px]"
+            >
               닉네임
             </label>
+
             <input
+              id="nickname"
               type="text"
               placeholder="닉네임을 입력해주세요"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-1"
+              className="
+      absolute
+      top-[92px]
+      left-[20px]
+      w-[336px]
+      h-[49px]
+      px-[16px]
+      py-[15px]
+      flex items-center gap-[16px] shrink-0
+    rounded-[10px]
+    border border-[#EBEBED]
+    shadow-[0_2px_4px_0_rgba(0,0,0,0.25)]
+    placeholder-[#B0B0B8]
+    text-[#1E1E1E] text-[16px] font-pretendard
+    focus:outline-none
+    focus:shadow-[0_2px_4px_0_rgba(255,172,51,0.5)]
+    focus:shadow-none
+    focus:border-[#FFAC33]
+    "
+              style={{ fontWeight: 500 }}
             />
+
+            <style>{`
+    input::placeholder {
+      color: #B0B0B8;
+      font-family: Pretendard;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: left;
+    }
+  `}</style>
+
             {nicknameError && (
-              <p className="text-red-500 text-sm mb-4">{nicknameError}</p>
+              <p className="text-red-500 text-sm mt-[160px] px-[20px]">
+                {nicknameError}
+              </p>
             )}
           </div>
 
@@ -85,11 +219,12 @@ function OnboardingPage() {
           <div className="mt-auto flex justify-center pb-[30px]">
             <button
               onClick={handleNextFromNickname}
-              className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] ${
-                nickname.trim()
-                  ? "bg-[#FFAC33] text-white"
-                  : "bg-white text-black border border-black"
-              }`}
+              className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center transition-all
+      ${
+        nickname.trim()
+          ? "bg-[#FFAC33] text-white shadow-[0_2px_4px_0_rgba(255,172,51,0.5)] border border-[#FFAC33]"
+          : "bg-white text-black border border-black"
+      }`}
             >
               다음으로 넘어가기
             </button>
@@ -149,16 +284,14 @@ function OnboardingPage() {
           <div className="flex justify-center pb-[30px]">
             <button
               disabled={selectedAreas.length === 0}
-              className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] ${
-                selectedAreas.length === 0
-                  ? "bg-[#D9D9D9] text-gray-500"
-                  : "bg-[#FFAC33] text-white"
-              }`}
-              onClick={() => {
-                if (selectedAreas.length > 0) {
-                  navigate("/home");
-                }
-              }}
+              onClick={handleOnboardingSubmit}
+              className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center gap-[10px] px-[70px] py-[15px]
+      ${
+        selectedAreas.length === 0
+          ? "bg-[#D9D9D9] text-gray-500 shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+          : "bg-[#FFAC33] text-white shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
+      }
+    `}
             >
               시작하기
             </button>
@@ -166,7 +299,8 @@ function OnboardingPage() {
         </>
       )}
 
-      {/* STEP 3 */}
+      {/* STEP 3 
+      확인 버튼 누르면 → formData 구성 후 postOnboarding 실행*/}
       {step === 3 && (
         <div className="relative flex flex-col flex-1">
           {/* 헤더 */}

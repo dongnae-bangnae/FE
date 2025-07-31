@@ -16,13 +16,7 @@ function OAuthRedirect() {
     const isOnboardingCompleted =
       getCookieValue("isOnboardingCompleted") === "true";
 
-    // ✅ 쿠키 값 콘솔 출력
-    console.log("🍪 cookie:", document.cookie);
-    console.log("👉 accessToken:", accessToken);
-    console.log("👉 refreshToken:", refreshToken);
-    console.log("👉 isOnboardingCompleted:", isOnboardingCompleted);
-
-    // 👉 토큰 저장
+    //  토큰 저장
     if (accessToken) {
       localStorage.setItem("accessToken", accessToken);
       axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
@@ -32,7 +26,7 @@ function OAuthRedirect() {
       localStorage.setItem("refreshToken", refreshToken);
     }
 
-    // 👉 온보딩 분기
+    // 온보딩 분기
     if (isOnboardingCompleted !== null) {
       if (isOnboardingCompleted) {
         navigate("/home");
@@ -40,7 +34,7 @@ function OAuthRedirect() {
         navigate("/onboard");
       }
     } else {
-      navigate("/login");
+      navigate("/");
     }
   }, [navigate]);
 
