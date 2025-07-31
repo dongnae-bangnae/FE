@@ -4,8 +4,6 @@ import CommentIcon from "../../assets/icon-comment.svg";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import fonts from "../../styles/fonts";
-import { useLikeArticle } from "../../hooks/mutations/useLikeArticle";
-import { useReportSpam } from "../../hooks/mutations/useReportSpam";
 import { useToggleLikeArticle } from "../../hooks/mutations/useToggleLikeArticle";
 
 interface Props {
@@ -14,18 +12,18 @@ interface Props {
   spam: number; 
   comments: number;
   onShowConfirm?: () => void;
+  onConfirmReport?: () => void;
 }
 
-const RecordBottomNav = ({ articleId, likes, spam, comments, onShowConfirm }: Props) => {
+const RecordBottomNav = ({ articleId, likes, spam, comments, onShowConfirm, onConfirmReport, }: Props) => {
   const navigate = useNavigate();
-
-  const { mutate: reportSpam } = useReportSpam();
-  const { mutate: toggleLike } = useToggleLikeArticle(articleId);
 
   const [likeCount, setLikeCount] = useState(likes);
   const [liked, setLiked] = useState(false);
   const [spamCount, setSpamCount] = useState<number>(spam); // ← banCount → spamCount
   const [isReported, setIsReported] = useState(false);
+
+  const { mutate: toggleLike } = useToggleLikeArticle(articleId);
 
   const handleLike = () => {
     if (liked) {
@@ -45,24 +43,7 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, onShowConfirm }: Pr
   };
 
   const handleSpam = () => {
-    if (isReported) {
-      // 이미 신고
-      setIsReported(false);
-      setSpamCount((prev: number) => Math.max(prev - 1, 0));
-      alert("신고가 취소되었습니다.");
-    } else {
-      // 처음 신고
-      reportSpam(articleId, {
-        onSuccess: () => {
-          setSpamCount((prev) => prev + 1);
-          setIsReported(true);
-          onShowConfirm?.(); // MyPageModal
-        },
-        onError: () => {
-          alert("신고 접수에 실패했습니다.");
-        },
-      });
-    }
+    onShowConfirm?.();
   };
 
 

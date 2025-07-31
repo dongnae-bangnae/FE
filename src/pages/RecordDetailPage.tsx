@@ -6,8 +6,8 @@ import RecordBottomNav from "../components/Record/RecordBottomNav";
 import MiniMap from "../components/Record/MiniMap";
 import Header from "../components/common/Header";
 import RecordSpinner from "../components/Record/RecordSpinner";
-import { useReportSpam } from "../hooks/mutations/useReportSpam";
 import MypageModal from "../components/MypageModal";
+import { useToggleSpamReport } from "../hooks/mutations/useToogleSpamReport";
 
 const RecordDetailPage = () => {
   const { state } = useLocation();
@@ -23,8 +23,8 @@ const RecordDetailPage = () => {
     spamCount = 0,
     latitude,
     longitude,
-    placeName,
-    detailAddress,
+    // placeName,
+    // detailAddress,
   }: {
     articleId: number;
     title: string;
@@ -43,22 +43,15 @@ const RecordDetailPage = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const reportSpam = useReportSpam();
+  const [isReported, setIsReported] = useState(false);
+
+  const { mutate: toggleSpam } = useToggleSpamReport(articleId, isReported, (isNowReported) => {
+    setIsReported(isNowReported);
+  })
 
   const allImages = mainImageUuid
     ? [mainImageUuid, ...imageUuids]
     : imageUuids;
-
-  const handleConfirmReport = () => {
-    reportSpam.mutate(articleId, {
-      onSuccess: () => {
-        setShowConfirm(false);
-      },
-      onError: () => {
-        alert("신고에 실패했습니다. 다시 시도해주세요.");
-      },
-    });
-  };
 
   return (
     <>
@@ -207,7 +200,10 @@ const RecordDetailPage = () => {
           cancelText="취소"
           confirmText="신고"
           onCancel={() => setShowConfirm(false)}
-          onConfirm={handleConfirmReport}
+          onConfirm={() => {
+            toggleSpam();
+            setShowConfirm(false);
+          }}
         />
       )}
 
