@@ -1,14 +1,23 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import BottomTabBar from "../components/common/BottomTabBar";
 import PreviewPost from "../components/Home/PostCardPreview";
 import ChallengeRewardModal from "../components/Home/ChallengeRewardModal";
 import sampleImage from "../assets/record/img1.jpg";
+import { getChallengeDetail } from "../apis/home";
 
 function HomePage() {
   const navigate = useNavigate();
   const [isRewardOpen, setIsRewardOpen] = useState(false);
+
+  const { data: challengeDetail } = useQuery({
+    queryKey: ["challengeDetail", "1"],
+    queryFn: () => getChallengeDetail("1"),
+    enabled: isRewardOpen,
+    staleTime: 1000 * 60 * 10 // 10분 동안은 stale 아님 → 캐시 유지
+  });
 
   return (
     <div className="flex flex-col min-h-screen relative bg-[#f5f5f5]">
@@ -230,6 +239,7 @@ function HomePage() {
       <ChallengeRewardModal
         isOpen={isRewardOpen}
         onClose={() => setIsRewardOpen(false)}
+        data={challengeDetail}
       />
     </div>
   );
