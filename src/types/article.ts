@@ -3,12 +3,17 @@ export interface ArticleForm {
   articleId?: number;         
   memberId?: number;          
   categoryId: number;
-  placeId: number;
+  // placeId: number;
   regionId: number
   title: string;
   date: string;              
   content: string;
   mainImageUuid: string;
+  latitude: number;
+	longitude: number;
+  placeName: string;
+	pinCategory: string;
+	detailAddress: string;
   imageUuids: string[];
 }
 

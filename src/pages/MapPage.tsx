@@ -27,10 +27,10 @@ function MapPage() {
 	const { data: places = [] } = useFetchPlacesWithinBounds(
 		shouldFetch
 			? {
-					latMin: Number((currentLat! - 0.00045).toFixed(5)),
-					latMax: Number((currentLat! + 0.00045).toFixed(5)),
-					lngMin: Number((currentLng! - 0.00056).toFixed(5)),
-					lngMax: Number((currentLng! + 0.00056).toFixed(5)),
+					latMin: Number((currentLat! - 0.0045).toFixed(5)),
+					latMax: Number((currentLat! + 0.0045).toFixed(5)),
+					lngMin: Number((currentLng! - 0.0057).toFixed(5)),
+					lngMax: Number((currentLng! + 0.0057).toFixed(5)),
 				}
 			: { latMin: 0, latMax: 0, lngMin: 0, lngMax: 0 },
 		shouldFetch
@@ -52,6 +52,7 @@ function MapPage() {
 						(position) => {
 							const lat = position.coords.latitude;
 							const lng = position.coords.longitude;
+							console.log(lat, lng);
 							setCurrentLat(lat);
 							setCurrentLng(lng);
 							const locPosition = new window.kakao.maps.LatLng(lat, lng);

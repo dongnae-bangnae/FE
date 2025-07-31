@@ -7,13 +7,16 @@ const toFormData = (form: ArticleForm) => {
   const formData = new FormData();
 
   formData.append("categoryId", String(form.categoryId));
-  formData.append("placeId", String(form.placeId));
+  // formData.append("placeId", String(form.placeId));
   formData.append("regionId", String(form.regionId));
   formData.append("title", form.title);
   formData.append("content", form.content);
   formData.append("date", form.date);
-  // formData.append("placeName", form.placeName);
-  // formData.append("pinCategory", form.pinCategory);
+  formData.append("latitude", String(form.latitude));
+	formData.append("longitude", String(form.longitude));
+	formData.append("detailAddress", form.detailAddress);
+  formData.append("placeName", form.placeName);
+  formData.append("pinCategory", form.pinCategory);
 
   if (form.mainImageUuid) {
     formData.append("mainImageUuid", form.mainImageUuid);
@@ -32,7 +35,7 @@ const toFormData = (form: ArticleForm) => {
 export const createArticle = async (data: ArticleForm): Promise<number> => {
   const formData = toFormData(data);
   const { data: response } = await axiosInstance.post<ApiResponse<{ articleId: number }>>(
-    "/api/articles",
+    "/api/articles/with-location",
     formData
   );
   return response.result.articleId;

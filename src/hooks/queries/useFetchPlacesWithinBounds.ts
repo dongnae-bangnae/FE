@@ -9,5 +9,6 @@ export const useFetchPlacesWithinBounds = (
 		queryKey: ["places-within-bounds", params],
 		queryFn: () => fetchPlacesWithinBounds(params),
 		enabled,
+		staleTime: 0,
 	});
 };
