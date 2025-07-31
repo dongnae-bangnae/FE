@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import CheckIcon from "../../assets/icon-selected.svg";
 import MiniSpinner from "./MiniSpinner";
 import { useDefaultImages } from "../../hooks/queries/useDefaultImages";
-import { getDefaultImageUrl } from "../../apis/defaultImages";
 
 interface GalleryPreviewProps {
   selectedImages: string[];
@@ -10,25 +9,27 @@ interface GalleryPreviewProps {
 }
 
 const GalleryPreview = ({ selectedImages, onSelect }: GalleryPreviewProps) => {
-  const { data: images = [], isLoading, isError } = useDefaultImages();
+  const { data = [], isLoading, isError } = useDefaultImages();
+  const images: string[] = data;
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const newKeys = images.map((img) => getDefaultImageUrl(img.uuid)).sort();
-    const currentKeys = Object.keys(loadingMap).sort();
+  const newKeys = images.sort();
+  const currentKeys = Object.keys(loadingMap).sort();
 
-    const isSame = JSON.stringify(newKeys) === JSON.stringify(currentKeys);
-    if (isSame) return; // 이미 같은 key면 setState 안함
+  const isSame = JSON.stringify(newKeys) === JSON.stringify(currentKeys);
+  if (isSame) return;
 
-    const map: Record<string, boolean> = {};
-    newKeys.forEach((url) => {
-      map[url] = true;
-    });
-    setLoadingMap(map);
-  }, [images]);
+  const map: Record<string, boolean> = {};
+  newKeys.forEach((url) => {
+    map[url] = true;
+  });
+  setLoadingMap(map);
+}, [images]);
 
 
   const handleImageLoad = (src: string) => {
+    console.log("이미지 로딩 성공:", src);
     setLoadingMap((prev) => ({ ...prev, [src]: false }));
   };
 
@@ -37,16 +38,17 @@ const GalleryPreview = ({ selectedImages, onSelect }: GalleryPreviewProps) => {
     setLoadingMap((prev) => ({ ...prev, [src]: false }));
   };
 
+  console.log("images for API: ", images);
+
   return (
     <>
       <div className="grid grid-cols-3">
-        {images.map((img, idx) => {
-          const src = getDefaultImageUrl(img.uuid);
+        {images.map((src, idx) => {
           const isSelected = selectedImages.includes(src);
           const isLoading = loadingMap[src];
 
           return (
-            <div key={img.uuid} className="relative h-[126px] w-[126px]">
+            <div key={src} className="relative h-[126px] w-[126px]">
               <img
                 src={src}
                 alt={`gallery-${idx}`}
@@ -54,7 +56,7 @@ const GalleryPreview = ({ selectedImages, onSelect }: GalleryPreviewProps) => {
                 onClick={() => onSelect(src)}
                 onLoad={() => handleImageLoad(src)}
                 onError={() => handleImageError(src)}
-                style={{ padding: "1px 3px" }}
+                style={{ padding: "1px 2px" }}
               />
 
               {isLoading && (
