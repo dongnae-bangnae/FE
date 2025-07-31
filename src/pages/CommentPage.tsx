@@ -1,11 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
+import CheckIcon_g from "../assets/icon-check-green.svg";
 import fonts from "../styles/fonts";
 import colors from "../styles/colors";
 import { useCreateComment } from "../hooks/mutations/useCreateComment";
 import CommentItem from "../components/Record/CommentItem";
 import { useMyInfo } from "../hooks/queries/useMyInfo";
+import MessagePopup from "../components/MessagaePopup";
 
 interface LocationState {
   articleId: number;
@@ -28,6 +30,7 @@ function CommentPage() {
   const [replyMap, setReplyMap] = useState<Record<number, string>>({});
   const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
+  const [showPopup, setShowPopup] = useState(false);
 
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
@@ -58,6 +61,8 @@ function CommentPage() {
             setReplyMap((prev) => ({ ...prev, [parentCommentId]: "" }));
             setActiveReplyId(null);
           }
+
+          setShowPopup(true);
         },
         onError: () => {
           alert("댓글 등록에 실패했습니다.");
@@ -73,7 +78,8 @@ function CommentPage() {
         className="w-full flex items-center justify-between border-b border-[#999999]"
         style={{ padding: "14px 20px", gap: "10px", height: "56px" }}
       >
-        <button onClick={() => navigate(-1)} style={{ all: "unset", cursor: "pointer" }}>
+        <button onClick={() => navigate(-1)} 
+              style={{ all: "unset", cursor: "pointer" }}>
           <img src={BackIcon} alt="back" width={30} height={28} />
         </button>
         <div style={{ fontSize: fonts.size.subtitle, fontWeight: fonts.weight.bold }}>
@@ -205,6 +211,12 @@ function CommentPage() {
           </button>
         </div>
       </div>
+
+      {showPopup && (
+        <MessagePopup 
+          icon={CheckIcon_g}
+          message="댓글이 등록되었어요"/>
+      )}
     </div>
   );
 }
