@@ -188,7 +188,7 @@ function RecordWritingPage() {
 
         {/* 지도 미리보기 */}
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[293px]"
+          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[240px]"
           style={{
             bottom: "15px"
           }}
@@ -273,7 +273,7 @@ function RecordWritingPage() {
       {showGallery && (
         <div
           className="fixed left-1/2 -translate-x-1/2 bottom-[0] z-40"
-          style={{ width: "390px", height: "240px", padding: "7px", overflowY: "auto" }}
+          style={{ width: "390px", height: "255px", padding: "7px", overflowY: "auto" }}
         >
           <GalleryPreview
             selectedImages={selectedImages}
