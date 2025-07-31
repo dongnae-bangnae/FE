@@ -2,11 +2,13 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import SearchIcon2 from '../../assets/top/icon-searchMap2.png'
 import SearchHome from '../../assets/top/icon-top-searchMap-home.png'
 import { KakaoPlace, KakaoSearchStatus } from "../../types/kakao";
+
 interface SearchMapBarProps {
 	map: any; // kakao.maps.Map
+	onChangeCenter: (lat: number, lng: number) => void;
 }
 
-function SearchMapBar({ map }: SearchMapBarProps) {
+function SearchMapBar({ map, onChangeCenter }: SearchMapBarProps) {
 	const [keyword, setKeyword] = useState("");
 	const [hasSearched, setHasSearched] = useState(false);
 
@@ -24,8 +26,13 @@ function SearchMapBar({ map }: SearchMapBarProps) {
 		ps.keywordSearch(keyword, (data: KakaoPlace[], status: KakaoSearchStatus) => {
 			if (status === window.kakao.maps.services.Status.OK) {
 				const firstPlace = data[0];
+				const lat = parseFloat(firstPlace.y);
+				const lng = parseFloat(firstPlace.x);
+
 				const coords = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
 				map.setCenter(coords);
+
+				onChangeCenter(lat, lng);
 				setHasSearched(true);
 			} else {
 				alert("검색 결과가 없습니다.");
