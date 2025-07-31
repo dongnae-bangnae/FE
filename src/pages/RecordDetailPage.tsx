@@ -58,6 +58,8 @@ const RecordDetailPage = () => {
   };  
 
   const handleConfirmReport = () => {
+    if (isReported) return;
+
     toggleSpam(true, {
       onSuccess: () => {
         setIsReported(true);
@@ -137,42 +139,37 @@ const RecordDetailPage = () => {
             />
           </div>
 
-          {/* 이미지 슬라이드 */}
-          {allImages.length > 0 && (
-            <div className="flex flex-col items-center">
-              <div
-                className="overflow-x-auto no-scrollbar"
-                style={{
-                  width: "375px",
-                  paddingBottom: "15px",
-                }}
-              >
-                <div className="flex gap-[6px] px-[10px]">
-                  {allImages.map((src, index) => (
-                    <div
-                      key={index}
-                      className="flex-shrink-0 w-[147px] h-[147px] rounded-[12px] overflow-hidden relative"
-                    >
-                      <img
-                        src={src}
-                        alt={`preview-${index}`}
-                        className="w-full h-full object-cover"
-                        onLoad={() => setIsLoading(false)}
-                        onError={() => setIsLoading(false)}
-                        onLoadStart={() => setIsLoading(true)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* 지도 - 임시 위치 */}
           <div
             className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[270px]"
-            style={{ bottom: "70px" }}
+            style={{ bottom: "70px"}}
           >
+            {/* 이미지 슬라이드 */}
+            {allImages.length > 0 && (
+              <div className="absolute left-0 bottom-[270px] w-full overflow-x-auto no-scrollbar px-[10px]"
+                   style={{marginBottom: "20px"}}
+              >
+                  <div className="flex gap-[6px] px-[10px]">
+                    {allImages.map((src, index) => (
+                      <div
+                        key={index}
+                        className="flex-shrink-0 w-[147px] h-[147px] rounded-[12px] overflow-hidden relative"
+                      >
+                        <img
+                          src={src}
+                          alt={`preview-${index}`}
+                          className="w-full h-full object-cover"
+                          onLoad={() => setIsLoading(false)}
+                          onError={() => setIsLoading(false)}
+                          onLoadStart={() => setIsLoading(true)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+              </div>
+            )}
+
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
               <MiniMap latitude={latitude} longitude={longitude} />
             </div>
@@ -186,6 +183,7 @@ const RecordDetailPage = () => {
         likes={likeCount}
         spam={spamCountState}
         comments={3} // 임시
+        isReported={isReported}
         onShowReportModal={handleOpenReportModal}
         onCancelReport={handleCancelReport}
       />

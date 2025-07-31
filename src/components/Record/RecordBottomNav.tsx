@@ -12,20 +12,18 @@ interface Props {
   likes: number;
   spam: number; 
   comments: number;
+  isReported: boolean;
   onShowReportModal: () => void;
   onCancelReport: () => void;
 }
 
-const RecordBottomNav = ({ articleId, likes, spam, comments, onShowReportModal, onCancelReport }: Props) => {
+const RecordBottomNav = ({ articleId, likes, spam, comments, isReported, onShowReportModal, onCancelReport }: Props) => {
   const navigate = useNavigate();
   const { mutate: toggleLike } = useToggleLikeArticle(articleId);
 
 
   const [likeCount, setLikeCount] = useState(likes);
   const [liked, setLiked] = useState(false);
-
-  const [spamCount, setSpamCount] = useState<number>(spam); 
-  const [isReported, setIsReported] = useState(false);
 
   const handleLike = () => {
     if (liked) {
@@ -48,10 +46,10 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, onShowReportModal, 
     if (isReported) {
       const confirmCancel = window.confirm("광고 신고를 취소하시겠습니까?");
       if (confirmCancel) {
-        onCancelReport(); // 부모에서 처리
+        onCancelReport(); 
       }
     } else {
-      onShowReportModal(); // 모달만 띄우기, count 올리지 말기
+      onShowReportModal(); 
     }
   };
 
@@ -77,7 +75,7 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, onShowReportModal, 
       <div className="flex items-center gap-[15px]">
         <button onClick={handleSpam} className="flex gap-[15px]">
           <img src={SpamIcon} width={23} height={23} />
-          <span>{spamCount}</span>
+          <span>{spam}</span>
         </button>
       </div>
 

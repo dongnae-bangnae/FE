@@ -5,8 +5,8 @@ export const useToggleSpamReport = (articleId: number) => {
   return useMutation({
     mutationFn: async (reported: boolean) => {
       return reported
-        ? await unreportSpam(articleId)
-        : await reportSpam(articleId);
+        ? await reportSpam(articleId)
+        : await unreportSpam(articleId);
     },
   });
 };
