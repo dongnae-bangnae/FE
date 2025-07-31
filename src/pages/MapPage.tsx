@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SearchMapBar from "../components/common/SearchMapBar";
+import PinInfoModal from "../components/PinInfoModal";
 
 declare global {
 	interface Window {
@@ -77,6 +78,7 @@ function MapPage() {
 				ref={mapContainerRef}
 				className="w-full h-[calc(100vh-60px)] border border-gray-200"
 			/>
+			<PinInfoModal/>
 		</div>
 	);
 }

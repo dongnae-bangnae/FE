@@ -4,17 +4,20 @@ import CancelButton from "../../assets/icon-cancelPlaceName.svg?react";
 import { getColorCode } from "../../utils/getColorCode";
 import { CategoryColorName } from "../../types/categoryColors";
 import PinCategorySelector, { PinCategoryType } from "../PinCategorySelector";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface PinCategoryModalProps {
+  categoryId?: number; 
   categoryColor?: CategoryColorName; 
   categoryName?: string; 
+  detailAddress: string; 
   onClose: () => void;
   lastClickedPositionRef: React.MutableRefObject<any>; 
 }
 
-const PinCategoryModal = ({categoryColor = "BLACK", categoryName = "카테고리 미선택", onClose, lastClickedPositionRef}: PinCategoryModalProps) => {
+const PinCategoryModal = ({categoryColor = "BLACK", categoryName = "카테고리 미선택", onClose, lastClickedPositionRef, detailAddress}: PinCategoryModalProps) => {
   const navigate = useNavigate(); 
+  const location = useLocation();
 
   // 상태 관리 
   const [placeName, setPlaceName] = useState("");
@@ -29,10 +32,13 @@ const PinCategoryModal = ({categoryColor = "BLACK", categoryName = "카테고리
   const handleSubmit = () => {
     setIsSubmitted(true);
     if (!isValid) return;
-    
+    console.log("지번 주소는 " + detailAddress);
     const pos = lastClickedPositionRef.current; 
     navigate("/record/new/write", {
       state: {
+        categoryId: location.state?.categoryId,
+        categoryName: location.state?.categoryName,
+        detailAddress,
         latitude: Number(pos.getLat().toFixed(5)),
 				longitude: Number(pos.getLng().toFixed(5)),
 				placeName: placeName.trim(),

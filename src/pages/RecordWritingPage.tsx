@@ -27,9 +27,17 @@ function RecordWritingPage() {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const selectedCategory = location.state?.selectedCategory ?? "카테고리";
-  const lat = location.state?.latitude ?? 37.5665;
-  const lng = location.state?.longitutde ?? 126.9080; //임시 위도, 경도 지정
+
+  // 위치 관련 정보 
+  const latitude = location.state?.latitude ?? 37.5665;
+  const longitude = location.state?.longitude ?? 126.9080; //임시 위도, 경도 지정
+  const detailAddress = location.state?.detailAddress ?? "";
+  const placeName = location.state?.placeName ?? "";
+  const pinCategory = location.state?.pinCategory ?? "";
+
+  // 카테고리 관련 정보 (게시글에 필요한 변수)
+  const categoryName = location.state?.categoryName ?? "카테고리";
+  const categoryId = location.state?.categoryId; 
 
   const [ isLoading, setIsLoading ] = useState(false);
 
@@ -115,7 +123,7 @@ function RecordWritingPage() {
 
         <div>
           <div className="flex items-center gap-[10px]">
-            <span className="text-base font-semibold text-center flex-1 truncate">{selectedCategory}</span>
+            <span className="text-base font-semibold text-center flex-1 truncate">{categoryName}</span>
             <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
               <img src={SelectIcon} alt="select" width={15} height={15} style={{ marginTop: "2px" }} />
             </button>
@@ -192,7 +200,7 @@ function RecordWritingPage() {
               overflow: "hidden",
             }}
           >
-            <MiniMap lat={lat} lng={lng} />
+            <MiniMap lat={latitude} lng={longitude} />
           </div>
         </div>
 
@@ -240,7 +248,8 @@ function RecordWritingPage() {
                     onClick={() => navigate("/map/new", {
                       state: {
                         categoryColor: location.state?.categoryColor,
-                        categoryName: location.state?.categoryName,
+                        categoryName, 
+                        categoryId, 
                       }
                     })}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 

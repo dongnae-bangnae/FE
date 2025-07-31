@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import SearchMapBar from "../components/common/SearchMapBar";
 import PinCategoryModal from "../components/common/PinCategoryModal";
+import { useLocation } from "react-router-dom";
 
 declare global {
 	interface Window {
@@ -9,13 +10,37 @@ declare global {
 }
 
 function NewPlacePage() {
+	// location 변수 
+	const location = useLocation();
+	const categoryName = location.state?.categoryName ?? "카테고리 미선택";
+	const categoryColor = location.state?.categoryColor ?? "BLACK";
+
+	// 지도 관련 
 	const mapContainerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<any>(null);
 	const markerRef = useRef<any>(null);
 	const lastClickedPositionRef = useRef<any>(null);
+	const [detailAddress, setDetailAddress] = useState<string | null>(null);
 
+	// 상태 관련 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isMapLoaded, setIsMapLoaded] = useState(false);
+
+
+	// 지번 주소 구하는 함수 
+	const fetchDetailAddress = (lat: number, lng: number) => {
+	const geocoder = new window.kakao.maps.services.Geocoder();
+	geocoder.coord2Address(lng, lat, (result: any, status: any) => {
+		if (status === window.kakao.maps.services.Status.OK) {
+			const detailAddr = result[0].address?.address_name || null;
+			setDetailAddress(detailAddr);
+			console.log("지번 주소:", detailAddr);
+		} else {
+			console.warn("주소를 불러오지 못했어요.");
+			setDetailAddress(null);
+		}
+	});
+};
 
 	useEffect(() => {
 		const scriptAlreadyExists = document.querySelector(
@@ -62,6 +87,8 @@ function NewPlacePage() {
 									}
 									lastClickedPositionRef.current = clickPosition;
 									setIsModalOpen(true);
+
+									fetchDetailAddress(clickPosition.getLat(), clickPosition.getLng());
 								}
 							);
 
@@ -109,6 +136,10 @@ function NewPlacePage() {
 			/>
 			{isModalOpen && (
 				<PinCategoryModal
+					categoryId={location.state.categoryId}
+					categoryName={categoryName}
+					categoryColor={categoryColor}
+					detailAddress={detailAddress!}
 					lastClickedPositionRef={lastClickedPositionRef}
 					onClose={() => setIsModalOpen(false)}
 				/>
