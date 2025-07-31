@@ -41,7 +41,7 @@ function HomePage() {
                 date="2025.8.25"
                 title="연남동 파스타 맛집에서 데이트"
                 image={sampleImage}
-                onClick={() => navigate(`/post/${i}`)}
+                onClick={() => navigate(`/record/${i}`)}
               />
             ))}
           </div>
