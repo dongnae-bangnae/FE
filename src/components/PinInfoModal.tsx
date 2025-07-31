@@ -9,6 +9,19 @@ interface PinInfoModalProps {
     onClose: () => void;
 }
 
+const pinCategoryMap: Record<string, string> = {
+	FOOD: "맛집",
+	CAFE: "카페",
+	PUB: "술집",
+	WALK: "산책",
+	EXERCISE: "운동",
+	BOOKSTORE: "서점",
+	CULTURE_ART: "문화 예술",
+	ETC: "기타"
+};
+
+
+
 export default function PinInfoModal({ place, onClose }: PinInfoModalProps) {
     if (!place) return null;
 
@@ -23,10 +36,10 @@ export default function PinInfoModal({ place, onClose }: PinInfoModalProps) {
 	return (
 		<div className="absolute bottom-0 left-0 w-full z-10 bg-white rounded-t-xl shadow-lg p-4">
             <div className="flex justify-between items-center">
-				<div className="flex flex-row gap-2 ">
+				<div className="flex flex-row gap-1 ">
                     <PlaceIcon className="w-9 h-9"/>
-                    <p className="font-bold text-2xl text-[#FF8400]">{placeName}</p>
-                    <p className="font-semibold text-md text-[#BCBCBC] mt-2">{pinCategory}</p>
+                    <p className="font-bold text-2xl mr-1 text-[#FF8400]">{placeName}</p>
+                    <p className="font-semibold text-md text-[#BCBCBC] mt-2">{pinCategoryMap[pinCategory] ?? pinCategory}</p>
                 </div>
 				<button onClick={onClose} className="text-gray-500 text-2xl mb-5">×</button>
 			</div>
