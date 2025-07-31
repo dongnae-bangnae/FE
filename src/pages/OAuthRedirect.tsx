@@ -1,30 +1,40 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+function getCookieValue(name: string): string | null {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : null;
+}
 
 function OAuthRedirect() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // URL에서 쿼리 파라미터 추출
-    const query = new URLSearchParams(window.location.search);
-    const accessToken = query.get("accessToken");
-    const refreshToken = query.get("refreshToken");
-    const isOnboardingCompleted = query.get("isOnboardingCompleted") === "true";
+    const accessToken = getCookieValue("accessToken");
+    const refreshToken = getCookieValue("refreshToken");
+    const isOnboardingCompleted =
+      getCookieValue("isOnboardingCompleted") === "true";
 
-    if (accessToken && refreshToken) {
-      // 로컬스토리지에 토큰 저장
+    //  토큰 저장
+    if (accessToken) {
       localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+    }
 
-      // 온보딩 완료 여부에 따라 이동
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
+
+    // 온보딩 분기
+    if (isOnboardingCompleted !== null) {
       if (isOnboardingCompleted) {
         navigate("/home");
       } else {
         navigate("/onboard");
       }
     } else {
-      // 토큰 없으면 에러 페이지나 로그인으로
-      navigate("/login");
+      navigate("/");
     }
   }, [navigate]);
 
