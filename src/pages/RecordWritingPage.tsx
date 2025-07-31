@@ -85,7 +85,18 @@ function RecordWritingPage() {
     console.log("imageUuids:", imageUuids);
 
     const articleId = await uploadArticle(articleData);
-      navigate(`/record/${articleId}`);
+      navigate(`/record/${articleId}`, {
+        state: {
+          articleId,
+          title,
+          content,
+          date: selectedDate,
+          mainImageUuid,
+          imageUuids,
+          likeCount: 0,
+          spamCount: 0,
+        },
+      });
     } catch (e) {
       console.error("게시글 등록 실패:", e);
     } finally {

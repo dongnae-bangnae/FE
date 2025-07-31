@@ -10,7 +10,7 @@ import { useReportSpam } from "../../hooks/mutations/useReportSpam";
 interface Props {
   articleId: number;
   likes: number;
-  spam: number; // ← ban → spam
+  spam: number; 
   comments: number;
   onShowConfirm?: () => void;
 }
@@ -27,9 +27,9 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, onShowConfirm }: Pr
 
   const handleLike = () => {
     like(undefined, {
-      onSuccess: (res) => {
+      onSuccess: () => {
         alert("좋아요가 등록되었습니다");
-        setLikeCount(res.likeCount);
+        setLikeCount((prev) => prev +1);
       },
       onError: () => {
         alert("좋아요 등록 실패");
