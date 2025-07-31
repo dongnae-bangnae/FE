@@ -17,7 +17,7 @@ interface Props {
   onCancelReport: () => void;
 }
 
-const RecordBottomNav = ({ articleId, likes, spam, comments, isReported, onShowReportModal, onCancelReport }: Props) => {
+const RecordBottomNav = ({ articleId, likes, spam, comments, isReported, onShowReportModal, onCancelReport}: Props) => {
   const navigate = useNavigate();
   const { mutate: toggleLike } = useToggleLikeArticle(articleId);
 

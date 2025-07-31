@@ -100,6 +100,8 @@ function RecordWritingPage() {
           imageUuids,
           likeCount: 0,
           spamCount: 0,
+          from: "writing",
+          showPopup: true,
         },
       });
     } catch (e) {

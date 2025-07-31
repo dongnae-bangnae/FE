@@ -1,6 +1,7 @@
-import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useLocation, useNavigate} from "react-router-dom";
+import { useEffect, useState } from "react";
 import MenuIcon from "../assets/record/icon-menubar.svg";
+// import CheckIcon_g from "../assets/icon-check-green.svg";
 import fonts from "../styles/fonts";
 import RecordBottomNav from "../components/Record/RecordBottomNav";
 import MiniMap from "../components/Record/MiniMap";
@@ -8,9 +9,11 @@ import Header from "../components/common/Header";
 import RecordSpinner from "../components/Record/RecordSpinner";
 import MypageModal from "../components/MypageModal";
 import { useToggleSpamReport } from "../hooks/mutations/useToggleSpamReport";
+// import MessagePopup from "../components/MessagaePopup";
 
 const RecordDetailPage = () => {
   const { state } = useLocation();
+  const navigate = useNavigate();
 
   const {
     articleId,
@@ -44,8 +47,16 @@ const RecordDetailPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [spamCountState, setSpamCountState] = useState(spamCount);
+  const [commentCount, setCommentCount] = useState<number>(0);
   const [isReported, setIsReported] = useState(spamCount>0);
+  const [showMessage, setShowMessage] = useState(false);
   const { mutate: toggleSpam } = useToggleSpamReport(articleId);
+
+  useEffect(() => {
+    if (state?.from === "writing") {
+      setShowMessage(true);
+    }
+  }, [state]);
   
   
   const allImages = mainImageUuid
@@ -87,10 +98,23 @@ const RecordDetailPage = () => {
 
   return (
     <>
+     {/* {showMessage && (
+        <MessagePopup
+          icon={<img src={CheckIcon_g} alt="확인" className="w-[16px] h-[16px]" />}
+          message="게시물이 등록되었어요"
+        />
+      )} */}
+
+      {/* <MessagePopup 
+          icon={CheckIcon_g}
+          message="게시물이 등록되었어요"
+      /> */}
+
       {/* 상단바 */}
       <Header
         title={date}
         underline={false}
+        onBack={() => navigate('/home')}
         right={
           <button
             onClick={() => setShowMenu((prev) => !prev)}
@@ -182,10 +206,11 @@ const RecordDetailPage = () => {
         articleId={articleId}
         likes={likeCount}
         spam={spamCountState}
-        comments={3} // 임시
+        comments={commentCount} 
         isReported={isReported}
         onShowReportModal={handleOpenReportModal}
         onCancelReport={handleCancelReport}
+
       />
 
       {/* 메뉴 모달 */}
