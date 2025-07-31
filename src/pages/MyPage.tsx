@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import StarIcon from "../assets/category-star.svg";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
-import PencilIcon from "../assets/icon-pencil.svg";
 import RingIcon from "../assets/icon-ring.svg";
 import SettingIcon from "../assets/icon-setting.svg";
+import CategoryItem from "../components/common/CategoryItem.tsx";
 import Header from "../components/common/Header";
-import MyPostItem from "../components/MyPostItem";
+import { useMyCategories } from "../hooks/queries/useMyCategories.ts";
 import { useMyInfo } from "../hooks/queries/useMyInfo.ts";
 import { CategoryColorName } from "../types/categoryColors";
 import { getColorCode } from "../utils/getColorCode";
@@ -19,17 +18,19 @@ function MyPage() {
   );
   const { data: myInfo, isLoading } = useMyInfo();
 
-  const savedCategories: { name: string; color: CategoryColorName }[] = [
-    { name: "종로 3가", color: "green" },
-    { name: "상수동", color: "orange" },
-    { name: "연남동", color: "yellow" }
-  ];
+  const { data: myCategories } = useMyCategories();
 
-  const myPostCategories: { name: string; color: CategoryColorName }[] = [
-    { name: "종로 3가", color: "green" },
-    { name: "상수동", color: "orange" },
-    { name: "연남동", color: "yellow" }
-  ];
+  // const savedCategories: { name: string; color: CategoryColorName }[] = [
+  //   { name: "종로 3가", color: "green" },
+  //   { name: "상수동", color: "orange" },
+  //   { name: "연남동", color: "yellow" }
+  // ];
+
+  // const myPostCategories: { name: string; color: CategoryColorName }[] = [
+  //   { name: "종로 3가", color: "green" },
+  //   { name: "상수동", color: "orange" },
+  //   { name: "연남동", color: "yellow" }
+  // ];
 
   return (
     <>
@@ -115,13 +116,12 @@ function MyPage() {
       {/* 저장 탭 */}
       {selectedTab === "saved" && (
         <div className="w-full px-5 mt-6">
-          {savedCategories.map((cat) => (
-            <MyPostItem
+          {myCategories?.map((cat) => (
+            <CategoryItem
               key={cat.name}
               name={cat.name}
-              image={StarIcon}
               color={getColorCode(cat.color)}
-              onClick={() => navigate(`/mypage/saved/${cat.name}`)} // 저장 장소 상세 페이지로 이동
+              onClick={() => navigate(`/mypage/saved/${cat.categoryId}`)} // 저장 장소 상세 페이지로 이동
             />
           ))}
         </div>
@@ -130,13 +130,15 @@ function MyPage() {
       {/* 내 글 탭 */}
       {selectedTab === "myPosts" && (
         <div className="w-full px-5 mt-6">
-          {myPostCategories.map((cat) => (
-            <MyPostItem
+          {myCategories?.map((cat) => (
+            <CategoryItem
               key={cat.name}
               name={cat.name}
-              image={PencilIcon}
               color={getColorCode(cat.color)}
-              onClick={() => navigate(`/mypage/locationposts`)}
+              iconType="pencil"
+              onClick={() =>
+                navigate(`/mypage/locationposts/${cat.categoryId}`)
+              }
             />
           ))}
         </div>

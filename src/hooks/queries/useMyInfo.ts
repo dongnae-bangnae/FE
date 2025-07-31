@@ -20,7 +20,7 @@ export const useMyInfo = () => {
   return useQuery<MyInfo>({
     queryKey: ["myInfo"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/member/info");
+      const res = await axiosInstance.get("/api/member/info");
       const result = res.data?.result;
 
       if (!result) {
