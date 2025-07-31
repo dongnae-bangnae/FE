@@ -13,6 +13,7 @@ interface CommentItemProps {
   children?: React.ReactNode;
   isReply?: boolean;
   isMine?: boolean;
+  profileImage?: string,
 }
 
 const CommentItem = ({
@@ -81,7 +82,7 @@ const CommentItem = ({
       <div className="w-full border-b border-[#999999] mb-2" />
 
       {/* 본문 + 답글버튼 */}
-      <div className="flex items-start gap-2 ml-2 mb-2">
+      <div className="flex items-start gap-2 ml-2 mb-2" style={{ alignItems: "center" }}>
         {showReplyButton && (
           <button
             onClick={onReplyClick}
