@@ -4,28 +4,30 @@ import CommentIcon from "../../assets/icon-comment.svg";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import fonts from "../../styles/fonts";
-import { useLikeArticle } from "../../hooks/mutations/useLikeArticle";
-import { useReportSpam } from "../../hooks/mutations/useReportSpam";
+
 import { useToggleLikeArticle } from "../../hooks/mutations/useToggleLikeArticle";
+import { useToggleSpamReport } from "../../hooks/mutations/useToggleSpamReport";
 
 interface Props {
   articleId: number;
   likes: number;
   spam: number; 
   comments: number;
-  onShowConfirm?: () => void;
 }
 
-const RecordBottomNav = ({ articleId, likes, spam, comments, onShowConfirm }: Props) => {
+const RecordBottomNav = ({ articleId, likes, spam, comments }: Props) => {
   const navigate = useNavigate();
 
-  const { mutate: reportSpam } = useReportSpam();
+  const { mutate: toggleSpam } = useToggleSpamReport(articleId);
   const { mutate: toggleLike } = useToggleLikeArticle(articleId);
 
   const [likeCount, setLikeCount] = useState(likes);
   const [liked, setLiked] = useState(false);
-  const [spamCount, setSpamCount] = useState<number>(spam); // ← banCount → spamCount
+
+  const [spamCount, setSpamCount] = useState<number>(spam); 
   const [isReported, setIsReported] = useState(false);
+
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleLike = () => {
     if (liked) {
@@ -45,24 +47,17 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, onShowConfirm }: Pr
   };
 
   const handleSpam = () => {
-    if (isReported) {
-      // 이미 신고
-      setIsReported(false);
-      setSpamCount((prev: number) => Math.max(prev - 1, 0));
-      alert("신고가 취소되었습니다.");
-    } else {
-      // 처음 신고
-      reportSpam(articleId, {
-        onSuccess: () => {
-          setSpamCount((prev) => prev + 1);
-          setIsReported(true);
-          onShowConfirm?.(); // MyPageModal
-        },
-        onError: () => {
-          alert("신고 접수에 실패했습니다.");
-        },
-      });
-    }
+    const next = !isReported;
+
+    toggleSpam(next, {
+      onSuccess: () => {
+        setIsReported(next);
+        setSpamCount((prev) => next ? prev + 1 : Math.max(prev - 1, 0));
+      },
+      onError: () => {
+        alert("신고 처리 중 오류가 발생했습니다.");
+      },
+    });
   };
 
 

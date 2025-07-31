@@ -6,8 +6,8 @@ import RecordBottomNav from "../components/Record/RecordBottomNav";
 import MiniMap from "../components/Record/MiniMap";
 import Header from "../components/common/Header";
 import RecordSpinner from "../components/Record/RecordSpinner";
-import { useReportSpam } from "../hooks/mutations/useReportSpam";
 import MypageModal from "../components/MypageModal";
+import { useToggleSpamReport } from "../hooks/mutations/useToggleSpamReport";
 
 const RecordDetailPage = () => {
   const { state } = useLocation();
@@ -23,8 +23,8 @@ const RecordDetailPage = () => {
     spamCount = 0,
     latitude,
     longitude,
-    placeName,
-    detailAddress,
+    // placeName,
+    // detailAddress,
   }: {
     articleId: number;
     title: string;
@@ -42,23 +42,11 @@ const RecordDetailPage = () => {
 
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const reportSpam = useReportSpam();
-
+  
   const allImages = mainImageUuid
     ? [mainImageUuid, ...imageUuids]
     : imageUuids;
 
-  const handleConfirmReport = () => {
-    reportSpam.mutate(articleId, {
-      onSuccess: () => {
-        setShowConfirm(false);
-      },
-      onError: () => {
-        alert("신고에 실패했습니다. 다시 시도해주세요.");
-      },
-    });
-  };
 
   return (
     <>
@@ -163,7 +151,6 @@ const RecordDetailPage = () => {
         likes={likeCount}
         spam={spamCount}
         comments={3} // 임시
-        onShowConfirm={() => setShowConfirm(true)}
       />
 
       {/* 메뉴 모달 */}
@@ -200,7 +187,7 @@ const RecordDetailPage = () => {
       )}
 
       {/* 신고 모달 */}
-      {showConfirm && (
+      {/* {showConfirm && (
         <MypageModal
           title="정말 광고 의심 신고를 하시겠어요?"
           description="허위 신고는 제재 대상이 될 수 있습니다."
@@ -209,7 +196,7 @@ const RecordDetailPage = () => {
           onCancel={() => setShowConfirm(false)}
           onConfirm={handleConfirmReport}
         />
-      )}
+      )} */}
 
       {/* 로딩 스피너 */}
       {isLoading && <RecordSpinner />}
