@@ -17,11 +17,11 @@ function HomePage() {
         title=""
         left={<span className="text-[18px] font-semibold ml-1">홈</span>}
       />
-
+      <div style={{ height: "10px" }} className="bg-white" />
       {/* 메인 스크롤 영역 */}
-      <div className="relative flex-1 flex flex-col overflow-y-auto">
+      <div className="relative flex-1 flex flex-col overflow-y-auto pb-[67px]">
         {/* Section: 새글 */}
-        <section className="w-full flex flex-col gap-2 bg-[#FFDEAE] px-0 py-4">
+        <section className="w-full flex flex-col gap-2 bg-[#FFDEAE] px-0 py-4 min-h-[317px]">
           <div className="flex justify-between items-center w-full px-4 py-[5px]">
             <h2 className="text-[20px] font-bold">새 글</h2>
             <button
@@ -62,66 +62,104 @@ function HomePage() {
           >
             {/* 라벨 */}
             <span
-              className="absolute top-[-11px] left-[7px] text-[12px] font-medium"
+              className="absolute top-[-11px] left-[7px] text-[12px] font-medium flex justify-center items-center"
               style={{
-                background: "#FFD700",
+                width: "149px",
+                height: "39px",
+                background: "linear-gradient(0deg, #FFD700 0%, #FFD700 100%)",
+                boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
                 borderRadius: "15px 0px 20px 0px",
-                padding: "11px 7px"
+                padding: "11px 7px",
+                gap: "10px",
+                flexShrink: 0
               }}
             >
               동네방네 8월 기록 챌린지
             </span>
 
-            {/* 텍스트 */}
-            <div className="flex flex-col gap-1 mt-[30px] ml-[20px]">
-              <div className="flex items-center gap-1">
+            {/* 텍스트 영역 (relative로 기준 잡기) */}
+            <div className="flex flex-col gap-1 mt-[30px] ml-[20px] relative">
+              {/* 💌 이모지 */}
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-15px",
+                  left: "73px",
+                  width: "35.334px",
+                  height: "38.026px",
+                  transform: "rotate(-16.858deg)",
+                  flexShrink: 0,
+                  color: "#000",
+                  textShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
+                  fontFamily: "Pretendard",
+                  fontSize: "30px",
+                  fontStyle: "normal",
+                  fontWeight: 900,
+                  lineHeight: "normal",
+                  display: "inline-block",
+                  zIndex: 0
+                }}
+              >
+                💌
+              </span>
+              {/* 🏝️ 이모지 */}
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-15.11px",
+                  left: "132.5px",
+                  width: "28.843px",
+                  height: "32.648px",
+                  transform: "rotate(9.938deg)",
+                  flexShrink: 0,
+                  color: "#000",
+                  textShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
+                  fontFamily: "Pretendard",
+                  fontSize: "30px",
+                  fontStyle: "normal",
+                  fontWeight: 900,
+                  lineHeight: "normal",
+                  display: "inline-block",
+                  zIndex: 0
+                }}
+              >
+                🏝️
+              </span>
+
+              {/* 텍스트 */}
+              <div style={{ position: "relative", zIndex: 1 }}>
                 <span
                   style={{
                     color: "#FFFFFF",
                     fontSize: "20px",
                     fontWeight: 900,
-                    fontFamily: "Inter"
+                    fontFamily: "Pretendard",
+                    display: "block"
                   }}
                 >
                   올 여름,
                 </span>
                 <span
                   style={{
-                    color: "#000",
-                    fontSize: "30px",
+                    color: "#FFFFFF",
+                    fontSize: "20px",
                     fontWeight: 900,
-                    fontFamily: "Inter",
-                    lineHeight: "normal",
-                    textShadow: "0px 4px 4px rgba(0,0,0,0.25)",
-                    transform: "rotate(-10deg)"
+                    fontFamily: "Pretendard"
                   }}
                 >
-                  💌
+                  내 동네 풍경{" "}
                 </span>
                 <span
                   style={{
-                    color: "#000",
-                    fontSize: "30px",
+                    color: "#FFFFFF",
+                    fontSize: "17px",
                     fontWeight: 900,
-                    fontFamily: "Inter",
-                    lineHeight: "normal",
-                    textShadow: "0px 4px 4px rgba(0,0,0,0.25)",
-                    transform: "rotate(10deg)"
+                    fontFamily: "Pretendard"
                   }}
                 >
-                  🏝️
+                  을 담아보자!
                 </span>
               </div>
-              <span
-                style={{
-                  color: "#FFFFFF",
-                  fontSize: "17px",
-                  fontWeight: 900,
-                  fontFamily: "Inter"
-                }}
-              >
-                내 동네 풍경을 담아보자!
-              </span>
             </div>
 
             {/* 버튼 */}
@@ -187,7 +225,7 @@ function HomePage() {
       </div>
 
       {/* 하단 탭바 */}
-      <BottomTabBar />
+      <BottomTabBar className="fixed bottom-0 left-0 w-full z-50" />
 
       <ChallengeRewardModal
         isOpen={isRewardOpen}

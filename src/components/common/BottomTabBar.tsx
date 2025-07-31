@@ -9,7 +9,11 @@ import profileIconActive from "../../assets/bottom/icon-bottom-profile-active.sv
 import writeIcon from "../../assets/bottom/icon-bottom-write.svg";
 import writeIconActive from "../../assets/bottom/icon-bottom-write-active.svg";
 
-const BottomTabBar = () => {
+interface BottomTabBarProps {
+  className?: string;
+}
+
+const BottomTabBar = ({ className = "" }: BottomTabBarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -31,7 +35,9 @@ const BottomTabBar = () => {
   ];
 
   return (
-    <div className="w-full h-[60px] bg-white flex justify-center">
+    <div
+      className={`w-full h-[60px] bg-white flex justify-center ${className}`}
+    >
       <div className="w-[357px] border-t border-neutral-300 bg-white flex h-[60px]">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;
