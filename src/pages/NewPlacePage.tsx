@@ -39,30 +39,15 @@ function NewPlacePage() {
 	const { data: places = [] } = useFetchPlacesWithinBounds(
 		shouldFetch
 			? {
-					latMin: currentLat! - 0.00045,
-					latMax: currentLat! + 0.00045,
-					lngMin: currentLng! - 0.00056,
-					lngMax: currentLng! + 0.00056,
+					latMin: Number((currentLat! - 0.00045).toFixed(5)),
+					latMax: Number((currentLat! + 0.00045).toFixed(5)),
+					lngMin: Number((currentLng! - 0.00056).toFixed(5)),
+					lngMax: Number((currentLng! + 0.00056).toFixed(5)),
 				}
 			: { latMin: 0, latMax: 0, lngMin: 0, lngMax: 0 },
 		shouldFetch
 	);
 
-
-	// 지번 주소 구하는 함수 
-	const fetchDetailAddress = (lat: number, lng: number) => {
-	const geocoder = new window.kakao.maps.services.Geocoder();
-	geocoder.coord2Address(lng, lat, (result: any, status: any) => {
-		if (status === window.kakao.maps.services.Status.OK) {
-			const detailAddr = result[0].address?.address_name || null;
-			setDetailAddress(detailAddr);
-			console.log("지번 주소:", detailAddr);
-		} else {
-			console.warn("주소를 불러오지 못했어요.");
-			setDetailAddress(null);
-		}
-	});
-};
 
 	useEffect(() => {
 		const scriptAlreadyExists = document.querySelector(
@@ -175,6 +160,21 @@ function NewPlacePage() {
 
 		placeMarkersRef.current = newMarkers;
 	}, [places, currentLat, currentLng]);
+
+		// 지번 주소 구하는 함수 
+	const fetchDetailAddress = (lat: number, lng: number) => {
+		const geocoder = new window.kakao.maps.services.Geocoder();
+		geocoder.coord2Address(lng, lat, (result: any, status: any) => {
+			if (status === window.kakao.maps.services.Status.OK) {
+				const detailAddr = result[0].address?.address_name || null;
+				setDetailAddress(detailAddr);
+				console.log("지번 주소:", detailAddr);
+			} else {
+				console.warn("주소를 불러오지 못했어요.");
+				setDetailAddress(null);
+			}
+		});
+	};
 
 	return (
 		<div className="w-full h-screen relative">

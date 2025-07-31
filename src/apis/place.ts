@@ -7,9 +7,26 @@ export interface FetchPlacesParams {
 	lngMax: number;
 }
 
-export const fetchPlacesWithinBounds = async (params: FetchPlacesParams) => {
+export const fetchPlacesWithinBounds = async ({
+	latMin,
+	latMax,
+	lngMin,
+	lngMax
+}: FetchPlacesParams) => {
+    console.log("[fetchPlacesWithinBounds] 호출 직전 파라미터 확인", {
+		latMin,
+		latMax,
+		lngMin,
+		lngMax
+	});
+
     const { data } = await axiosInstance.get("/api/places/map", {
-        params, 
+        params: {
+			latMin,
+			latMax,
+			lngMin,
+			lngMax
+		},
     });
     return data.result.places; 
 }; 

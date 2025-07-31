@@ -27,10 +27,10 @@ function MapPage() {
 	const { data: places = [] } = useFetchPlacesWithinBounds(
 		shouldFetch
 			? {
-					latMin: currentLat! - 0.00045,
-					latMax: currentLat! + 0.00045,
-					lngMin: currentLng! - 0.00056,
-					lngMax: currentLng! + 0.00056,
+					latMin: Number((currentLat! - 0.00045).toFixed(5)),
+					latMax: Number((currentLat! + 0.00045).toFixed(5)),
+					lngMin: Number((currentLng! - 0.00056).toFixed(5)),
+					lngMax: Number((currentLng! + 0.00056).toFixed(5)),
 				}
 			: { latMin: 0, latMax: 0, lngMin: 0, lngMax: 0 },
 		shouldFetch
