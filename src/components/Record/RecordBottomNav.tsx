@@ -6,28 +6,26 @@ import { useState } from "react";
 import fonts from "../../styles/fonts";
 
 import { useToggleLikeArticle } from "../../hooks/mutations/useToggleLikeArticle";
-import { useToggleSpamReport } from "../../hooks/mutations/useToggleSpamReport";
 
 interface Props {
   articleId: number;
   likes: number;
   spam: number; 
   comments: number;
+  onShowReportModal: () => void;
+  onCancelReport: () => void;
 }
 
-const RecordBottomNav = ({ articleId, likes, spam, comments }: Props) => {
+const RecordBottomNav = ({ articleId, likes, spam, comments, onShowReportModal, onCancelReport }: Props) => {
   const navigate = useNavigate();
-
-  const { mutate: toggleSpam } = useToggleSpamReport(articleId);
   const { mutate: toggleLike } = useToggleLikeArticle(articleId);
+
 
   const [likeCount, setLikeCount] = useState(likes);
   const [liked, setLiked] = useState(false);
 
   const [spamCount, setSpamCount] = useState<number>(spam); 
   const [isReported, setIsReported] = useState(false);
-
-  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleLike = () => {
     if (liked) {
@@ -47,17 +45,14 @@ const RecordBottomNav = ({ articleId, likes, spam, comments }: Props) => {
   };
 
   const handleSpam = () => {
-    const next = !isReported;
-
-    toggleSpam(next, {
-      onSuccess: () => {
-        setIsReported(next);
-        setSpamCount((prev) => next ? prev + 1 : Math.max(prev - 1, 0));
-      },
-      onError: () => {
-        alert("신고 처리 중 오류가 발생했습니다.");
-      },
-    });
+    if (isReported) {
+      const confirmCancel = window.confirm("광고 신고를 취소하시겠습니까?");
+      if (confirmCancel) {
+        onCancelReport(); // 부모에서 처리
+      }
+    } else {
+      onShowReportModal(); // 모달만 띄우기, count 올리지 말기
+    }
   };
 
 

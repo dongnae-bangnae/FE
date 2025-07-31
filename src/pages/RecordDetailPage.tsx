@@ -42,10 +42,45 @@ const RecordDetailPage = () => {
 
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [spamCountState, setSpamCountState] = useState(spamCount);
+  const [isReported, setIsReported] = useState(spamCount>0);
+  const { mutate: toggleSpam } = useToggleSpamReport(articleId);
+  
   
   const allImages = mainImageUuid
     ? [mainImageUuid, ...imageUuids]
     : imageUuids;
+
+
+  const handleOpenReportModal = () => {
+    setShowConfirm(true);
+  };  
+
+  const handleConfirmReport = () => {
+    toggleSpam(true, {
+      onSuccess: () => {
+        setIsReported(true);
+        setSpamCountState((prev) => prev + 1);
+        setShowConfirm(false);
+      },
+      onError: () => {
+        alert("신고 처리 중 오류가 발생했습니다.");
+      },
+    });
+  };
+
+  const handleCancelReport = () => {
+    toggleSpam(false, {
+      onSuccess: () => {
+        setIsReported(false);
+        setSpamCountState((prev) => Math.max(prev - 1, 0));
+      },
+      onError: () => {
+        alert("신고 취소 중 오류가 발생했습니다.");
+      },
+    });
+  };
 
 
   return (
@@ -149,8 +184,10 @@ const RecordDetailPage = () => {
       <RecordBottomNav
         articleId={articleId}
         likes={likeCount}
-        spam={spamCount}
+        spam={spamCountState}
         comments={3} // 임시
+        onShowReportModal={handleOpenReportModal}
+        onCancelReport={handleCancelReport}
       />
 
       {/* 메뉴 모달 */}
@@ -186,8 +223,7 @@ const RecordDetailPage = () => {
         </div>
       )}
 
-      {/* 신고 모달 */}
-      {/* {showConfirm && (
+      {showConfirm && (
         <MypageModal
           title="정말 광고 의심 신고를 하시겠어요?"
           description="허위 신고는 제재 대상이 될 수 있습니다."
@@ -196,7 +232,7 @@ const RecordDetailPage = () => {
           onCancel={() => setShowConfirm(false)}
           onConfirm={handleConfirmReport}
         />
-      )} */}
+      )}
 
       {/* 로딩 스피너 */}
       {isLoading && <RecordSpinner />}
