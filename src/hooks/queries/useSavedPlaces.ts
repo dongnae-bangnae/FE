@@ -11,20 +11,27 @@ export interface SavedPlace {
   longitude: number;
 }
 
+interface SavedPlacesResponse {
+  places: SavedPlace[];
+  cursor: number;
+  limit: number;
+  hasNext: boolean;
+}
+
 export const useSavedPlaces = (categoryId: number, cursor = 0, limit = 10) => {
   return useQuery({
     queryKey: ["savedPlaces", categoryId, cursor],
     queryFn: async () => {
+      const params: Record<string, any> = { limit };
+
+      if (cursor !== undefined && cursor !== null && cursor !== 0) {
+        params.cursor = cursor;
+      }
+
       const { data } = await axiosInstance.get<
-        ApiResponse<{
-          places: SavedPlace[];
-          cursor: number;
-          limit: number;
-          hasNext: boolean;
-        }>
-      >(`/api/categories/${categoryId}/places`, {
-        params: { cursor, limit }
-      });
+        ApiResponse<SavedPlacesResponse>
+      >(`/api/categories/${categoryId}/places`, { params });
+
       return data.result.places;
     },
     enabled: !!categoryId

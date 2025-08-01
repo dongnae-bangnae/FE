@@ -18,7 +18,6 @@ import LikePlacePage from "./pages/LikePlacePage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import MyPage from "./pages/MyPage";
-import LocationPostsPage from "./pages/MyPostListPage";
 import MyPostListPage from "./pages/MyPostListPage";
 import MyProfilePage from "./pages/MyProfilePage";
 import NewPlacePage from "./pages/NewPlacePage";
@@ -31,6 +30,7 @@ import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
+import SavedPlacePage from "./pages/SavedPlacePage";
 
 const routes: RouteObject[] = [
   {
@@ -54,7 +54,8 @@ const routes: RouteObject[] = [
       { path: "mypage/profile", element: <MyProfilePage /> },
       { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
       { path: "mypage/profile/likeplace", element: <LikePlacePage /> },
-      { path: "mypage/saved/:placeId", element: <SavedPlaceListPage /> },
+      { path: "mypage/saved/:placeId", element: <SavedPlacePage /> },
+      // { path: "mypage/saved/:placeId/", element: <SavedPlaceListPage /> },
       { path: "mypage/locationposts/:placeId", element: <MyPostListPage /> },
       { path: "category", element: <CategoryPage /> },
       { path: "category/new", element: <AddCategoryPage /> },
