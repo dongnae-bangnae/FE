@@ -122,7 +122,7 @@ const RecordDetailPage = () => {
         right={
           <button
             onClick={() => setShowMenu((prev) => !prev)}
-            className="absolute right-[20px]"
+            className="mr-[10px] p-2"
           >
             <img src={MenuIcon} alt="menu" width={3} height={15} />
           </button>
@@ -220,11 +220,16 @@ const RecordDetailPage = () => {
       {/* 메뉴 모달 */}
       {showMenu && (
         <div
-          className="absolute right-5 top-[60px] z-50 bg-white border border-gray-300 rounded-[10px] shadow-md"
-          style={{ width: "100px" }}
+          className="fixed z-50 bg-white border border-gray-300 rounded-[10px] shadow-md"
+          style={{
+            top: "56px",  
+            right: "35px",         
+            width: "100px",
+          }}
         >
           <button
-            className="w-full px-4 py-2 border-b text-sm text-left hover:bg-gray-100"
+            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100"
+            style={{borderBottom: "1px solid #999999"}}
             onClick={() => {
               setShowMenu(false);
               alert("수정 기능 연동 예정");
@@ -235,6 +240,7 @@ const RecordDetailPage = () => {
           </button>
           <button
             className="w-full px-4 py-2 border-b text-sm text-left hover:bg-gray-100"
+            style={{borderBottom: "1px solid #999999"}}
             onClick={() => {
               setShowMenu(false);
               setShowDeleteModal(true);
