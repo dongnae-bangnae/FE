@@ -1,11 +1,18 @@
 export interface CommentNotification {
-  id: number;
+  // id: number;
+  // type: "comment";
+  // nickname: string;
+  // postTitle: string;
+  // postId: number;
+  // isReply: boolean;
+  // subText: string;
+  id: number; // 알림 ID → notificationId
   type: "comment";
-  nickname: string;
-  postTitle: string;
-  postId: number;
-  isReply: boolean;
-  subText: string;
+  articleId: number;
+  articleTitle: string;
+  commentId: number;
+  commentContent: string;
+  commenterNickname: string;
 }
 
 export interface AdNotification {
