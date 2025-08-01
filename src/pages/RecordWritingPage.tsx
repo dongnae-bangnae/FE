@@ -170,7 +170,9 @@ function RecordWritingPage() {
         <div>
           <div className="flex items-center gap-[10px]">
             <span className="text-base font-semibold text-center flex-1 truncate">{categoryName}</span>
-            <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
+            <button onClick={() => navigate("/category", { state: {mode: 
+              "write",
+            }})} style={{ all: "unset", cursor: "pointer" }}>
               <img src={SelectIcon} alt="select" width={15} height={15} style={{ marginTop: "2px" }} />
             </button>
           </div>
