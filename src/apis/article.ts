@@ -119,3 +119,9 @@ export const reportSpam = async (
   const response = await axiosInstance.post(`/api/articles/${articleId}/spams`);
   return response.data;
 };
+
+//신고 취소
+export const unreportSpam = async (articleId: number): Promise<ApiResponse<null>> => {
+  const response = await axiosInstance.delete(`/api/articles/${articleId}/spams`);
+  return response.data;
+};

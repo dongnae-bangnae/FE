@@ -1,16 +1,19 @@
-import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useLocation, useNavigate} from "react-router-dom";
+import { useEffect, useState } from "react";
 import MenuIcon from "../assets/record/icon-menubar.svg";
+// import CheckIcon_g from "../assets/icon-check-green.svg";
 import fonts from "../styles/fonts";
 import RecordBottomNav from "../components/Record/RecordBottomNav";
 import MiniMap from "../components/Record/MiniMap";
 import Header from "../components/common/Header";
 import RecordSpinner from "../components/Record/RecordSpinner";
-import { useReportSpam } from "../hooks/mutations/useReportSpam";
 import MypageModal from "../components/MypageModal";
+import { useToggleSpamReport } from "../hooks/mutations/useToggleSpamReport";
+// import MessagePopup from "../components/MessagaePopup";
 
 const RecordDetailPage = () => {
   const { state } = useLocation();
+  const navigate = useNavigate();
 
   const {
     articleId,
@@ -23,8 +26,8 @@ const RecordDetailPage = () => {
     spamCount = 0,
     latitude,
     longitude,
-    placeName,
-    detailAddress,
+    // placeName,
+    // detailAddress,
   }: {
     articleId: number;
     title: string;
@@ -43,29 +46,75 @@ const RecordDetailPage = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const reportSpam = useReportSpam();
+  const [spamCountState, setSpamCountState] = useState(spamCount);
+  const [commentCount, setCommentCount] = useState<number>(0);
+  const [isReported, setIsReported] = useState(spamCount>0);
+  const [showMessage, setShowMessage] = useState(false);
+  const { mutate: toggleSpam } = useToggleSpamReport(articleId);
 
+  useEffect(() => {
+    if (state?.from === "writing") {
+      setShowMessage(true);
+    }
+  }, [state]);
+  
+  
   const allImages = mainImageUuid
     ? [mainImageUuid, ...imageUuids]
     : imageUuids;
 
+
+  const handleOpenReportModal = () => {
+    setShowConfirm(true);
+  };  
+
   const handleConfirmReport = () => {
-    reportSpam.mutate(articleId, {
+    if (isReported) return;
+
+    toggleSpam(true, {
       onSuccess: () => {
+        setIsReported(true);
+        setSpamCountState((prev) => prev + 1);
         setShowConfirm(false);
       },
       onError: () => {
-        alert("신고에 실패했습니다. 다시 시도해주세요.");
+        alert("신고 처리 중 오류가 발생했습니다.");
       },
     });
   };
 
+  const handleCancelReport = () => {
+    toggleSpam(false, {
+      onSuccess: () => {
+        setIsReported(false);
+        setSpamCountState((prev) => Math.max(prev - 1, 0));
+      },
+      onError: () => {
+        alert("신고 취소 중 오류가 발생했습니다.");
+      },
+    });
+  };
+
+
   return (
     <>
+     {/* {showMessage && (
+        <MessagePopup
+          icon={<img src={CheckIcon_g} alt="확인" className="w-[16px] h-[16px]" />}
+          message="게시물이 등록되었어요"
+        />
+      )} */}
+
+      {/* <MessagePopup 
+          icon={CheckIcon_g}
+          message="게시물이 등록되었어요"
+      /> */}
+
       {/* 상단바 */}
       <Header
         title={date}
         underline={false}
+        onBack={() => navigate('/home')}
         right={
           <button
             onClick={() => setShowMenu((prev) => !prev)}
@@ -114,42 +163,37 @@ const RecordDetailPage = () => {
             />
           </div>
 
-          {/* 이미지 슬라이드 */}
-          {allImages.length > 0 && (
-            <div className="flex flex-col items-center">
-              <div
-                className="overflow-x-auto no-scrollbar"
-                style={{
-                  width: "375px",
-                  paddingBottom: "15px",
-                }}
-              >
-                <div className="flex gap-[6px] px-[10px]">
-                  {allImages.map((src, index) => (
-                    <div
-                      key={index}
-                      className="flex-shrink-0 w-[147px] h-[147px] rounded-[12px] overflow-hidden relative"
-                    >
-                      <img
-                        src={src}
-                        alt={`preview-${index}`}
-                        className="w-full h-full object-cover"
-                        onLoad={() => setIsLoading(false)}
-                        onError={() => setIsLoading(false)}
-                        onLoadStart={() => setIsLoading(true)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* 지도 - 임시 위치 */}
           <div
-            className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[293px]"
-            style={{ bottom: "70px" }}
+            className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[270px]"
+            style={{ bottom: "70px"}}
           >
+            {/* 이미지 슬라이드 */}
+            {allImages.length > 0 && (
+              <div className="absolute left-0 bottom-[270px] w-full overflow-x-auto no-scrollbar px-[10px]"
+                   style={{marginBottom: "20px"}}
+              >
+                  <div className="flex gap-[6px] px-[10px]">
+                    {allImages.map((src, index) => (
+                      <div
+                        key={index}
+                        className="flex-shrink-0 w-[147px] h-[147px] rounded-[12px] overflow-hidden relative"
+                      >
+                        <img
+                          src={src}
+                          alt={`preview-${index}`}
+                          className="w-full h-full object-cover"
+                          onLoad={() => setIsLoading(false)}
+                          onError={() => setIsLoading(false)}
+                          onLoadStart={() => setIsLoading(true)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+              </div>
+            )}
+
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
               <MiniMap latitude={latitude} longitude={longitude} />
             </div>
@@ -161,9 +205,12 @@ const RecordDetailPage = () => {
       <RecordBottomNav
         articleId={articleId}
         likes={likeCount}
-        spam={spamCount}
-        comments={3} // 임시
-        onShowConfirm={() => setShowConfirm(true)}
+        spam={spamCountState}
+        comments={commentCount} 
+        isReported={isReported}
+        onShowReportModal={handleOpenReportModal}
+        onCancelReport={handleCancelReport}
+
       />
 
       {/* 메뉴 모달 */}
@@ -199,7 +246,6 @@ const RecordDetailPage = () => {
         </div>
       )}
 
-      {/* 신고 모달 */}
       {showConfirm && (
         <MypageModal
           title="정말 광고 의심 신고를 하시겠어요?"
