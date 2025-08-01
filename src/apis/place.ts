@@ -29,19 +29,7 @@ export interface FetchPlacesParams {
   lngMax: number;
 }
 
-export const fetchPlacesWithinBounds = async ({
-  latMin,
-  latMax,
-  lngMin,
-  lngMax
-}: FetchPlacesParams) => {
-  console.log("[fetchPlacesWithinBounds] 호출 직전 파라미터 확인", {
-    latMin,
-    latMax,
-    lngMin,
-    lngMax
-  });
-
+export const fetchPlacesWithinBounds = async ({latMin, latMax, lngMin, lngMax}: FetchPlacesParams) => {
   const { data } = await axiosInstance.get("/api/places/map", {
     params: {
       latMin,
@@ -52,3 +40,14 @@ export const fetchPlacesWithinBounds = async ({
   });
   return data.result.places;
 };
+
+// 장소 카테고리 내 저장 
+export const savePlaceToCategory = async (placeId: number, categoryId: number) => {
+  const { data } = await axiosInstance.post(`/api/places/${placeId}/categories`, { categoryId }, {
+    headers: {
+      "Content-Type": "application/json", 
+    },
+  })
+
+  return data.result;
+}
