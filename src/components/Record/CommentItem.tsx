@@ -58,7 +58,8 @@ const CommentItem = ({
               fontWeight: fonts.weight.regular,
             }}
           >
-            @{nickname}
+            {/* @{nickname} */} @ 웅크린두더지눈물 
+            {/* 임시값 */}
           </span>
         </div>
 
