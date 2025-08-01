@@ -8,6 +8,9 @@ import { useCreateComment } from "../hooks/mutations/useCreateComment";
 import CommentItem from "../components/Record/CommentItem";
 import { useMyInfo } from "../hooks/queries/useMyInfo";
 import MessagePopup from "../components/MessagaePopup";
+import { useUpdateComment } from "../hooks/mutations/useUpdateComment"; 
+import { useDeleteComment } from "../hooks/mutations/useDeleteComment"; 
+
 
 interface LocationState {
   articleId: number;
@@ -31,9 +34,12 @@ function CommentPage() {
   const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [editCommentId, setEditCommentId] = useState<number | null>(null);
+  const [editedContent, setEditedContent] = useState<string>("");
 
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
+  
 
   const handleSubmitComment = (content: string, parentCommentId: number | null) => {
     if (!content.trim() || !myInfo) return;
@@ -71,6 +77,24 @@ function CommentPage() {
     );
   };
 
+  const handleEditComment = (id: number, content: string) => {
+    setEditCommentId(id);
+    setEditedContent(content);
+  };
+
+
+  const handleDeleteComment = (commentId: number) => {
+    const { mutate } = useDeleteComment(articleId, commentId);
+    mutate(undefined, {
+      onSuccess: () => {
+        setComments((prev) => prev.filter((c) => c.id !== commentId));
+      },
+      onError: () => alert("댓글 삭제 실패"),
+    });
+  };
+
+  
+
   return (
     <div className="flex flex-col h-screen" style={{ fontFamily: fonts.family }}>
       {/* 상단바 */}
@@ -102,6 +126,8 @@ function CommentPage() {
                 onReplyClick={() =>
                   setActiveReplyId((prev) => (prev === parentComment.id ? null : parentComment.id))
                 }
+                onEdit={() => handleEditComment(parentComment.id, parentComment.content)} // ✅ 추가
+                onDelete={() => handleDeleteComment(parentComment.id)}  
               />
 
               {/* 답글 입력창 */}

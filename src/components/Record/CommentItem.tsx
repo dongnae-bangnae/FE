@@ -14,6 +14,8 @@ interface CommentItemProps {
   isReply?: boolean;
   isMine?: boolean;
   profileImage?: string,
+  onEdit?: () =>  void;
+  onDelete?: () => void;
 }
 
 const CommentItem = ({
@@ -24,6 +26,8 @@ const CommentItem = ({
   children,
   isReply = false,
   isMine = true, //임시
+  onEdit,
+  onDelete
 }: CommentItemProps) => {
    
   const [showModal, setShowModal] = useState(false);
@@ -57,26 +61,30 @@ const CommentItem = ({
             @{nickname}
           </span>
         </div>
-        <button className="mr-[12px]"
-                onClick={() => setShowModal(true)}
-        >
-          <img src={MenuBarIcon} />
-        </button>
 
         {/* 모달 렌더링 */}
-        {showModal && isMine && (
-            <CommentModal
-            onClose={() => setShowModal(false)}
-            onEdit={() => {
-                alert("수정 기능 연결 예정");
-                setShowModal(false);
-            }}
-            onDelete={() => {
-                alert("삭제 기능 연결 예정");
-                setShowModal(false);
-            }}
-            />
+        {isMine && (
+          <>
+            <button className="mr-[12px]" onClick={() => setShowModal(true)}>
+              <img src={MenuBarIcon} />
+            </button>
+            {showModal && (
+              <CommentModal
+                onClose={() => setShowModal(false)}
+                onEdit={() => {
+                  onEdit?.();
+                  setShowModal(false);
+                }}
+                onDelete={() => {
+                  onDelete?.();
+                  setShowModal(false);
+                }}
+              />
+            )}
+          </>
         )}
+
+
       </div>
 
       <div className="w-full border-b border-[#999999] mb-2" />
