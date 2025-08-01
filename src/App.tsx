@@ -9,10 +9,12 @@ import {
 import Layout from "./layouts/Layout";
 import AddCategoryPage from "./pages/AddCategoryPage";
 import CategoryPage from "./pages/CategoryPage";
+import CommentPage from "./pages/CommentPage";
+import EditCategoryDetailPage from "./pages/EditCategoryDetailPage";
+import EditCategoryPage from "./pages/EditCategoryPage";
 import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
 import LikePlacePage from "./pages/LikePlacePage";
-import LocationPostsPage from "./pages/LocationPostsPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import MyPage from "./pages/MyPage";
@@ -28,9 +30,7 @@ import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
-import CommentPage from "./pages/CommentPage";
-import EditCategoryPage from "./pages/EditCategoryPage";
-import EditCategoryDetailPage from "./pages/EditCategoryDetailPage";
+import SavedPlacePage from "./pages/SavedPlacePage";
 
 const routes: RouteObject[] = [
   {
@@ -54,13 +54,13 @@ const routes: RouteObject[] = [
       { path: "mypage/profile", element: <MyProfilePage /> },
       { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
       { path: "mypage/profile/likeplace", element: <LikePlacePage /> },
-      { path: "mypage/saved/:placeId", element: <SavedPlaceListPage /> },
-      { path: "mypage/saved/:placeId/list", element: <MyPostListPage /> },
-      { path: "mypage/locationposts", element: <LocationPostsPage /> },
+      { path: "mypage/saved/:placeId", element: <SavedPlacePage /> },
+      // { path: "mypage/saved/:placeId/", element: <SavedPlaceListPage /> },
+      { path: "mypage/locationposts/:placeId", element: <MyPostListPage /> },
       { path: "category", element: <CategoryPage /> },
       { path: "category/new", element: <AddCategoryPage /> },
-      { path: "category/edit", element: <EditCategoryPage/> },
-      { path: "category/edit/:categoryId", element: <EditCategoryDetailPage /> },
+      { path: "category/edit", element: <EditCategoryPage /> },
+      { path: "category/edit/:categoryId", element: <EditCategoryDetailPage /> }
     ]
   }
 ];
