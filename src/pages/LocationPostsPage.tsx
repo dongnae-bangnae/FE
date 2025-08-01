@@ -1,8 +1,7 @@
-import { useParams } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import Header from "../components/common/Header";
-import PostCard from "../components/Home/PostCard";
+import MyPagePostCard from "../components/MyPagePostCard";
 import { useCategoryArticles } from "../hooks/queries/useCategoryArticles";
 
 function LocationPostsPage() {
@@ -13,26 +12,28 @@ function LocationPostsPage() {
 
   const { data, isLoading } = useCategoryArticles(categoryId);
 
+  const articles = data?.articles ?? [];
+
+  console.log("categoryId:", placeId);
+  console.log("data:", data);
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <Header title={state?.categoryName ?? placeId} underline={true} />
+      <Header title={state?.categoryName ?? placeId} underline={false} />
 
-      <div className="flex-1 px-4 py-6 flex flex-col gap-4 items-center">
+      <div className="flex-1 px-4 py-4 flex flex-col gap-4 items-center">
         {isLoading && <div>로딩 중...</div>}
+        {articles.length === 0 && !isLoading && <div>게시글이 없습니다.</div>}
 
-        {data?.articles?.length === 0 && <div>게시글이 없습니다.</div>}
-
-        {data?.articles?.map((article) => (
-          <PostCard
+        {articles.map((article) => (
+          <MyPagePostCard
             key={article.articleId}
-            profileImage={article.profileImage}
-            nickname={article.nickname}
             category={article.pinCategory}
-            image={article.imageUrl}
-            content={article.title}
+            imageUrl={article.imageUrl}
+            title={article.title}
             likes={article.likes}
             comments={article.comments}
-            views={article.views}
+            spam={article.spam}
           />
         ))}
       </div>
