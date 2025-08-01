@@ -15,10 +15,10 @@ import EditCategoryPage from "./pages/EditCategoryPage";
 import EditNicknamePage from "./pages/EditNicknamePage";
 import HomePage from "./pages/HomePage";
 import LikePlacePage from "./pages/LikePlacePage";
-import LocationPostsPage from "./pages/LocationPostsPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import MyPage from "./pages/MyPage";
+import LocationPostsPage from "./pages/MyPostListPage";
 import MyPostListPage from "./pages/MyPostListPage";
 import MyProfilePage from "./pages/MyProfilePage";
 import NewPlacePage from "./pages/NewPlacePage";
@@ -55,8 +55,7 @@ const routes: RouteObject[] = [
       { path: "mypage/profile/nickname", element: <EditNicknamePage /> },
       { path: "mypage/profile/likeplace", element: <LikePlacePage /> },
       { path: "mypage/saved/:placeId", element: <SavedPlaceListPage /> },
-      { path: "mypage/saved/:placeId/list", element: <MyPostListPage /> },
-      { path: "mypage/locationposts/:placeId", element: <LocationPostsPage /> },
+      { path: "mypage/locationposts/:placeId", element: <MyPostListPage /> },
       { path: "category", element: <CategoryPage /> },
       { path: "category/new", element: <AddCategoryPage /> },
       { path: "category/edit", element: <EditCategoryPage /> },
