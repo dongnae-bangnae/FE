@@ -86,9 +86,9 @@ export const createArticle = async (data: ArticleForm): Promise<number> => {
 // };
 
 //게시글 삭제
-// export const deleteArticle = async (articleId: number): Promise<void> => {
-//   await axiosInstance.delete(`/api/articles/${articleId}`);
-// };
+export const deleteArticle = async (articleId: number): Promise<void> => {
+  await axiosInstance.delete(`/api/articles/${articleId}`);
+};
 
 //게시글 상세 조회
 export const fetchArticleDetail = async (
