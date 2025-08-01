@@ -1,7 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { deleteComment } from "../../apis/comment";
 
-export const useDeleteComment = (articleId: number, commentId: number) =>
+interface DeleteCommentParams {
+  articleId: number;
+  commentId: number;
+}
+
+export const useDeleteComment = () =>
   useMutation({
-    mutationFn: () => deleteComment(articleId, commentId),
+    mutationFn: ({ articleId, commentId }: DeleteCommentParams) =>
+      deleteComment(articleId, commentId),
   });
