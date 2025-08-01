@@ -2,6 +2,7 @@ import { useLocation, useParams } from "react-router-dom";
 
 import Header from "../components/common/Header";
 import MyPagePostCard from "../components/MyPagePostCard";
+import SkeletonPostCard from "../components/SkeletonPostCard";
 import { useCategoryArticles } from "../hooks/queries/useCategoryArticles";
 
 function LocationPostsPage() {
@@ -25,17 +26,21 @@ function LocationPostsPage() {
         {isLoading && <div>로딩 중...</div>}
         {articles.length === 0 && !isLoading && <div>게시글이 없습니다.</div>}
 
-        {articles.map((article) => (
-          <MyPagePostCard
-            key={article.articleId}
-            category={article.pinCategory}
-            imageUrl={article.imageUrl}
-            title={article.title}
-            likes={article.likes}
-            comments={article.comments}
-            spam={article.spam}
-          />
-        ))}
+        {isLoading
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <SkeletonPostCard key={i} />
+            ))
+          : articles.map((article) => (
+              <MyPagePostCard
+                key={article.articleId}
+                category={article.pinCategory}
+                imageUrl={article.imageUrl}
+                title={article.title}
+                likes={article.likes}
+                comments={article.comments}
+                spam={article.spam}
+              />
+            ))}
       </div>
     </div>
   );
