@@ -70,8 +70,15 @@ function SavedPlacePage() {
         <button
           onClick={() => {
             if (!selectedPlace) return;
+
+            // 지도 페이지로 위도/경도 범위를 전달
+            const range = 0.01; // 표시 범위(대략 1km 내)
             navigate(
-              `/map?lat=${selectedPlace.latitude}&lng=${selectedPlace.longitude}&name=${selectedPlace.title}`
+              `/map?latMin=${selectedPlace.latitude - range}&latMax=${
+                selectedPlace.latitude + range
+              }&lngMin=${selectedPlace.longitude - range}&lngMax=${
+                selectedPlace.longitude + range
+              }`
             );
           }}
           disabled={!isButtonActive}
