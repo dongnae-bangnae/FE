@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
+import LoadingSpinner from "../components/common/LoadingSpinner";
 import PinInfoModal from "../components/PinInfoModal";
 import { useFetchPlacesWithinBounds } from "../hooks/queries/useFetchPlacesWithinBounds";
 import { Place } from "../types/place";
@@ -91,15 +92,21 @@ function SavedPlaceMapPage() {
   }, [places]);
 
   return (
-    <div className="w-full h-full relative">
-      <div
-        ref={mapContainerRef}
-        className="w-full h-[calc(100vh-60px)] border border-gray-200"
-      />
-      <PinInfoModal
-        place={selectedPlace}
-        onClose={() => setSelectedPlace(null)}
-      />
+    <div className="w-full h-full relative flex items-center justify-center">
+      {!isMapLoaded ? (
+        <LoadingSpinner size={60} />
+      ) : (
+        <>
+          <div
+            ref={mapContainerRef}
+            className="w-full h-[calc(100vh-60px)] border border-gray-200"
+          />
+          <PinInfoModal
+            place={selectedPlace}
+            onClose={() => setSelectedPlace(null)}
+          />
+        </>
+      )}
     </div>
   );
 }
