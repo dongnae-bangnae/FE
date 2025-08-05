@@ -1,14 +1,16 @@
+// apis/axiosInstance.ts
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true //  JWT 쿠키 자동 포함
 });
 
-// 임의로 토큰 동적으로 추가 (추후 수정 예정)
+//  CSRF 토큰을 localStorage에서 꺼내서 헤더에 자동으로 포함
 axiosInstance.interceptors.request.use((config) => {
-  const token = import.meta.env.VITE_ACCESS_TOKEN;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const csrfToken = localStorage.getItem("XSRF-TOKEN");
+  if (csrfToken) {
+    config.headers["X-XSRF-TOKEN"] = csrfToken;
   }
   return config;
 });

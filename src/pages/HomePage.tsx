@@ -7,6 +7,18 @@ import PreviewPost from "../components/Home/PostCardPreview";
 import ChallengeRewardModal from "../components/Home/ChallengeRewardModal";
 import sampleImage from "../assets/record/img1.jpg";
 import { getChallengeDetail } from "../apis/home";
+import { getNewArticles } from "../apis/home";
+import { ArticlePreview } from "../types/article";
+import DefaultProfile from "../assets/icon-defaultProfile.svg";
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+}
 
 function HomePage() {
   const navigate = useNavigate();
@@ -17,6 +29,12 @@ function HomePage() {
     queryFn: () => getChallengeDetail("1"),
     enabled: isRewardOpen,
     staleTime: 1000 * 60 * 10 // 10분 동안은 stale 아님 → 캐시 유지
+  });
+
+  const { data: newArticles = [] } = useQuery<ArticlePreview[]>({
+    queryKey: ["newArticles"],
+    queryFn: () => getNewArticles(1),
+    staleTime: 1000 * 60 * 5
   });
 
   return (
@@ -41,16 +59,16 @@ function HomePage() {
             </button>
           </div>
           <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-2">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {newArticles.map((article) => (
               <PreviewPost
-                key={i}
-                id={String(i)}
-                profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
-                author="커비"
-                date="2025.8.25"
-                title="연남동 파스타 맛집에서 데이트"
-                image={sampleImage}
-                onClick={() => navigate(`/record/${i}`)}
+                key={article.id}
+                id={String(article.id)}
+                profileImage={article.profileImageUrl || DefaultProfile}
+                author={article.authorNickname}
+                date={formatDate(article.createdAt)}
+                title={article.title}
+                image={article.imageUrl || sampleImage}
+                onClick={() => navigate(`/record/${article.id}`)}
               />
             ))}
           </div>

@@ -1,11 +1,14 @@
 import { useState } from "react";
 import axios from "axios";
+import { useEffect } from "react";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import CameraIcon from "../assets/icon-camera.svg";
 import SearchIcon from "../assets/icon-search.svg";
 import Header from "../components/common/Header";
 import { useNavigate } from "react-router-dom";
-import { postOnboarding } from "../apis/onboarding";
+import IconDefault from "../assets/icon-default.svg";
+import IconRedChecked from "../assets/icon-redChecked.svg";
+import { usePostOnboarding } from "../hooks/mutations/usePostOnboarding";
 
 function OnboardingPage() {
   const navigate = useNavigate();
@@ -15,9 +18,37 @@ function OnboardingPage() {
   const [isNicknameValid, setIsNicknameValid] = useState(false);
   const [areaInput, setAreaInput] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
+  // 체크박스 토글 핸들러
+  const handleToggleArea = (area: string) => {
+    if (selectedAreas.includes(area)) {
+      setSelectedAreas(selectedAreas.filter((a) => a !== area));
+    } else {
+      if (selectedAreas.length >= 3) return;
+      setSelectedAreas([...selectedAreas, area]);
+    }
+  };
   const handleRemoveArea = (areaToRemove: string) => {
     setSelectedAreas(selectedAreas.filter((area) => area !== areaToRemove));
+  };
+
+  const areaFullNameMap: Record<string, string> = {
+    연남동: "서울시 마포구 연남동",
+    합정동: "서울시 마포구 합정동",
+    망원동: "서울시 마포구 망원동",
+    상수동: "서울시 마포구 상수동",
+    "종로 3가": "서울시 종로구 종로 3가",
+    홍대입구: "서울시 마포구 홍대입구"
+  };
+
+  const regionIdMap: Record<string, number> = {
+    "서울시 마포구 연남동": 1,
+    "서울시 마포구 합정동": 2,
+    "서울시 마포구 망원동": 3,
+    "서울시 마포구 상수동": 4,
+    "서울시 종로구 종로 3가": 5,
+    "서울시 마포구 홍대입구": 6
   };
 
   // 닉네임 중복 체크
@@ -85,37 +116,55 @@ function OnboardingPage() {
       setAreaInput("");
     }
   };
+  const { mutate: submitOnboarding } = usePostOnboarding();
 
   const handleOnboardingSubmit = async () => {
     if (!nickname || selectedAreas.length === 0) return;
 
     const formData = new FormData();
     formData.append("nickname", nickname);
-    formData.append("chosenRegionIds", JSON.stringify(selectedAreas));
+    if (imageFile) formData.append("profileImage", imageFile);
 
-    if (imageFile) {
-      formData.append("profileImage", imageFile);
-    }
+    //  동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
+    selectedAreas.forEach((area) => {
+      const fullAddress = areaFullNameMap[area] ?? area; // "합정동" → "서울시 마포구 합정동"
+      const regionId = regionIdMap[fullAddress]; // → 2
+      if (regionId) {
+        formData.append("chosenRegionIds", String(regionId));
+      }
+    });
 
-    try {
-      const res = await postOnboarding(formData);
-      console.log("온보딩 성공:", res);
-      navigate("/home");
-    } catch (err) {
-      console.error("온보딩 실패", err);
-      alert("온보딩에 실패했습니다. 다시 시도해주세요.");
-    }
+    submitOnboarding(formData, {
+      onSuccess: (res) => {
+        console.log("온보딩 성공:", res);
+        navigate("/home");
+      },
+      onError: (err) => {
+        console.error("온보딩 실패", err);
+        alert("온보딩에 실패했습니다. 다시 시도해주세요.");
+      }
+    });
   };
-
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [matchedFullAddress, setMatchedFullAddress] = useState<string | null>(
+    null
+  );
+  useEffect(() => {
+    const trimmedInput = areaInput.trim();
+    if (areaFullNameMap[trimmedInput]) {
+      setMatchedFullAddress(areaFullNameMap[trimmedInput]);
+    } else {
+      setMatchedFullAddress(null); // 일치 안 하면 숨김
+    }
+  }, [areaInput]);
 
   return (
     <div className="w-full max-w-[390px] mx-auto min-h-screen bg-white flex flex-col">
       {/* Header */}
       {step === 1 && <Header title="프로필 수정" underline />}
       {step === 2 && <Header title="" onBack={() => setStep(1)} />}
-      {step === 3 && <Header title="동네 선택" onBack={() => setStep(2)} />}
+      {step === 3 && <Header title="" onBack={() => setStep(2)} />}
 
       {/* STEP 1 */}
       {step === 1 && (
@@ -236,7 +285,7 @@ function OnboardingPage() {
       {step === 2 && (
         <>
           {/* 상단 문구 */}
-          <div className="mt-[69px] ml-[26px] mb-[22px]">
+          <div className="mt-[69px] ml-[42px] mb-[22px]">
             <h2 className="text-[24px] font-normal text-black">
               좋아하는 동네를 알려주세요!
             </h2>
@@ -245,19 +294,21 @@ function OnboardingPage() {
           {/* 검색박스 */}
           <div
             onClick={() => setStep(3)}
-            className="flex items-center mx-[26px] border border-[#A9A9A9] rounded-[5px] h-[48px] px-[13px] cursor-pointer"
+            className="flex items-center mx-[12.5px] h-[52px] w-[350px] px-[13px] cursor-pointer
+             rounded-[12px] border border-[#E0E0E0] bg-white
+             shadow-[0_2px_4px_0_rgba(0,0,0,0.25)]"
           >
             <img
               src={SearchIcon}
               alt="검색"
               className="w-[25px] h-[25px] mr-[7px]"
             />
-            <span className="text-[16px] text-[#666]">동네명 검색</span>
+            <span className="text-[16px] text-[#666]">동네명, 장소명 검색</span>
           </div>
 
           {/* 최대 3개 선택 */}
-          <p className="mt-[22px] ml-[26px] text-[20px] text-[#FF6A00]">
-            최대 3개 선택
+          <p className="mt-[22px] ml-[90px] text-[20px] text-[#FF6A00] font-normal font-pretendard leading-none">
+            최소 1개, 최대 3개 선택
           </p>
 
           {/* 선택된 태그 */}
@@ -309,25 +360,73 @@ function OnboardingPage() {
               좋아하는 동네를 알려주세요!
             </span>
           </div>
-
-          {/* 주황색 박스 */}
-          <div className="flex flex-col justify-center items-center gap-[10px] bg-[#FFAC33] mt-4 w-full px-4 h-[76px]">
-            <div className="flex items-center w-full h-[48px] px-[13px] border border-gray-300 rounded-[5px] bg-white">
-              <img
-                src={SearchIcon}
-                alt="검색"
-                className="w-[25px] h-[25px] mr-[7px]"
-              />
+          {/* 검색박스 */}
+          <div
+            className={`flex items-center mx-[12.5px] h-[52px] w-[350px] px-[13px]
+    rounded-[12px] border bg-white
+    ${
+      isSearching
+        ? "border-[3px] border-[rgba(255,170,51,0.87)] shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
+        : "border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.25)]"
+    }`}
+          >
+            <img
+              src={SearchIcon}
+              alt="검색"
+              className="w-[25px] h-[25px] mr-[7px]"
+            />
+            {isSearching ? (
               <input
                 type="text"
-                placeholder="동네명 검색"
+                className="flex-1 bg-transparent outline-none text-[16px] text-black placeholder-[#666]"
+                placeholder="동네명, 장소명 검색"
                 value={areaInput}
                 onChange={(e) => setAreaInput(e.target.value)}
                 onKeyDown={handleAreaKeyDown}
-                className="flex-1 text-[16px] outline-none"
+                autoFocus
               />
-            </div>
+            ) : (
+              <span
+                className="text-[16px] text-[#666] cursor-text"
+                onClick={() => setIsSearching(true)}
+              >
+                동네명, 장소명 검색
+              </span>
+            )}
           </div>
+          {/* 검색 결과 리스트 */}
+          {matchedFullAddress && (
+            <label className="flex items-center gap-[5px] mt-[20px] ml-[20px] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedAreas.includes(matchedFullAddress)}
+                onChange={() => handleToggleArea(matchedFullAddress)}
+                className="hidden"
+              />
+              <img
+                src={
+                  selectedAreas.includes(matchedFullAddress)
+                    ? IconRedChecked
+                    : IconDefault
+                }
+                alt="체크박스 커스텀 아이콘"
+                className="w-[25px] h-[25px] flex-shrink-0"
+              />
+              <span className="text-[16px] leading-[24px] font-normal font-pretendard text-[#000]">
+                {matchedFullAddress.split(areaInput).map((part, i, arr) => {
+                  const isLast = i === arr.length - 1;
+                  return (
+                    <span key={i}>
+                      {part}
+                      {!isLast && (
+                        <span className="text-[#F95F00]">{areaInput}</span>
+                      )}
+                    </span>
+                  );
+                })}
+              </span>
+            </label>
+          )}
 
           {/* 상단선 + 문구 + 태그 묶음 */}
           <div className="mt-88">
@@ -336,7 +435,7 @@ function OnboardingPage() {
 
             {/* 문구 */}
             <p className="mt-2 ml-6 text-[14px] font-normal text-[#FF6A00]">
-              최대 3개 선택
+              최소 1개, 최대 3개 선택
             </p>
 
             {/* 태그 */}
@@ -357,10 +456,8 @@ function OnboardingPage() {
               ))}
             </div>
           </div>
-
           {/* 하단선: 화면 하단에서 100px 고정 */}
           <div className="absolute bottom-[100px] left-0 w-full border-t border-gray-300" />
-
           {/* 버튼 */}
           <div className="flex gap-2 mt-auto pb-[30px] px-[63px]">
             <button

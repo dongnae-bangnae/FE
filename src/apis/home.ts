@@ -1,7 +1,7 @@
 import { axiosInstance } from "./axiosInstance";
 
 // 홈 화면 새 글 리스트 조회 API (page=1 기본값)
-export const getHomeArticles = async (page: number = 1) => {
+export const getNewArticles = async (page: number = 1) => {
   const response = await axiosInstance.get("/home/articles", {
     params: { page }
   });

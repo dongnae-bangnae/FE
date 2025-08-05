@@ -11,22 +11,20 @@ function OAuthRedirect() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const accessToken = getCookieValue("accessToken");
-    const refreshToken = getCookieValue("refreshToken");
+    //  1. 쿠키에서 토큰 추출
+    const accessToken = getCookieValue("accessToken"); // 사용 안 하지만 참고
+    const refreshToken = getCookieValue("refreshToken"); // 사용 안 하지만 참고
+    const csrfToken = getCookieValue("XSRF-TOKEN");
     const isOnboardingCompleted =
       getCookieValue("isOnboardingCompleted") === "true";
 
-    //  토큰 저장
-    if (accessToken) {
-      localStorage.setItem("accessToken", accessToken);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+    //  2. CSRF 토큰 저장 + axios 헤더 설정
+    if (csrfToken) {
+      localStorage.setItem("XSRF-TOKEN", csrfToken);
+      axios.defaults.headers.common["X-XSRF-TOKEN"] = csrfToken;
     }
 
-    if (refreshToken) {
-      localStorage.setItem("refreshToken", refreshToken);
-    }
-
-    // 온보딩 분기
+    //  3. 온보딩 여부에 따라 이동
     if (isOnboardingCompleted !== null) {
       if (isOnboardingCompleted) {
         navigate("/home");
