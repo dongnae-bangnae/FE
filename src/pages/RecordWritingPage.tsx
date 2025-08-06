@@ -27,8 +27,8 @@ function RecordWritingPage() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   )
-  const [latitude, setLatitude] = useState(location.state?.latitude ?? 37.5665);
-  const [longitude, setLongitude] = useState(location.state?.longitude ?? 126.9780);
+  const [latitude, setLatitude] = useState(location.state?.latitude);
+  const [longitude, setLongitude] = useState(location.state?.longitude);
   const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
   const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
   const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
@@ -100,6 +100,8 @@ function RecordWritingPage() {
           imageUuids,
           likeCount: 0,
           spamCount: 0,
+          from: "writing",
+          showPopup: true,
         },
       });
     } catch (e) {
@@ -168,7 +170,9 @@ function RecordWritingPage() {
         <div>
           <div className="flex items-center gap-[10px]">
             <span className="text-base font-semibold text-center flex-1 truncate">{categoryName}</span>
-            <button onClick={() => navigate("/category")} style={{ all: "unset", cursor: "pointer" }}>
+            <button onClick={() => navigate("/category", { state: {mode: 
+              "write",
+            }})} style={{ all: "unset", cursor: "pointer" }}>
               <img src={SelectIcon} alt="select" width={15} height={15} style={{ marginTop: "2px" }} />
             </button>
           </div>
@@ -226,7 +230,12 @@ function RecordWritingPage() {
         />
 
         {/* 미리보기 */}
-        <div>
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px]"
+          style={{
+            bottom: "15px"
+          }}
+        >
           <ImagePreview selectedImages={selectedImages} />
         </div>
 
@@ -259,7 +268,7 @@ function RecordWritingPage() {
         <div
           className="fixed left-1/2 -translate-x-1/2 z-50 rounded-[15px]"
           style={{
-            bottom: "250px",
+            bottom: "265px",
             width: "365px",
             height: "58px",
             display: "flex",
@@ -330,7 +339,7 @@ function RecordWritingPage() {
       {showGallery && (
         <div
           className="fixed left-1/2 -translate-x-1/2 bottom-[0] z-40"
-          style={{ width: "390px", height: "255px", padding: "7px", overflowY: "auto" }}
+          style={{ width: "375px", height: "265px", padding: "7px", overflowY: "auto", backgroundColor: "white"}}
         >
           <GalleryPreview
             selectedImages={selectedImages}

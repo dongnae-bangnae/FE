@@ -116,6 +116,7 @@ function OnboardingPage() {
       setAreaInput("");
     }
   };
+
   const { mutate: submitOnboarding } = usePostOnboarding();
 
   const handleOnboardingSubmit = async () => {

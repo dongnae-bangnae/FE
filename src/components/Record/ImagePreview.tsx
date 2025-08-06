@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import RepresentativeBadge from "./RepresentativeBadge";
 import MiniSpinner from "./MiniSpinner";
+import React from "react";
 
 interface ImagePreviewProps {
   selectedImages: string[];
@@ -9,12 +10,16 @@ interface ImagePreviewProps {
 const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    const map: Record<string, boolean> = {};
-    selectedImages.forEach((src) => {
-      map[src] = true;
+   useEffect(() => {
+    setLoadingMap((prev) => {
+      const newMap: Record<string, boolean> = { ...prev };
+      selectedImages.forEach((src) => {
+        if (!(src in newMap)) {
+          newMap[src] = true;
+        }
+      });
+      return newMap;
     });
-    setLoadingMap(map);
   }, [selectedImages]);
 
   const handleImageLoad = (src: string) => {
@@ -31,7 +36,7 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
     index: number,
     showBadge = false
   ) => (
-    <div className="relative" style={{ width, height }} key={index}>
+    <div className="relative" style={{ width, height }} key={src}>
       <img
         src={src}
         alt={`preview-${index}`}
@@ -178,4 +183,5 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
   );
 };
 
-export default ImagePreview;
+export default React.memo(ImagePreview);
+

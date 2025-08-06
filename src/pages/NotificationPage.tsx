@@ -1,23 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Header from "../components/common/Header";
 import NotificationItem from "../components/NotificationItem";
-import {
-  adNotifications,
-  commentNotifications
-} from "../dummyData/notificationData";
+import { useDeleteCommentNotification } from "../hooks/mutations/useDeleteCommentNotification";
+import { useCommentNotifications } from "../hooks/queries/useCommentNotification";
 
 const NotificationPage = () => {
   const [tab, setTab] = useState<"comment" | "ad">("comment");
-  const [comments, setComments] = useState(commentNotifications);
-  const [ads, setAds] = useState(adNotifications);
 
-  const handleDelete = (id: number) => {
-    if (tab === "comment") {
-      setComments((prev) => prev.filter((item) => item.id !== id));
-    } else {
-      setAds((prev) => prev.filter((item) => item.id !== id));
-    }
+  const { data, isLoading } = useCommentNotifications();
+  const { mutate: deleteNotification } = useDeleteCommentNotification();
+
+  // 댓글 알림 삭제 핸들러
+  const handleDelete = (notificationId: number) => {
+    deleteNotification(notificationId, {
+      onSuccess: () => {
+        // 삭제 후 refetch 없이 수동으로 제거
+        if (!data) return;
+        data.notifications = data.notifications.filter(
+          (item) => item.notificationId !== notificationId
+        );
+      }
+    });
   };
 
   return (
@@ -26,7 +30,6 @@ const NotificationPage = () => {
 
       {/* 탭 네비게이션 */}
       <div className="flex justify-around items-center pt-2 relative bg-[#F3F4F5]">
-        {/* 댓글 탭 */}
         <button
           onClick={() => setTab("comment")}
           className={`pb-2 text-sm font-medium ${
@@ -35,8 +38,6 @@ const NotificationPage = () => {
         >
           댓글
         </button>
-
-        {/* 광고 의심 탭 */}
         <button
           onClick={() => setTab("ad")}
           className={`pb-2 text-sm font-medium ${
@@ -45,8 +46,6 @@ const NotificationPage = () => {
         >
           광고 의심
         </button>
-
-        {/* 하단 바 (주황색) */}
         <div
           className={`absolute bottom-0 h-[2px] bg-[#FFA521] transition-all duration-300`}
           style={{
@@ -64,13 +63,31 @@ const NotificationPage = () => {
 
       {/* 알림 목록 */}
       <div className="p-4 flex flex-col gap-3">
-        {(tab === "comment" ? comments : ads).map((item) => (
-          <NotificationItem
-            key={item.id}
-            item={item}
-            onDelete={() => handleDelete(item.id)}
-          />
-        ))}
+        {tab === "comment" ? (
+          isLoading ? (
+            <div>불러오는 중...</div>
+          ) : (
+            data?.notifications.map((item) => (
+              <NotificationItem
+                key={item.notificationId}
+                item={{
+                  id: item.notificationId,
+                  type: "comment",
+                  articleId: item.articleId,
+                  articleTitle: item.articleTitle,
+                  commentId: item.commentId,
+                  commentContent: item.commentContent,
+                  commenterNickname: item.commenterNickname
+                }}
+                onDelete={() => handleDelete(item.notificationId)}
+              />
+            ))
+          )
+        ) : (
+          <div className="text-sm text-gray-500">
+            광고 의심 탭은 아직 준비 중입니다.
+          </div>
+        )}
       </div>
     </div>
   );

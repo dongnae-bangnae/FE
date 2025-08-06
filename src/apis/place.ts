@@ -35,13 +35,6 @@ export const fetchPlacesWithinBounds = async ({
   lngMin,
   lngMax
 }: FetchPlacesParams) => {
-  console.log("[fetchPlacesWithinBounds] 호출 직전 파라미터 확인", {
-    latMin,
-    latMax,
-    lngMin,
-    lngMax
-  });
-
   const { data } = await axiosInstance.get("/api/places/map", {
     params: {
       latMin,
@@ -60,4 +53,22 @@ export const searchPlacesByKeyword = async (keyword: string) => {
   });
 
   return data.result; // 백엔드 응답 구조에 따라 result 안에 fullAddress, id가 들어 있음
+};
+
+// 장소 카테고리 내 저장
+export const savePlaceToCategory = async (
+  placeId: number,
+  categoryId: number
+) => {
+  const { data } = await axiosInstance.post(
+    `/api/places/${placeId}/categories`,
+    { categoryId },
+    {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  return data.result;
 };

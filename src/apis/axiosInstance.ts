@@ -12,5 +12,9 @@ axiosInstance.interceptors.request.use((config) => {
   if (csrfToken) {
     config.headers["X-XSRF-TOKEN"] = csrfToken;
   }
+
+  // if (xsrfToken) {
+  //   config.headers["X-XSRF-TOKEN"] = xsrfToken;
+  // }
   return config;
 });

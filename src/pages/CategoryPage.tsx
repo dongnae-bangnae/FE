@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import { getColorCode } from "../utils/getColorCode";
 import CategoryItem from "../components/common/CategoryItem";
@@ -6,14 +6,49 @@ import { useState } from "react";
 import IconOption from "../assets/top/icon-option.svg?react";
 import OptionMessage from "../components/common/OptionMessage";
 import useFetchCategories from "../hooks/queries/useFetchCategories";
+import { useSavePlaceToCategory } from "../hooks/mutations/useSavePlaceToCategory";
 
 
 function CategoryPage() {
+	const location = useLocation(); 
 	const navigate = useNavigate();
+
+	// 모드에 따라 다르게 관리 
+	const mode = location.state?.mode ?? "write"; 
+	const placeId = location.state?.placeId;
+
+	// 상태 관리 변수 
 	const [selectedCategory, setSelectedCategory] = useState<{categoryId: number; name: string; color: string;} | null>(null);
 	const [showEditPopup, setShowEditPopup] = useState(false);
 
 	const {data: categories = [], isLoading, isError} = useFetchCategories(); 
+	const { mutate: saveMutate } = useSavePlaceToCategory(); 
+
+	const handleComplete = () => {
+		if (!selectedCategory) return;
+
+		if (mode === "write") {
+			navigate("/record/new/write", {
+				state: {
+					categoryId: selectedCategory.categoryId,
+					categoryColor: selectedCategory.color,
+					categoryName: selectedCategory.name,
+				},
+			});
+		} else if (mode === "save") {
+			if (!placeId) {
+				alert("저장할 장소 정보가 없습니다. 다시 시도해 주세요.");
+				return;
+			}
+			saveMutate({placeId, categoryId: selectedCategory.categoryId},
+				{
+					onSuccess: () => {
+						navigate("/map"); 
+					}, 
+				}
+			);
+		}
+	};
 
 	return (
 		<div className="bg-[#F2F2F7] min-h-screen flex flex-col relative">
@@ -50,17 +85,7 @@ function CategoryPage() {
 								: "bg-[#D9D9D9] cursor-not-allowed"
 						}`}
 						disabled={!selectedCategory}
-						onClick={() => {
-							if (selectedCategory) {
-								navigate("/record/new/write", {
-									state: {
-										categoryId: selectedCategory.categoryId,
-										categoryColor: selectedCategory.color,
-										categoryName: selectedCategory.name,
-									},
-								});
-							}
-						}}
+						onClick={handleComplete}
 				>
 					완료
 				</button>

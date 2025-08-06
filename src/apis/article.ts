@@ -20,17 +20,23 @@ export interface ArticleListResponse {
   hasNext: boolean;
 }
 
-// 카테고리별 게시글 목록 조회
 export const fetchCategoryArticles = async (
   categoryId: number,
-  cursor: number = 0,
+  cursor?: number,
   limit: number = 10
 ): Promise<ArticleListResponse> => {
+  const params: Record<string, any> = { limit };
+
+  // cursor가 0이 아니고, 명시된 경우에만 추가
+  if (cursor !== undefined && cursor !== null && cursor !== 0) {
+    params.cursor = cursor;
+  }
+
+  console.log("최종 요청 파라미터:", params);
+
   const { data } = await axiosInstance.get<ApiResponse<ArticleListResponse>>(
     `/api/categories/${categoryId}/articles`,
-    {
-      params: { cursor, limit }
-    }
+    { params }
   );
   return data.result;
 };
@@ -80,9 +86,9 @@ export const createArticle = async (data: ArticleForm): Promise<number> => {
 // };
 
 //게시글 삭제
-// export const deleteArticle = async (articleId: number): Promise<void> => {
-//   await axiosInstance.delete(`/api/articles/${articleId}`);
-// };
+export const deleteArticle = async (articleId: number): Promise<void> => {
+  await axiosInstance.delete(`/api/articles/${articleId}`);
+};
 
 //게시글 상세 조회
 export const fetchArticleDetail = async (
@@ -117,5 +123,15 @@ export const reportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
   const response = await axiosInstance.post(`/api/articles/${articleId}/spams`);
+  return response.data;
+};
+
+//신고 취소
+export const unreportSpam = async (
+  articleId: number
+): Promise<ApiResponse<null>> => {
+  const response = await axiosInstance.delete(
+    `/api/articles/${articleId}/spams`
+  );
   return response.data;
 };
