@@ -7,7 +7,7 @@ export const fetchCommentNotifications = async (
   limit = 10
 ): Promise<any> => {
   const response = await axiosInstance.get(
-    `/api/member/comments/notifications?cursor=${cursor}&limit=${limit}`
+    `/api/notifications/comments?cursor=${cursor}&limit=${limit}`
   );
   return response.data.result;
 };
