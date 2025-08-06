@@ -29,7 +29,12 @@ export interface FetchPlacesParams {
   lngMax: number;
 }
 
-export const fetchPlacesWithinBounds = async ({latMin, latMax, lngMin, lngMax}: FetchPlacesParams) => {
+export const fetchPlacesWithinBounds = async ({
+  latMin,
+  latMax,
+  lngMin,
+  lngMax
+}: FetchPlacesParams) => {
   const { data } = await axiosInstance.get("/api/places/map", {
     params: {
       latMin,
@@ -41,13 +46,29 @@ export const fetchPlacesWithinBounds = async ({latMin, latMax, lngMin, lngMax}: 
   return data.result.places;
 };
 
-// 장소 카테고리 내 저장 
-export const savePlaceToCategory = async (placeId: number, categoryId: number) => {
-  const { data } = await axiosInstance.post(`/api/places/${placeId}/categories`, { categoryId }, {
-    headers: {
-      "Content-Type": "application/json", 
-    },
-  })
+// 주소 키워드 검색 (ex. 연남동 → 서울시 마포구 연남동 + 지역 ID 반환)
+export const searchPlacesByKeyword = async (keyword: string) => {
+  const { data } = await axiosInstance.get("/api/places/search", {
+    params: { keyword }
+  });
+
+  return data.result; // 백엔드 응답 구조에 따라 result 안에 fullAddress, id가 들어 있음
+};
+
+// 장소 카테고리 내 저장
+export const savePlaceToCategory = async (
+  placeId: number,
+  categoryId: number
+) => {
+  const { data } = await axiosInstance.post(
+    `/api/places/${placeId}/categories`,
+    { categoryId },
+    {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  );
 
   return data.result;
-}
+};

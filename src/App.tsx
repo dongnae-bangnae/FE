@@ -29,7 +29,6 @@ import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
-import SavedPlaceListPage from "./pages/SavedPlaceListPage";
 import SavedPlacePage from "./pages/SavedPlacePage";
 
 const routes: RouteObject[] = [
