@@ -16,11 +16,16 @@ export interface CommentNotification {
 }
 
 export interface AdNotification {
-  id: number;
+  // id: number;
+  // type: "ad";
+  // postTitle: string;
+  // postId: number;
+  // reportCount: number;
+  notificationId: number; // 알림 ID
   type: "ad";
-  postTitle: string;
-  postId: number;
-  reportCount: number;
+  articleId: number; // 게시글 ID
+  articleTitle: string; // 게시글 제목
+  spamCount: number; // 광고 의심 신고 수
 }
 
 export type NotificationType = CommentNotification | AdNotification;
