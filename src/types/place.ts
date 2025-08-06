@@ -5,4 +5,5 @@ export interface Place {
 	longitude: number;
 	pinCategory: string;
 	address: string;
+	isSaved: boolean;
 }

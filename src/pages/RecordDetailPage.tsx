@@ -9,6 +9,7 @@ import Header from "../components/common/Header";
 import RecordSpinner from "../components/Record/RecordSpinner";
 import MypageModal from "../components/MypageModal";
 import { useToggleSpamReport } from "../hooks/mutations/useToggleSpamReport";
+import { useDeleteArticle } from "../hooks/mutations/useDeleteArticle";
 // import MessagePopup from "../components/MessagaePopup";
 
 const RecordDetailPage = () => {
@@ -50,7 +51,10 @@ const RecordDetailPage = () => {
   const [commentCount, setCommentCount] = useState<number>(0);
   const [isReported, setIsReported] = useState(spamCount>0);
   const [showMessage, setShowMessage] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const { mutate: toggleSpam } = useToggleSpamReport(articleId);
+  const { mutate: deleteArticle } = useDeleteArticle();
 
   useEffect(() => {
     if (state?.from === "writing") {
@@ -118,7 +122,7 @@ const RecordDetailPage = () => {
         right={
           <button
             onClick={() => setShowMenu((prev) => !prev)}
-            className="absolute right-[20px]"
+            className="mr-[10px] p-2"
           >
             <img src={MenuIcon} alt="menu" width={3} height={15} />
           </button>
@@ -216,13 +220,19 @@ const RecordDetailPage = () => {
       {/* 메뉴 모달 */}
       {showMenu && (
         <div
-          className="absolute right-5 top-[76px] z-50 bg-white border border-gray-300 rounded-[10px] shadow-md"
-          style={{ width: "100px" }}
+          className="fixed z-50 bg-white border border-gray-300 rounded-[10px] shadow-md"
+          style={{
+            top: "56px",  
+            right: "35px",         
+            width: "100px",
+          }}
         >
           <button
-            className="w-full px-4 py-2 border-b text-sm text-left hover:bg-gray-100"
+            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100"
+            style={{borderBottom: "1px solid #999999"}}
             onClick={() => {
               setShowMenu(false);
+              alert("수정 기능 연동 예정");
               // 수정 기능
             }}
           >
@@ -230,8 +240,10 @@ const RecordDetailPage = () => {
           </button>
           <button
             className="w-full px-4 py-2 border-b text-sm text-left hover:bg-gray-100"
+            style={{borderBottom: "1px solid #999999"}}
             onClick={() => {
               setShowMenu(false);
+              setShowDeleteModal(true);
               // 삭제 기능
             }}
           >
@@ -239,7 +251,9 @@ const RecordDetailPage = () => {
           </button>
           <button
             className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100"
-            onClick={() => setShowMenu(false)}
+            onClick={() => {
+              setShowMenu(false);
+            }}
           >
             취소
           </button>
@@ -254,6 +268,27 @@ const RecordDetailPage = () => {
           confirmText="신고"
           onCancel={() => setShowConfirm(false)}
           onConfirm={handleConfirmReport}
+        />
+      )}
+
+      {showDeleteModal && (
+        <MypageModal
+          title="정말 게시글을 삭제하시겠어요?"
+          description="삭제된 게시글은 복구할 수 없습니다."
+          cancelText="취소"
+          confirmText="삭제"
+          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={() => {
+            deleteArticle(articleId, {
+              onSuccess: () => {
+                alert("게시글이 삭제되었습니다.");
+                navigate("/home");
+              },
+              onError: () => {
+                alert("게시글 삭제에 실패했습니다.");
+              },
+            });
+          }}
         />
       )}
 

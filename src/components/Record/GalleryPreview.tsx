@@ -41,7 +41,7 @@ const GalleryPreview = ({ selectedImages, onSelect }: GalleryPreviewProps) => {
       const isLoading = loadingMap[src];
 
       return (
-        <div key={src} className="relative h-[126px] w-[126px]">
+        <div key={src} className="relative h-[120px] w-[120px]">
           <img
             src={src}
             alt={`gallery-${idx}`}
@@ -49,7 +49,7 @@ const GalleryPreview = ({ selectedImages, onSelect }: GalleryPreviewProps) => {
             onClick={() => onSelect(src)}
             onLoad={() => handleImageLoad(src)}
             onError={() => handleImageError(src)}
-            style={{ padding: "1px 2px" }}
+            style={{ padding: "1px 2px"}}
           />
 
           {isLoading && (
