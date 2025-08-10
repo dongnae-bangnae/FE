@@ -1,7 +1,8 @@
 {
   "redirects": [
     {
-      "source": "https://dnbn.site/:path*",
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "dnbn.site" }],
       "destination": "https://www.dnbn.site/:path*",
       "permanent": true
     }
