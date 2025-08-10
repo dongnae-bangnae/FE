@@ -29,6 +29,8 @@ import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
+import SavedPlaceListPage from "./pages/SavedPlaceListPage";
+import SavedPlaceMapPage from "./pages/SavedPlaceMapPage";
 import SavedPlacePage from "./pages/SavedPlacePage";
 
 const routes: RouteObject[] = [
@@ -55,6 +57,7 @@ const routes: RouteObject[] = [
       { path: "mypage/profile/likeplace", element: <LikePlacePage /> },
       { path: "mypage/saved/:placeId", element: <SavedPlacePage /> },
       // { path: "mypage/saved/:placeId/", element: <SavedPlaceListPage /> },
+      { path: "mypage/saved/map", element: <SavedPlaceMapPage /> },
       { path: "mypage/locationposts/:placeId", element: <MyPostListPage /> },
       { path: "category", element: <CategoryPage /> },
       { path: "category/new", element: <AddCategoryPage /> },

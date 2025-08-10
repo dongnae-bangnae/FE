@@ -1,23 +1,42 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Header from "../components/common/Header";
 import NotificationItem from "../components/NotificationItem";
+import { useDeleteAdNotification } from "../hooks/mutations/useDeleteAdNotification";
 import { useDeleteCommentNotification } from "../hooks/mutations/useDeleteCommentNotification";
-import { useCommentNotifications } from "../hooks/queries/useCommentNotification";
+import { useCommentNotification } from "../hooks/queries/useCommentNotification";
+import { useFetchAdNotification } from "../hooks/queries/useFetchAdNotification";
 
 const NotificationPage = () => {
   const [tab, setTab] = useState<"comment" | "ad">("comment");
 
-  const { data, isLoading } = useCommentNotifications();
-  const { mutate: deleteNotification } = useDeleteCommentNotification();
+  // 댓글 알림
+  const { data: commentData, isLoading: isCommentLoading } =
+    useCommentNotification();
+  const { mutate: deleteCommentNotification } = useDeleteCommentNotification();
 
-  // 댓글 알림 삭제 핸들러
-  const handleDelete = (notificationId: number) => {
-    deleteNotification(notificationId, {
+  // 광고 의심 알림
+  const { data: adData, isLoading: isAdLoading } = useFetchAdNotification();
+  const { mutate: deleteAdNotification } = useDeleteAdNotification();
+
+  // 댓글 알림 삭제
+  const handleDeleteComment = (notificationId: number) => {
+    deleteCommentNotification(notificationId, {
       onSuccess: () => {
-        // 삭제 후 refetch 없이 수동으로 제거
-        if (!data) return;
-        data.notifications = data.notifications.filter(
+        if (!commentData) return;
+        commentData.notifications = commentData.notifications.filter(
+          (item) => item.notificationId !== notificationId
+        );
+      }
+    });
+  };
+
+  // 광고 의심 알림 삭제
+  const handleDeleteAd = (notificationId: number) => {
+    deleteAdNotification(notificationId, {
+      onSuccess: () => {
+        if (!adData) return;
+        adData.notifications = adData.notifications.filter(
           (item) => item.notificationId !== notificationId
         );
       }
@@ -28,7 +47,7 @@ const NotificationPage = () => {
     <div className="w-full max-w-[375px] mx-auto bg-white min-h-screen">
       <Header title="내 소식" underline={false} bgColor="bg-[#F3F4F5]" />
 
-      {/* 탭 네비게이션 */}
+      {/* 탭 */}
       <div className="flex justify-around items-center pt-2 relative bg-[#F3F4F5]">
         <button
           onClick={() => setTab("comment")}
@@ -47,7 +66,7 @@ const NotificationPage = () => {
           광고 의심
         </button>
         <div
-          className={`absolute bottom-0 h-[2px] bg-[#FFA521] transition-all duration-300`}
+          className="absolute bottom-0 h-[2px] bg-[#FFA521] transition-all duration-300"
           style={{
             width: "140px",
             left:
@@ -64,10 +83,10 @@ const NotificationPage = () => {
       {/* 알림 목록 */}
       <div className="p-4 flex flex-col gap-3">
         {tab === "comment" ? (
-          isLoading ? (
+          isCommentLoading ? (
             <div>불러오는 중...</div>
           ) : (
-            data?.notifications.map((item) => (
+            commentData?.notifications.map((item) => (
               <NotificationItem
                 key={item.notificationId}
                 item={{
@@ -79,14 +98,26 @@ const NotificationPage = () => {
                   commentContent: item.commentContent,
                   commenterNickname: item.commenterNickname
                 }}
-                onDelete={() => handleDelete(item.notificationId)}
+                onDelete={() => handleDeleteComment(item.notificationId)}
               />
             ))
           )
+        ) : isAdLoading ? (
+          <div>불러오는 중...</div>
         ) : (
-          <div className="text-sm text-gray-500">
-            광고 의심 탭은 아직 준비 중입니다.
-          </div>
+          adData?.notifications.map((item) => (
+            <NotificationItem
+              key={item.notificationId}
+              item={{
+                id: item.notificationId,
+                type: "ad",
+                articleId: item.articleId,
+                articleTitle: item.articleTitle,
+                spamCount: item.spamCount
+              }}
+              onDelete={() => handleDeleteAd(item.notificationId)}
+            />
+          ))
         )}
       </div>
     </div>

@@ -1,0 +1,24 @@
+import { useQuery } from "@tanstack/react-query";
+import { axiosInstance } from "../../apis/axiosInstance";
+
+export const useMapPlaces = (
+  latMin: number,
+  latMax: number,
+  lngMin: number,
+  lngMax: number
+) => {
+  return useQuery({
+    queryKey: ["mapPlaces", latMin, latMax, lngMin, lngMax],
+    queryFn: async () => {
+      const res = await axiosInstance.get(
+        `/api/places/map?latMin=${latMin}&latMax=${latMax}&lngMin=${lngMin}&lngMax=${lngMax}`
+      );
+      return res.data.result.places;
+    },
+    enabled:
+      latMin !== undefined &&
+      latMax !== undefined &&
+      lngMin !== undefined &&
+      lngMax !== undefined
+  });
+};

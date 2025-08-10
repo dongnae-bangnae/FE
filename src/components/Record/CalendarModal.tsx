@@ -72,7 +72,7 @@ function CalendarModal({ onClose, onDateSelect, selectedDate }: Props) {
   >
       <div className="h-full w-full overflow-hidden flex flex-col">
       {/* 상단 헤더 */}
-      <div className="sticky z-10 flex items-center justify-between w-full px-[14px] py-[30px] bg-[#F2F2F7] rounded-t-[15px]">
+      <div className="sticky z-10 flex items-center justify-between w-full px-[14px] py-[25px] bg-[#F2F2F7] rounded-t-[15px]">
         <button onClick={onClose}>
           <img src={BackIcon} alt="닫기" width={26} height={22} />
         </button>
@@ -93,12 +93,12 @@ function CalendarModal({ onClose, onDateSelect, selectedDate }: Props) {
 
         {/* 캘린더 본문 */}
         <div className="flex-1 overflow-y-auto">
-          <div className="bg-[white] rounded-[15px] w-[319px] h-[312px] pt-4 pb-4 px-2 mx-auto">
+          <div className="bg-[white] rounded-[15px] w-[319px] h-[319px] pt-4 pb-4 px-2 mx-auto">
             {/* 년/월 + border */}
             <div className="flex flex-col items-center">
               <div
                 className="flex justify-between items-center text-[17px] w-[270px]"
-                style={{ fontWeight: fonts.weight.medium, padding: "8px 0" }}
+                style={{ fontWeight: fonts.weight.medium, padding: "5px 0" }}
               >
                 <span>
                   {currentYear}년 {currentMonth + 1}월

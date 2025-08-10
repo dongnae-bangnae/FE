@@ -14,16 +14,16 @@ const NotificationItem = ({ item, onDelete }: Props) => {
   const handleClick = () => {
     if (item.type === "comment") {
       navigate(`/record/${item.articleId}/detail#comments`);
-    } else if (item.type === "ad" && item.reportCount < 20) {
+    } else if (item.type === "ad" && item.spamCount < 20) {
       navigate(`/record/${item.articleId}/detail`);
     }
-    // 20회 이상이면 이동 X
+    // 20회 이상인 경우, 해당 게시물 삭제되므로 게시물 상세 페이지로 이동 X
   };
 
   const getSubText = () => {
     if (item.type === "ad") {
-      if (item.reportCount >= 20) return "게시물이 자동으로 삭제되었습니다.";
-      if (item.reportCount >= 10)
+      if (item.spamCount == 20) return "게시물이 자동으로 삭제되었습니다.";
+      if (item.spamCount == 10)
         return "20회 누적 시, 게시물은 자동으로 삭제됩니다.";
     }
     return "";
@@ -61,7 +61,7 @@ const NotificationItem = ({ item, onDelete }: Props) => {
           <>
             <b>{item.articleTitle}</b> 글, 광고 의심{" "}
             <span className="text-[#FF7A00] font-semibold">
-              {item.reportCount}회
+              {item.spamCount}회
             </span>
             {getSubText() && (
               <p className="text-xs text-[#999] mt-1">{getSubText()}</p>
