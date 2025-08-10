@@ -1,6 +1,10 @@
 {
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/index.html" }
-  ]
+  "redirects": [
+    {
+      "source": "https://dnbn.site/:path*",
+      "destination": "https://www.dnbn.site/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
