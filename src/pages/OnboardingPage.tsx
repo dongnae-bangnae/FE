@@ -86,7 +86,7 @@ function OnboardingPage() {
         const code = err?.response?.data?.code;
 
         // 닉네임 중복
-        if (code === "NICKNAME_DUPLICATE" || code === "MEMBERA008") {
+        if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
           setStep(1);
           setNicknameError("이미 사용 중인 닉네임입니다.");
           return;
