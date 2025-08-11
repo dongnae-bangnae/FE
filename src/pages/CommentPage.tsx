@@ -11,7 +11,8 @@ import { useMyInfo } from "../hooks/queries/useMyInfo";
 import MessagePopup from "../components/MessagaePopup";
 import { useUpdateComment } from "../hooks/mutations/useUpdateComment";
 import { useDeleteComment } from "../hooks/mutations/useDeleteComment";
-import SpamModal from "../components/Record/SpamModal";
+import SpamPopup from "../components/Record/SpamPopup";
+import CommentSpamModal from "../components/Record/CommentSpamModal";
 
 interface LocationState {
   articleId: number;
@@ -39,6 +40,7 @@ function CommentPage() {
   const [editCommentId, setEditCommentId] = useState<number | null>(null);
   const [editedContent, setEditedContent] = useState<string>("");
   const [showSubmit, setShowSubmit] = useState(false);
+  const [showSpamPopup, setShowSpamPopup] = useState(false);
 
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
@@ -335,6 +337,26 @@ function CommentPage() {
           console.log("선택: ", reason, "기타: ", etc);
         }}
       /> */}
+
+      <CommentSpamModal
+        onClose={() => {}}
+        onReport={() => setShowSpamPopup(true)}
+      />
+
+      {showSpamPopup && (
+        <SpamPopup
+          title="신고사유를 알려주세요"
+          confirmText="신고"
+          cancelText="취소"
+          onCancel={() => setShowSpamPopup(false)}
+          onConfirm={(reason, etc) => {
+            // TODO: 신고 API 호출
+            // reason: "AD" | "PRIVACY" | "ABUSE" | "ETC"
+            // etc: 기타 사유 텍스트(ETC일 때)
+            setShowSpamPopup(false);
+          }}
+        />
+      )}
     </div>
   );
 }
