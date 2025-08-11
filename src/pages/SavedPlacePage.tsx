@@ -95,7 +95,9 @@ function SavedPlacePage() {
         <button
           onClick={() => {
             if (!selectedPlace) return;
-            navigate(`/mypage/saved/${selectedPlace.placeId}/list`);
+            navigate(`/mypage/saved/${selectedPlace.placeId}/list`, {
+              state: { placeName: selectedPlace.title } //헤더에 전달
+            });
           }}
           disabled={!isButtonActive}
           className={`w-[120px] py-2 rounded-md text-sm font-medium transition-colors duration-200
