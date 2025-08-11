@@ -13,6 +13,7 @@ import { useUpdateComment } from "../hooks/mutations/useUpdateComment";
 import { useDeleteComment } from "../hooks/mutations/useDeleteComment";
 import SpamPopup from "../components/Record/SpamPopup";
 import CommentSpamModal from "../components/Record/CommentSpamModal";
+import { useFetchComments } from "../hooks/queries/useFetchComments";
 
 interface LocationState {
   articleId: number;
