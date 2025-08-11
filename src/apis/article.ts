@@ -1,4 +1,5 @@
 import { ArticleDetail, ArticleForm, LikeResponse } from "../types/article";
+import { ArticleListItem } from "../types/article";
 import { ApiResponse } from "../types/common";
 import { axiosInstance } from "./axiosInstance";
 
@@ -135,3 +136,14 @@ export const unreportSpam = async (
   );
   return response.data;
 };
+
+export async function fetchArticles(cursor = 0, limit = 10) {
+  const { data } = await axiosInstance.get("/api/articles", {
+    params: { cursor, limit }
+  });
+  // 안전가드
+  const list: ArticleListItem[] = Array.isArray(data?.result)
+    ? data.result
+    : [];
+  return { articles: list, cursor, limit };
+}

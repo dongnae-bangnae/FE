@@ -17,6 +17,8 @@ interface MyPagePostCardProps {
   likes: number;
   comments: number;
   spam: number;
+  nickname?: string;
+  userImage?: string | null;
 }
 
 // 영문 pinCategory → 한글 카테고리명 매핑
