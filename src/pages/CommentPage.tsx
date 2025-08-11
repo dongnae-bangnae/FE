@@ -126,7 +126,7 @@ function CommentPage() {
     <div className="flex flex-col h-screen" style={{ fontFamily: fonts.family }}>
       {/* 상단바 */}
       <div
-        className="w-full flex items-center justify-between border-b border-[#999999]"
+        className="w-full flex items-center justify-between"
         style={{ padding: "14px 20px", gap: "10px", height: "56px" }}
       >
         <button
