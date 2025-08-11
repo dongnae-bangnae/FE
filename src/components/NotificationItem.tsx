@@ -13,11 +13,15 @@ const NotificationItem = ({ item, onDelete }: Props) => {
 
   const handleClick = () => {
     if (item.type === "comment") {
-      navigate(`/record/${item.articleId}/detail#comments`);
-    } else if (item.type === "ad" && item.spamCount < 20) {
-      navigate(`/record/${item.articleId}/detail`);
+      navigate(`/record/${item.articleId}/comments`, {
+        state: { focusCommentId: item.commentId } // 옵션: 페이지에서 사용하면 해당 댓글로 스크롤
+      });
+      return;
     }
-    // 20회 이상인 경우, 해당 게시물 삭제되므로 게시물 상세 페이지로 이동 X
+
+    if (item.type === "ad" && item.spamCount == 10) {
+      navigate(`/record/${item.articleId}`);
+    }
   };
 
   const getSubText = () => {

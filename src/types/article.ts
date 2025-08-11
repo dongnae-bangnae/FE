@@ -39,3 +39,25 @@ export interface ArticlePreview {
   profileImageUrl?: string;
   imageUrl?: string;
 }
+
+// 게시글 리스트 조회 타입
+export interface ArticleListItem {
+  memberId: number;
+  articleId: number;
+  regionId: number;
+  placeId: number;
+  nickname: string;
+  title: string;
+  pinCategory: string;
+  mainImageUuid: string; // 썸네일
+  likeCount: number;
+  spamCount: number;
+  commentCount: number;
+  isLiked: boolean;
+  isSpammed: boolean;
+  isMine: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // userImage(프로필) 필드가 응답에 없으면 백엔드 추가 전까진 null 처리
+  userImage?: string | null;
+}
