@@ -4,7 +4,7 @@ interface CommentActionModalProps {
   onDelete: () => void;
 }
 
-const CommentModal = ({
+const CommentEditModal = ({
   onClose,
   onEdit,
   onDelete,
@@ -43,4 +43,4 @@ const CommentModal = ({
   );
 };
 
-export default CommentModal;
+export default CommentEditModal;

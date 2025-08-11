@@ -271,7 +271,7 @@ function CommentPage() {
               {comments
                 .filter((c) => c.parentCommentId === parentComment.id)
                 .map((childComment) => (
-                  <div key={childComment.id}>
+                  <div key={childComment.id} className="bg-[#FFF5E7]">
                     <CommentItem
                       nickname={childComment.nickname}
                       content={childComment.content}
@@ -338,7 +338,7 @@ function CommentPage() {
         }}
       /> */}
 
-      <CommentSpamModal
+      {/* <CommentSpamModal
         onClose={() => {}}
         onReport={() => setShowSpamPopup(true)}
       />
@@ -356,7 +356,7 @@ function CommentPage() {
             setShowSpamPopup(false);
           }}
         />
-      )}
+      )} */}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import DefaultProfileIcon from "../../assets/icon-defaultProfile.svg";
 import ResponseIcon from "../../assets/record/icon-comment.svg";
 import fonts from "../../styles/fonts";
 import { useState } from "react";
-import CommentModal from "./CommentEditModal"
+import CommentEditModal from "./CommentEditModal"
 
 interface CommentItemProps {
   nickname: string;
@@ -34,9 +34,8 @@ const CommentItem = ({
 
   return (
     <div
-      className="border rounded-xl w-full max-w-[355px]"
+      className="w-full max-w-[355px]"
       style={{
-        border: "1px solid rgba(0, 0, 0, 0.47)",
         marginTop: isReply ? "10px" : 0,
       }}
     >
@@ -44,7 +43,7 @@ const CommentItem = ({
       <div className="flex justify-between">
         <div className="flex items-center gap-2 mb-2 ml-2 mt-2">
           {isReply && (
-            <img src={ResponseIcon} alt="response" className="w-[18px] h-[18px]" />
+            <div className="ml-[20px]" />
           )}
           <img
             src={DefaultProfileIcon}
@@ -52,13 +51,12 @@ const CommentItem = ({
             className="w-[25px] h-[25px] rounded-full"
           />
           <span
-            className="text-sm"
             style={{
-              fontSize: fonts.size.caption,
-              fontWeight: fonts.weight.regular,
+              fontSize: fonts.size.body,
+              fontWeight: fonts.weight.medium,
             }}
           >
-            {/* @{nickname} */} @ 웅크린두더지눈물 
+            @{nickname}
             {/* 임시값 */}
           </span>
         </div>
@@ -70,7 +68,7 @@ const CommentItem = ({
               <img src={MenuBarIcon} />
             </button>
             {showModal && (
-              <CommentModal
+              <CommentEditModal
                 onClose={() => setShowModal(false)}
                 onEdit={() => {
                   onEdit?.();
@@ -96,21 +94,20 @@ const CommentItem = ({
           <button
             onClick={onReplyClick}
             style={{
-              backgroundColor: "#FFAC33",
-              fontSize: "12px",
+              fontSize: "15px",
               fontWeight: fonts.weight.regular,
               border: "none",
-              borderRadius: "10px",
               cursor: "pointer",
-              width: "46px",
-              height: "27px",
+              width: "26px",
+              height: "18px",
               flexShrink: 0,
+              color: "#68707B",
             }}
           >
             답글
           </button>
         )}
-        <p className="text-sm break-words w-full" style={{ fontSize: "13px" }}>
+        <p className="break-words w-full" style={{ fontSize: "15px" }}>
           {content}
         </p>
       </div>

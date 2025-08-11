@@ -81,10 +81,10 @@ export const createArticle = async (data: ArticleForm): Promise<number> => {
 };
 
 //게시글 수정
-// export const editArticle = async (articleId: number, data: ArticleForm): Promise<void> => {
-//   const formData = toFormData(data);
-//   await axiosInstance.patch(`/api/articles/${articleId}`, formData);
-// };
+export const editArticle = async (articleId: number, data: ArticleForm): Promise<void> => {
+  const formData = toFormData(data);
+  await axiosInstance.patch(`/api/articles/${articleId}`, formData);
+};
 
 //게시글 삭제
 export const deleteArticle = async (articleId: number): Promise<void> => {

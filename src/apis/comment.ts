@@ -15,3 +15,6 @@ export const updateComment = (articleId: number, commentId: number, content: str
 export const deleteComment = (articleId: number, commentId: number) => {
   return axiosInstance.delete(`/api/articles/${articleId}/comments/${commentId}`);
 };
+
+//댓글 조회
+
