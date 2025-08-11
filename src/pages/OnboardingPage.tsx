@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import { axiosInstance } from "../apis/axiosInstance";
 import { useEffect } from "react";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import CameraIcon from "../assets/icon-camera.svg";
@@ -29,6 +29,7 @@ function OnboardingPage() {
       setSelectedAreas([...selectedAreas, area]);
     }
   };
+
   const handleRemoveArea = (areaToRemove: string) => {
     setSelectedAreas(selectedAreas.filter((area) => area !== areaToRemove));
   };
@@ -54,13 +55,13 @@ function OnboardingPage() {
   // 닉네임 중복 체크
   const checkNicknameDuplicate = async (nickname: string): Promise<boolean> => {
     try {
-      const res = await axios.get(
-        `/api/member/check-nickname?nickname=${nickname}`
-      );
+      const res = await axiosInstance.get(`/member/check-nickname`, {
+        params: { nickname }
+      });
       return res.data.isDuplicated; // true면 중복
     } catch (error) {
       console.error("중복 확인 실패", error);
-      return true; // 실패 시 중복된 것으로 처리
+      return true;
     }
   };
 
@@ -136,16 +137,14 @@ function OnboardingPage() {
     });
 
     submitOnboarding(formData, {
-      onSuccess: (res) => {
-        console.log("온보딩 성공:", res);
-        navigate("/home");
-      },
+      onSuccess: () => navigate("/home"),
       onError: (err) => {
         console.error("온보딩 실패", err);
         alert("온보딩에 실패했습니다. 다시 시도해주세요.");
       }
     });
   };
+
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [matchedFullAddress, setMatchedFullAddress] = useState<string | null>(

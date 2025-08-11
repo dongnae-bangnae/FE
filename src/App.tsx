@@ -29,7 +29,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import RecordListPage from "./pages/RecordListPage";
 import RecordWritingPage from "./pages/RecordWritingPage";
-import SavedPlaceListPage from "./pages/SavedPlaceListPage";
+//import SavedPlaceListPage from "./pages/SavedPlaceListPage";
 import SavedPlaceMapPage from "./pages/SavedPlaceMapPage";
 import SavedPlacePage from "./pages/SavedPlacePage";
 
