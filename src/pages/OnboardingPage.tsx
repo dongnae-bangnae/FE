@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { axiosInstance } from "../apis/axiosInstance";
-import { useEffect } from "react";
+import { useMemo } from "react";
+import { ID_BY_SHORT, FULL_BY_SHORT } from "../constants/regions";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import CameraIcon from "../assets/icon-camera.svg";
 import SearchIcon from "../assets/icon-search.svg";
@@ -34,28 +35,10 @@ function OnboardingPage() {
     setSelectedAreas(selectedAreas.filter((area) => area !== areaToRemove));
   };
 
-  const areaFullNameMap: Record<string, string> = {
-    연남동: "서울시 마포구 연남동",
-    합정동: "서울시 마포구 합정동",
-    망원동: "서울시 마포구 망원동",
-    상수동: "서울시 마포구 상수동",
-    "종로 3가": "서울시 종로구 종로 3가",
-    홍대입구: "서울시 마포구 홍대입구"
-  };
-
-  const regionIdMap: Record<string, number> = {
-    "서울시 마포구 연남동": 1,
-    "서울시 마포구 합정동": 2,
-    "서울시 마포구 망원동": 3,
-    "서울시 마포구 상수동": 4,
-    "서울시 종로구 종로 3가": 5,
-    "서울시 마포구 홍대입구": 6
-  };
-
   // 닉네임 중복 체크
   const checkNicknameDuplicate = async (nickname: string): Promise<boolean> => {
     try {
-      const res = await axiosInstance.get(`/member/check-nickname`, {
+      const res = await axiosInstance.get(`/api/member/check-nickname`, {
         params: { nickname }
       });
       return res.data.isDuplicated; // true면 중복
@@ -129,11 +112,8 @@ function OnboardingPage() {
 
     //  동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
     selectedAreas.forEach((area) => {
-      const fullAddress = areaFullNameMap[area] ?? area; // "합정동" → "서울시 마포구 합정동"
-      const regionId = regionIdMap[fullAddress]; // → 2
-      if (regionId) {
-        formData.append("chosenRegionIds", String(regionId));
-      }
+      const id = ID_BY_SHORT.get(area); // "연남동" → 1
+      if (id) formData.append("chosenRegionIds", String(id));
     });
 
     submitOnboarding(formData, {
@@ -147,16 +127,10 @@ function OnboardingPage() {
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [matchedFullAddress, setMatchedFullAddress] = useState<string | null>(
-    null
-  );
-  useEffect(() => {
-    const trimmedInput = areaInput.trim();
-    if (areaFullNameMap[trimmedInput]) {
-      setMatchedFullAddress(areaFullNameMap[trimmedInput]);
-    } else {
-      setMatchedFullAddress(null); // 일치 안 하면 숨김
-    }
+
+  const matchedFullAddress = useMemo(() => {
+    const t = areaInput.trim();
+    return FULL_BY_SHORT.get(t) ?? null; // "연남동" → "서울시 마포구 연남동"
   }, [areaInput]);
 
   return (
