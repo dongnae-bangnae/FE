@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
+import UpperIcon from "../assets/record/icon-upper.svg";
 import CheckIcon_g from "../assets/icon-check-green.svg";
 import fonts from "../styles/fonts";
 import colors from "../styles/colors";
@@ -10,6 +11,7 @@ import { useMyInfo } from "../hooks/queries/useMyInfo";
 import MessagePopup from "../components/MessagaePopup";
 import { useUpdateComment } from "../hooks/mutations/useUpdateComment";
 import { useDeleteComment } from "../hooks/mutations/useDeleteComment";
+import SpamModal from "../components/Record/SpamModal";
 
 interface LocationState {
   articleId: number;
@@ -36,6 +38,7 @@ function CommentPage() {
   const [showPopup, setShowPopup] = useState(false);
   const [editCommentId, setEditCommentId] = useState<number | null>(null);
   const [editedContent, setEditedContent] = useState<string>("");
+  const [showSubmit, setShowSubmit] = useState(false);
 
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
@@ -283,44 +286,55 @@ function CommentPage() {
       </div>
 
       {/* 새 댓글 입력창 */}
-      <div className="w-full px-4 py-3 mb-[15px]">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="댓글을 입력하세요"
-            className="flex-1 p-2 text-sm border w-[270px] h-[48px] m-[10px] rounded-sm"
-            style={{ borderColor: "#B3B3B3" }}
-          />
-          <button
-            onClick={() => handleSubmitComment(newComment, null)}
-            style={{
-              padding: "6px 12px",
-              backgroundColor: colors.gray200,
-              fontSize: fonts.size.caption,
-              fontWeight: fonts.weight.medium,
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              width: "65px",
-              height: "39px",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#FFAC33")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = colors.gray200)
-            }
+      <div className="w-full px-5 py-1 mb-[15px]">
+        <div className="flex justify-between items-center gap-3">
+          <div className="rounded-full w-[46.5px] h-[46.5px] text-[white] text-center"
+               style={{backgroundColor: colors.primaryDark}}
           >
-            등록
-          </button>
+            <p className="text-sm">프로필prev</p>
+            {/* 임시값 */}
+          </div>
+          <div className="relative flex-1 h-[47px] mb-[5px]">
+            <input
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="여러분의 동네 이야기도 궁금해요 💭"
+              className="w-full h-full px-4 text-sm border rounded-full" 
+              style={{borderColor: "#B3B3B3"}}
+            />
+
+            {newComment.trim().length > 0 && (
+              <button
+                onMouseDown={(e) => e.preventDefault()} 
+                onClick={() => handleSubmitComment(newComment, null)}
+                className="absolute right-3 inset-y-0 my-auto flex items-center justify-center rounded-[12px] w-[40px] h-[27px]"
+                style={{
+                  backgroundColor: colors.primaryDark,
+                }}
+              >
+                <img src={UpperIcon} className="block w-[20px] h-[16px]"/>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {showPopup && (
         <MessagePopup icon={CheckIcon_g} message="댓글이 등록되었어요" />
       )}
+
+      {/* <SpamModal 
+        title="신고사유를 알려주세요" 
+        cancelText="취소"
+        confirmText="신고"
+        onCancel={() => {
+          //항상(임시)
+        }}
+        onConfirm={(reason, etc) => {
+          console.log("선택: ", reason, "기타: ", etc);
+        }}
+      /> */}
     </div>
   );
 }

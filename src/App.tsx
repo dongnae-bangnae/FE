@@ -34,13 +34,14 @@ import SavedPlaceMapPage from "./pages/SavedPlaceMapPage";
 import SavedPlacePage from "./pages/SavedPlacePage";
 
 const routes: RouteObject[] = [
+  // ✅ OAuth 콜백은 레이아웃/가드 영향 없이 단독 경로로
+  { path: "/oauth-redirect", element: <OAuthRedirect /> },
+
   {
     path: "/",
     element: <Layout />,
-    errorElement: <NotFound />,
     children: [
       { index: true, element: <LoginPage /> },
-      { path: "oauth-redirect", element: <OAuthRedirect /> },
       { path: "onboard", element: <OnboardingPage /> },
       { path: "home", element: <HomePage /> },
       { path: "record/list", element: <RecordListPage /> },
@@ -64,7 +65,10 @@ const routes: RouteObject[] = [
       { path: "category/edit", element: <EditCategoryPage /> },
       { path: "category/edit/:categoryId", element: <EditCategoryDetailPage /> }
     ]
-  }
+  },
+
+  // ✅ 최상위 와일드카드 404
+  { path: "*", element: <NotFound /> }
 ];
 
 const router = createBrowserRouter(routes);
