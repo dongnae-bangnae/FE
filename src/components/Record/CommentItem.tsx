@@ -3,7 +3,7 @@ import DefaultProfileIcon from "../../assets/icon-defaultProfile.svg";
 import ResponseIcon from "../../assets/record/icon-comment.svg";
 import fonts from "../../styles/fonts";
 import { useState } from "react";
-import CommentModal from "./CommentModal";
+import CommentModal from "./CommentEditModal"
 
 interface CommentItemProps {
   nickname: string;

@@ -8,7 +8,7 @@ interface SpamModalProps {
   cancelText?: string;
 }
 
-const SpamModal = ({
+const SpamPopup = ({
   title,
   onConfirm,
   onCancel,
@@ -96,4 +96,4 @@ const SpamModal = ({
   );
 };
 
-export default SpamModal;
+export default SpamPopup;
