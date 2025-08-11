@@ -32,6 +32,7 @@ function SavedPlaceListPage() {
           articles.map((a) => (
             <MyPagePostCard
               key={a.articleId}
+              articleId={a.articleId} // 게시글 ID
               category={a.pinCategory}
               imageUrl={a.mainImageUuid}
               title={a.title}

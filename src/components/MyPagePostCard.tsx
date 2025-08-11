@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 import BanIcon from "../assets/icon-ban.svg";
 import CommentIcon from "../assets/icon-comment.svg";
 import LikeIcon from "../assets/icon-like.svg";
@@ -11,6 +13,7 @@ import pin_exercise from "../assets/pin/pin_sports.svg";
 import pin_walk from "../assets/pin/pin_walk.svg";
 
 interface MyPagePostCardProps {
+  articleId?: number; // 게시글 ID
   category: string;
   imageUrl: string;
   title: string;
@@ -46,6 +49,7 @@ const pinIcons: Record<string, string> = {
 };
 
 export default function MyPagePostCard({
+  articleId,
   category,
   imageUrl,
   title,
@@ -53,8 +57,11 @@ export default function MyPagePostCard({
   comments,
   spam
 }: MyPagePostCardProps) {
+  const navigate = useNavigate();
   const iconSrc = pinIcons[category] ?? pin_etc;
   const koreanCategory = categoryNameMap[category] ?? "기타";
+
+  const goDetail = () => navigate(`/record/${articleId}`); // 게시물 상세 페이지로 이동
 
   return (
     <div className="w-[360px] box-border border border-[#D9D9D9] rounded-[10px] overflow-hidden bg-white">
@@ -66,17 +73,25 @@ export default function MyPagePostCard({
         </span>
       </div>
 
-      {/* 이미지 */}
+      {/* 이미지 (클릭시 이동) */}
       <div
-        className="w-full h-[200px] bg-cover bg-center bg-no-repeat"
+        role="button"
+        onClick={goDetail}
+        className="w-full h-[200px] bg-cover bg-center bg-no-repeat cursor-pointer"
         style={{
           backgroundImage: `url(${imageUrl})`,
           backgroundColor: "lightgray"
         }}
+        aria-label={`${title} 상세보기`}
       />
 
-      {/* 제목 */}
-      <div className="h-[40px] px-[15px] py-[10px] text-sm flex items-center border-t border-[#D9D9D9]">
+      {/* 제목 (클릭시 이동) */}
+      <div
+        role="button"
+        onClick={goDetail}
+        className="h-[40px] px-[15px] py-[10px] text-sm flex items-center border-t border-[#D9D9D9] cursor-pointer"
+        title={title}
+      >
         {title}
       </div>
 
