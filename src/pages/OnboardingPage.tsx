@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { axiosInstance } from "../apis/axiosInstance";
 import { useMemo } from "react";
 import { ID_BY_SHORT, FULL_BY_SHORT } from "../constants/regions";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
@@ -16,7 +15,7 @@ function OnboardingPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState("");
-  const [isNicknameValid, setIsNicknameValid] = useState(false);
+  //const [isNicknameValid, setIsNicknameValid] = useState(false);
   const [areaInput, setAreaInput] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -35,58 +34,23 @@ function OnboardingPage() {
     setSelectedAreas(selectedAreas.filter((area) => area !== areaToRemove));
   };
 
-  // 닉네임 중복 체크
-  const checkNicknameDuplicate = async (nickname: string): Promise<boolean> => {
-    try {
-      const res = await axiosInstance.get(`/api/member/check-nickname`, {
-        params: { nickname }
-      });
-      return res.data.isDuplicated; // true면 중복
-    } catch (error) {
-      console.error("중복 확인 실패", error);
-      return true;
-    }
-  };
-
-  // validateNickname에서 성공 여부 리턴
-  const validateNickname = async (): Promise<boolean> => {
-    const trimmed = nickname.trim();
-
-    if (trimmed === "") {
+  // 동기 로컬 검사로 단순화
+  const validateNickname = (): boolean => {
+    const t = nickname.trim();
+    if (!t) {
       setNicknameError("닉네임을 입력해주세요");
       return false;
     }
-
-    if (trimmed.length > 10) {
+    if (t.length > 10) {
       setNicknameError("닉네임은 최대 10자입니다.");
       return false;
     }
-
-    try {
-      const isDuplicated = await checkNicknameDuplicate(trimmed);
-      if (isDuplicated) {
-        setNicknameError("이미 사용 중인 닉네임입니다.");
-        return false;
-      }
-    } catch (error) {
-      console.error("중복 검사 에러", error);
-      setNicknameError("닉네임 중복 확인 중 오류가 발생했어요.");
-      return false;
-    }
-
     setNicknameError("");
     return true;
   };
 
-  const handleNextFromNickname = async () => {
-    const isValid = await validateNickname();
-
-    if (isValid) {
-      setIsNicknameValid(true); // 상태도 갱신해줘서 후속 로직에서 활용 가능
-      setStep(2);
-    } else {
-      setIsNicknameValid(false);
-    }
+  const handleNextFromNickname = () => {
+    if (validateNickname()) setStep(2);
   };
 
   const handleAreaKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -118,9 +82,34 @@ function OnboardingPage() {
 
     submitOnboarding(formData, {
       onSuccess: () => navigate("/home"),
-      onError: (err) => {
-        console.error("온보딩 실패", err);
-        alert("온보딩에 실패했습니다. 다시 시도해주세요.");
+      onError: (err: any) => {
+        const code = err?.response?.data?.code;
+
+        // 닉네임 중복
+        if (code === "NICKNAME_DUPLICATE" || code === "MEMBERA008") {
+          setStep(1);
+          setNicknameError("이미 사용 중인 닉네임입니다.");
+          return;
+        }
+
+        // 닉네임 비어있음
+        if (code === "NICKNAME_NOT_EXIST" || code === "EMPTY_NICKNAME") {
+          setStep(1);
+          setNicknameError("닉네임을 입력해주세요");
+          return;
+        }
+
+        // 지역 개수 오류
+        if (code === "INVALID_REGION_COUNT" || code === "MEMBERA004") {
+          alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
+          return;
+        }
+
+        // 그 외
+        alert(
+          err?.response?.data?.message ??
+            "온보딩에 실패했습니다. 다시 시도해주세요."
+        );
       }
     });
   };
@@ -387,17 +376,19 @@ function OnboardingPage() {
                 className="w-[25px] h-[25px] flex-shrink-0"
               />
               <span className="text-[16px] leading-[24px] font-normal font-pretendard text-[#000]">
-                {matchedFullAddress.split(areaInput).map((part, i, arr) => {
-                  const isLast = i === arr.length - 1;
-                  return (
-                    <span key={i}>
-                      {part}
-                      {!isLast && (
-                        <span className="text-[#F95F00]">{areaInput}</span>
-                      )}
-                    </span>
-                  );
-                })}
+                {matchedFullAddress
+                  .split(areaInput)
+                  .map((part: string, i: number, arr: string[]) => {
+                    const isLast = i === arr.length - 1;
+                    return (
+                      <span key={i}>
+                        {part}
+                        {!isLast && (
+                          <span className="text-[#F95F00]">{areaInput}</span>
+                        )}
+                      </span>
+                    );
+                  })}
               </span>
             </label>
           )}
