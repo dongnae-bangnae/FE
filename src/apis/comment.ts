@@ -17,4 +17,8 @@ export const deleteComment = (articleId: number, commentId: number) => {
 };
 
 //댓글 조회
+export const fetchComment = async (articleId: number) => {
+  const res = await axiosInstance.get(`/api/articles/${articleId}/comments`);
+  return res.data;
+}
 
