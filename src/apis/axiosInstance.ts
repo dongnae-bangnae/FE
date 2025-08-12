@@ -28,14 +28,21 @@ export const axiosInstance = axios.create({
   xsrfHeaderName: "X-XSRF-TOKEN"
 });
 
-/* ------------------- 요청: CSRF 헤더 자동 주입 ------------------- */
+/* ------------------- 요청: CSRF 헤더 자동 주입 + 디버그 헤더 ------------------- */
 axiosInstance.interceptors.request.use((config) => {
+  // 항상 AxiosHeaders로 변환
+  const h = ensureAxiosHeaders(config.headers as AxiosRequestHeaders);
+
+  // 디버그 라벨 (이 instance에서 나간 요청인지 구분)
+  h.set("X-DEBUG-INSTANCE", "main-axiosInstance");
+
+  // CSRF 쿠키가 있을 때만 XSRF 헤더 추가
   const csrf = getCookieValue("XSRF-TOKEN");
   if (csrf) {
-    const h = ensureAxiosHeaders(config.headers as AxiosRequestHeaders);
     h.set("X-XSRF-TOKEN", csrf);
-    config.headers = h; // ← 타입 OK
   }
+
+  config.headers = h;
   return config;
 });
 
