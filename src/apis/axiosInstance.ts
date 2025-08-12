@@ -16,13 +16,13 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use((config) => {
   config.headers = config.headers ?? {};
 
-  // CSRF 토큰
+  // ✅ CSRF 토큰
   const csrf = getCookieValue("XSRF-TOKEN");
   if (csrf) {
     config.headers["X-XSRF-TOKEN"] = csrf;
   }
 
-  // JWT 토큰 (localStorage 우선, 없으면 쿠키에서 시도)
+  // ✅ JWT 토큰 (localStorage 우선, 없으면 쿠키에서 시도)
   const jwt =
     localStorage.getItem("accessToken") || getCookieValue("accessToken");
   if (jwt) {
