@@ -26,7 +26,7 @@
 <br/>
 
 ## 🚀 <span id="배포-주소">배포 주소</span>
-> **프론트엔드 주소** <br/> https://www.dnbn.site/
+> **프론트엔드 주소** https://www.dnbn.site/ <br/> 
 > **백엔드 주소** <br/> 
 
 <br/>
