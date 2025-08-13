@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { axiosInstance } from "../apis/axiosInstance";
 import CameraIcon from "../assets/icon-camera.svg";
 import IconDefault from "../assets/icon-default.svg";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
@@ -10,7 +11,38 @@ import SearchIcon from "../assets/icon-search.svg";
 import Header from "../components/common/Header";
 import { FULL_BY_SHORT, ID_BY_SHORT } from "../constants/regions";
 import { usePostOnboarding } from "../hooks/mutations/usePostOnboarding";
-import { ensureCSRFToken } from "../utils/csrf"; // 위에서 만든 유틸리티
+
+// 쿠키에서 값을 읽는 유틸리티 함수
+function getCookieValue(name: string): string | null {
+  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return m ? m[2] : null;
+}
+
+// CSRF 토큰을 미리 가져오는 함수
+const ensureCSRFToken = async (): Promise<boolean> => {
+  try {
+    const existingToken = getCookieValue("XSRF-TOKEN");
+    if (existingToken) {
+      console.log("CSRF token already exists:", existingToken);
+      return true;
+    }
+
+    // CSRF 토큰을 가져오기 위한 GET 요청
+    await axiosInstance.get("/api/csrf");
+
+    const newToken = getCookieValue("XSRF-TOKEN");
+    if (newToken) {
+      console.log("CSRF token obtained:", newToken);
+      return true;
+    }
+
+    console.warn("Failed to obtain CSRF token");
+    return false;
+  } catch (error) {
+    console.error("Error obtaining CSRF token:", error);
+    return false;
+  }
+};
 
 function OnboardingPage() {
   const navigate = useNavigate();
@@ -33,6 +65,10 @@ function OnboardingPage() {
     };
 
     initCSRF();
+
+    console.log("=== 온보딩 페이지 로드 ===");
+    console.log("현재 쿠키:", document.cookie);
+    console.log("API Base URL:", import.meta.env.VITE_API_BASE_URL);
   }, []);
 
   // 체크박스 토글 핸들러
@@ -91,6 +127,11 @@ function OnboardingPage() {
       alert("보안 토큰을 가져오는데 실패했습니다. 페이지를 새로고침해주세요.");
       return;
     }
+
+    console.log("=== 온보딩 제출 시작 ===");
+    console.log("닉네임:", nickname);
+    console.log("선택된 지역:", selectedAreas);
+    console.log("이미지 파일:", imageFile);
 
     const formData = new FormData();
     formData.append("nickname", nickname);
