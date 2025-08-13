@@ -69,67 +69,61 @@ function OnboardingPage() {
     }
   };
 
-  /** "연남동" 또는 "서울시 마포구 연남동" 같은 문자열에서 regionId 추출 */
-  function toRegionId(area: string): number | null {
-    const direct = ID_BY_SHORT.get(area);
-    if (direct) return direct;
-    const last = area.trim().split(/\s+/).pop()!;
-    const byLast = ID_BY_SHORT.get(last);
-    return byLast ?? null;
+/** "연남동" 또는 "서울시 마포구 연남동" 같은 문자열에서 regionId 추출 */
+function toRegionId(area: string): number | null {
+  const direct = ID_BY_SHORT.get(area);
+  if (direct) return direct;
+  const last = area.trim().split(/\s+/).pop()!;
+  const byLast = ID_BY_SHORT.get(last);
+  return byLast ?? null;
+}
+
+/** 온보딩 제출: JSON 전송 */
+const handleOnboardingSubmit = async () => {
+  const nick = nickname.trim();
+  if (!nick || selectedAreas.length === 0) return;
+
+  // 선택된 지역을 regionId 배열로 변환 (최대 3개)
+  const chosenRegionIds = selectedAreas
+    .map(toRegionId)
+    .filter((v): v is number => v !== null)
+    .slice(0, 3);
+
+  if (chosenRegionIds.length === 0) {
+    alert("선택한 동네를 인식하지 못했어요. 다시 선택해 주세요.");
+    return;
   }
 
-  /** 온보딩 제출: FormData → JSON 전송으로 변경 (디자인 변경 없음) */
-  const handleOnboardingSubmit = async () => {
-    const nick = nickname.trim();
-    if (!nick || selectedAreas.length === 0) return;
+  submitOnboarding(
+    { nickname: nick, chosenRegionIds }, // ✅ JSON payload
+    {
+      onSuccess: () => navigate("/home"),
+      onError: (err: any) => {
+        const code = err?.response?.data?.code;
 
-    // 선택된 지역을 regionId 배열로 변환 (최대 3개)
-    const chosenRegionIds = selectedAreas
-      .map(toRegionId)
-      .filter((v): v is number => v !== null)
-      .slice(0, 3);
+        if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
+          setStep(1);
+          setNicknameError("이미 사용 중인 닉네임입니다.");
+          return;
+        }
+        if (code === "NICKNAME_NOT_EXIST" || code === "EMPTY_NICKNAME") {
+          setStep(1);
+          setNicknameError("닉네임을 입력해주세요");
+          return;
+        }
+        if (code === "INVALID_REGION_COUNT" || code === "MEMBERA004") {
+          alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
+          return;
+        }
 
-    if (chosenRegionIds.length === 0) {
-      alert("선택한 동네를 인식하지 못했어요. 다시 선택해 주세요.");
-      return;
+        alert(
+          err?.response?.data?.message ??
+            "온보딩에 실패했습니다. 다시 시도해주세요."
+        );
+      },
     }
-
-    submitOnboarding(
-      { nickname: nick, chosenRegionIds },
-      {
-        onSuccess: () => navigate("/home"),
-        onError: (err: any) => {
-          const code = err?.response?.data?.code;
-
-          // 닉네임 중복
-          if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
-            setStep(1);
-            setNicknameError("이미 사용 중인 닉네임입니다.");
-            return;
-          }
-
-          // 닉네임 비어있음
-          if (code === "NICKNAME_NOT_EXIST" || code === "EMPTY_NICKNAME") {
-            setStep(1);
-            setNicknameError("닉네임을 입력해주세요");
-            return;
-          }
-
-          // 지역 개수 오류
-          if (code === "INVALID_REGION_COUNT" || code === "MEMBERA004") {
-            alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
-            return;
-          }
-
-          // 그 외
-          alert(
-            err?.response?.data?.message ??
-              "온보딩에 실패했습니다. 다시 시도해주세요."
-          );
-        },
-      }
-    );
-  };
+  );
+};
 
   const matchedFullAddress = useMemo(() => {
     const t = areaInput.trim();
