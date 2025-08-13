@@ -1,23 +1,172 @@
-import axios from "axios";
+// src/apis/axiosInstance.ts
+import axios, {
+  AxiosError,
+  AxiosHeaders,
+  AxiosRequestConfig,
+  type AxiosRequestHeaders
+} from "axios";
 
+/** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
 function getCookieValue(name: string): string | null {
-  const m = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-  return m ? decodeURIComponent(m[2]) : null;
+  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return m ? m[2] : null;
+}
+
+/** headers를 AxiosHeaders 인스턴스로 보장 */
+function ensureAxiosHeaders(
+  headers?: AxiosRequestHeaders | undefined
+): AxiosHeaders {
+  if (headers instanceof AxiosHeaders) return headers;
+  return new AxiosHeaders(headers ?? {});
 }
 
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  withCredentials: true, // JWT 쿠키 자동 포함
-  xsrfCookieName: "XSRF-TOKEN", // BE가 내려주는 쿠키 이름
-  xsrfHeaderName: "X-XSRF-TOKEN" // BE가 기대하는 헤더 이름
+  withCredentials: true,
+  xsrfCookieName: "XSRF-TOKEN",
+  xsrfHeaderName: "X-XSRF-TOKEN"
 });
 
-// 항상 최신 CSRF 쿠키값을 붙이기
+/* ------------------- 요청: CSRF 헤더 자동 주입 + 디버그 헤더 ------------------- */
 axiosInstance.interceptors.request.use((config) => {
+  const h = ensureAxiosHeaders(config.headers as AxiosRequestHeaders);
+
+  // 디버그 라벨
+  h.set("X-DEBUG-INSTANCE", "main-axiosInstance");
+
+  // CSRF 토큰 처리 개선
   const csrf = getCookieValue("XSRF-TOKEN");
   if (csrf) {
-    config.headers = config.headers ?? {};
-    config.headers["X-XSRF-TOKEN"] = csrf;
+    h.set("X-XSRF-TOKEN", csrf);
+    console.log("CSRF Token found and set:", csrf); // 디버깅용
+  } else {
+    console.warn("No CSRF token found in cookies"); // 디버깅용
   }
+
+  // FormData 감지 및 Content-Type 처리
+  console.log(
+    "Request data type:",
+    typeof config.data,
+    config.data?.constructor?.name
+  );
+  console.log("Is FormData?", config.data instanceof FormData);
+
+  // 더 강력한 FormData 감지 및 Content-Type 제거
+  if (
+    config.data &&
+    (config.data instanceof FormData ||
+      config.data.constructor?.name === "FormData" ||
+      Object.prototype.toString.call(config.data) === "[object FormData]")
+  ) {
+    console.log("FormData detected, forcefully removing Content-Type");
+
+    // 모든 가능한 Content-Type 제거
+    delete h["Content-Type"];
+    delete h["content-type"];
+    delete h["CONTENT-TYPE"];
+    h.delete("Content-Type");
+    h.delete("content-type");
+    h.delete("CONTENT-TYPE");
+
+    // config에서도 직접 제거
+    if (config.headers) {
+      delete config.headers["Content-Type"];
+      delete config.headers["content-type"];
+      delete config.headers["CONTENT-TYPE"];
+    }
+
+    // 헤더를 완전히 새로 만들어서 Content-Type 제외
+    const newHeaders = new AxiosHeaders();
+    Object.keys(h).forEach((key) => {
+      if (key.toLowerCase() !== "content-type") {
+        newHeaders.set(key, h[key]);
+      }
+    });
+
+    config.headers = newHeaders;
+    return config;
+  }
+
+  config.headers = h;
   return config;
 });
+
+/* -------- 응답: accessToken 만료 시 /api/auth/reissue 호출 -------- */
+let isRefreshing = false;
+let waiters: Array<(ok: boolean) => void> = [];
+
+async function refreshAccessToken(): Promise<boolean> {
+  try {
+    await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/auth/reissue`,
+      null,
+      { withCredentials: true }
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+axiosInstance.interceptors.response.use(
+  (res) => res,
+  async (error: AxiosError<any>) => {
+    const status = error.response?.status;
+    const code = (error.response?.data as any)?.code;
+    const original = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    // CSRF 에러 로깅 추가
+    if (status === 403) {
+      console.error("403 Forbidden Error:", error.response?.data);
+      console.log("Request headers:", original.headers);
+      console.log("CSRF Token in cookie:", getCookieValue("XSRF-TOKEN"));
+    }
+
+    if (original?._retry) throw error;
+
+    const shouldTry =
+      status === 401 ||
+      status === 403 ||
+      code === "TOKEN4001" ||
+      code === "TOKEN4002";
+
+    if (!shouldTry) throw error;
+
+    if (!isRefreshing) {
+      isRefreshing = true;
+      const ok = await refreshAccessToken();
+      isRefreshing = false;
+      waiters.forEach((cb) => cb(ok));
+      waiters = [];
+      if (!ok) {
+        window.location.href = "/";
+        throw error;
+      }
+    } else {
+      const ok = await new Promise<boolean>((resolve) => waiters.push(resolve));
+      if (!ok) {
+        window.location.href = "/";
+        throw error;
+      }
+    }
+
+    // 리프레시 성공 → 원 요청 재시도
+    original._retry = true;
+    const csrf = getCookieValue("XSRF-TOKEN");
+    if (csrf) {
+      const h = ensureAxiosHeaders(original.headers as AxiosRequestHeaders);
+      h.set("X-XSRF-TOKEN", csrf);
+
+      // FormData 재시도 시에도 Content-Type 처리
+      if (original.data instanceof FormData) {
+        console.log("Retry: FormData detected, removing Content-Type header");
+        h.delete("Content-Type");
+        delete h["Content-Type"];
+        delete h["content-type"];
+      }
+
+      original.headers = h;
+    }
+    return axiosInstance(original);
+  }
+);

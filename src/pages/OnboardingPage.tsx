@@ -1,24 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMemo } from "react";
-import { ID_BY_SHORT, FULL_BY_SHORT } from "../constants/regions";
-import DefaultProfile from "../assets/icon-defaultProfile.svg";
+import { useNavigate } from "react-router-dom";
+
+import { axiosInstance } from "../apis/axiosInstance";
 import CameraIcon from "../assets/icon-camera.svg";
+import IconDefault from "../assets/icon-default.svg";
+import DefaultProfile from "../assets/icon-defaultProfile.svg";
+import IconRedChecked from "../assets/icon-redChecked.svg";
 import SearchIcon from "../assets/icon-search.svg";
 import Header from "../components/common/Header";
-import { useNavigate } from "react-router-dom";
-import IconDefault from "../assets/icon-default.svg";
-import IconRedChecked from "../assets/icon-redChecked.svg";
+import { FULL_BY_SHORT, ID_BY_SHORT } from "../constants/regions";
 import { usePostOnboarding } from "../hooks/mutations/usePostOnboarding";
+
+// 쿠키에서 값을 읽는 유틸리티 함수
+function getCookieValue(name: string): string | null {
+  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return m ? m[2] : null;
+}
+
+// CSRF 토큰을 미리 가져오는 함수
+const ensureCSRFToken = async (): Promise<boolean> => {
+  try {
+    const existingToken = getCookieValue("XSRF-TOKEN");
+    if (existingToken) {
+      console.log("CSRF token already exists:", existingToken);
+      return true;
+    }
+
+    // CSRF 토큰을 가져오기 위한 GET 요청
+    await axiosInstance.get("/api/csrf");
+
+    const newToken = getCookieValue("XSRF-TOKEN");
+    if (newToken) {
+      console.log("CSRF token obtained:", newToken);
+      return true;
+    }
+
+    console.warn("Failed to obtain CSRF token");
+    return false;
+  } catch (error) {
+    console.error("Error obtaining CSRF token:", error);
+    return false;
+  }
+};
 
 function OnboardingPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState("");
-  //const [isNicknameValid, setIsNicknameValid] = useState(false);
   const [areaInput, setAreaInput] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  // 컴포넌트 마운트 시 CSRF 토큰 확보
+  useEffect(() => {
+    const initCSRF = async () => {
+      const success = await ensureCSRFToken();
+      if (!success) {
+        console.warn("Failed to initialize CSRF token");
+      }
+    };
+
+    initCSRF();
+
+    console.log("=== 온보딩 페이지 로드 ===");
+    console.log("현재 쿠키:", document.cookie);
+    console.log("API Base URL:", import.meta.env.VITE_API_BASE_URL);
+  }, []);
 
   // 체크박스 토글 핸들러
   const handleToggleArea = (area: string) => {
@@ -65,25 +116,57 @@ function OnboardingPage() {
     }
   };
 
-  const { mutate: submitOnboarding } = usePostOnboarding();
+  const { mutate: submitOnboarding, isPending } = usePostOnboarding();
 
   const handleOnboardingSubmit = async () => {
     if (!nickname || selectedAreas.length === 0) return;
+
+    // CSRF 토큰 재확인
+    const csrfReady = await ensureCSRFToken();
+    if (!csrfReady) {
+      alert("보안 토큰을 가져오는데 실패했습니다. 페이지를 새로고침해주세요.");
+      return;
+    }
+
+    console.log("=== 온보딩 제출 시작 ===");
+    console.log("닉네임:", nickname);
+    console.log("선택된 지역:", selectedAreas);
+    console.log("이미지 파일:", imageFile);
 
     const formData = new FormData();
     formData.append("nickname", nickname);
     if (imageFile) formData.append("profileImage", imageFile);
 
-    //  동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
+    // 동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
     selectedAreas.forEach((area) => {
-      const id = ID_BY_SHORT.get(area); // "연남동" → 1
+      const id = ID_BY_SHORT.get(area);
       if (id) formData.append("chosenRegionIds", String(id));
     });
 
+    // FormData 내용 디버깅
+    console.log("FormData contents:");
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
     submitOnboarding(formData, {
-      onSuccess: () => navigate("/home"),
+      onSuccess: () => {
+        console.log("Onboarding successful");
+        navigate("/home");
+      },
       onError: (err: any) => {
+        console.error("Onboarding error:", err);
         const code = err?.response?.data?.code;
+        const message = err?.response?.data?.message;
+
+        // CSRF 관련 에러 처리
+        if (err?.response?.status === 403) {
+          if (message?.includes("CSRF") || message?.includes("토큰")) {
+            alert("보안 인증에 실패했습니다. 페이지를 새로고침해주세요.");
+            window.location.reload();
+            return;
+          }
+        }
 
         // 닉네임 중복
         if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
@@ -106,20 +189,14 @@ function OnboardingPage() {
         }
 
         // 그 외
-        alert(
-          err?.response?.data?.message ??
-            "온보딩에 실패했습니다. 다시 시도해주세요."
-        );
+        alert(message ?? "온보딩에 실패했습니다. 다시 시도해주세요.");
       }
     });
   };
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
   const matchedFullAddress = useMemo(() => {
     const t = areaInput.trim();
-    return FULL_BY_SHORT.get(t) ?? null; // "연남동" → "서울시 마포구 연남동"
+    return FULL_BY_SHORT.get(t) ?? null;
   }, [areaInput]);
 
   return (
@@ -135,7 +212,6 @@ function OnboardingPage() {
           {/* 이미지 업로드 영역 */}
           <div className="h-[188px] w-full flex justify-center items-center">
             <div className="relative w-[111px] h-[111px]">
-              {/* 숨겨진 파일 인풋 (바깥에 위치) */}
               <input
                 type="file"
                 accept="image/*"
@@ -154,7 +230,6 @@ function OnboardingPage() {
                 }}
               />
 
-              {/* 프로필 & 카메라 묶은 클릭 라벨 */}
               <label htmlFor="profile-upload" className="cursor-pointer">
                 <div className="relative w-[111px] h-[111px]">
                   <img
@@ -173,7 +248,7 @@ function OnboardingPage() {
             </div>
           </div>
 
-          {/* 닉네임 */}
+          {/* 닉네임 입력 부분은 동일 */}
           <div className="w-[350px] h-[202px] relative">
             <label
               htmlFor="nickname"
@@ -247,14 +322,12 @@ function OnboardingPage() {
       {/* STEP 2 */}
       {step === 2 && (
         <>
-          {/* 상단 문구 */}
           <div className="mt-[69px] ml-[42px] mb-[22px]">
             <h2 className="text-[24px] font-normal text-black">
               좋아하는 동네를 알려주세요!
             </h2>
           </div>
 
-          {/* 검색박스 */}
           <div
             onClick={() => setStep(3)}
             className="flex items-center mx-[12.5px] h-[52px] w-[350px] px-[13px] cursor-pointer
@@ -269,12 +342,10 @@ function OnboardingPage() {
             <span className="text-[16px] text-[#666]">동네명, 장소명 검색</span>
           </div>
 
-          {/* 최대 3개 선택 */}
           <p className="mt-[22px] ml-[90px] text-[20px] text-[#FF6A00] font-normal font-pretendard leading-none">
             최소 1개, 최대 3개 선택
           </p>
 
-          {/* 선택된 태그 */}
           <div className="flex flex-wrap gap-2 mx-[26px] mt-2">
             {selectedAreas.map((area) => (
               <div
@@ -294,36 +365,33 @@ function OnboardingPage() {
 
           <div className="flex-1" />
 
-          {/* 버튼 */}
           <div className="flex justify-center pb-[30px]">
             <button
-              disabled={selectedAreas.length === 0}
+              disabled={selectedAreas.length === 0 || isPending}
               onClick={handleOnboardingSubmit}
               className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center gap-[10px] px-[70px] py-[15px]
       ${
-        selectedAreas.length === 0
+        selectedAreas.length === 0 || isPending
           ? "bg-[#D9D9D9] text-gray-500 shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
           : "bg-[#FFAC33] text-white shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
       }
     `}
             >
-              시작하기
+              {isPending ? "처리 중..." : "시작하기"}
             </button>
           </div>
         </>
       )}
 
-      {/* STEP 3 
-      확인 버튼 누르면 → formData 구성 후 postOnboarding 실행*/}
+      {/* STEP 3 - 나머지 부분은 동일 */}
       {step === 3 && (
         <div className="relative flex flex-col flex-1">
-          {/* 헤더 */}
           <div className="w-full h-[76px] flex items-center justify-center px-5">
             <span className="text-[24px] font-normal text-center w-full">
               좋아하는 동네를 알려주세요!
             </span>
           </div>
-          {/* 검색박스 */}
+
           <div
             className={`flex items-center mx-[12.5px] h-[52px] w-[350px] px-[13px]
     rounded-[12px] border bg-white
@@ -357,7 +425,7 @@ function OnboardingPage() {
               </span>
             )}
           </div>
-          {/* 검색 결과 리스트 */}
+
           {matchedFullAddress && (
             <label className="flex items-center gap-[5px] mt-[20px] ml-[20px] cursor-pointer">
               <input
@@ -393,17 +461,11 @@ function OnboardingPage() {
             </label>
           )}
 
-          {/* 상단선 + 문구 + 태그 묶음 */}
           <div className="mt-88">
-            {/* 상단선 */}
             <div className="w-full border-t border-gray-300" />
-
-            {/* 문구 */}
             <p className="mt-2 ml-6 text-[14px] font-normal text-[#FF6A00]">
               최소 1개, 최대 3개 선택
             </p>
-
-            {/* 태그 */}
             <div className="flex flex-wrap gap-2 mx-6 mt-2">
               {selectedAreas.map((area) => (
                 <div
@@ -421,9 +483,9 @@ function OnboardingPage() {
               ))}
             </div>
           </div>
-          {/* 하단선: 화면 하단에서 100px 고정 */}
+
           <div className="absolute bottom-[100px] left-0 w-full border-t border-gray-300" />
-          {/* 버튼 */}
+
           <div className="flex gap-2 mt-auto pb-[30px] px-[63px]">
             <button
               onClick={() => setStep(2)}
