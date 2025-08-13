@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { axiosInstance } from "../apis/axiosInstance";
@@ -10,7 +9,6 @@ import IconRedChecked from "../assets/icon-redChecked.svg";
 import SearchIcon from "../assets/icon-search.svg";
 import Header from "../components/common/Header";
 import { FULL_BY_SHORT, ID_BY_SHORT } from "../constants/regions";
-import { usePostOnboarding } from "../hooks/mutations/usePostOnboarding";
 
 // 쿠키에서 값을 읽는 유틸리티 함수
 function getCookieValue(name: string): string | null {
@@ -73,11 +71,21 @@ function OnboardingPage() {
 
   // 체크박스 토글 핸들러
   const handleToggleArea = (area: string) => {
+    console.log("지역 토글:", area);
+    console.log("현재 선택된 지역들:", selectedAreas);
+
     if (selectedAreas.includes(area)) {
-      setSelectedAreas(selectedAreas.filter((a) => a !== area));
+      const newAreas = selectedAreas.filter((a) => a !== area);
+      console.log("지역 제거 후:", newAreas);
+      setSelectedAreas(newAreas);
     } else {
-      if (selectedAreas.length >= 3) return;
-      setSelectedAreas([...selectedAreas, area]);
+      if (selectedAreas.length >= 3) {
+        console.log("최대 3개 제한으로 추가 불가");
+        return;
+      }
+      const newAreas = [...selectedAreas, area];
+      console.log("지역 추가 후:", newAreas);
+      setSelectedAreas(newAreas);
     }
   };
 
@@ -108,90 +116,181 @@ function OnboardingPage() {
     if (e.key === "Enter") {
       e.preventDefault();
       const keyword = areaInput.trim();
+      console.log("Enter 키 입력, 키워드:", keyword);
+
       if (!keyword) return;
       if (selectedAreas.length >= 3) return;
       if (selectedAreas.includes(keyword)) return;
+
+      console.log("지역 추가:", keyword);
+      console.log("현재 선택된 지역들:", selectedAreas);
+
       setSelectedAreas([...selectedAreas, keyword]);
       setAreaInput("");
     }
   };
 
-  const { mutate: submitOnboarding, isPending } = usePostOnboarding();
-
   const handleOnboardingSubmit = async () => {
     if (!nickname || selectedAreas.length === 0) return;
-
-    // CSRF 토큰 재확인
-    const csrfReady = await ensureCSRFToken();
-    if (!csrfReady) {
-      alert("보안 토큰을 가져오는데 실패했습니다. 페이지를 새로고침해주세요.");
-      return;
-    }
 
     console.log("=== 온보딩 제출 시작 ===");
     console.log("닉네임:", nickname);
     console.log("선택된 지역:", selectedAreas);
     console.log("이미지 파일:", imageFile);
 
-    const formData = new FormData();
-    formData.append("nickname", nickname);
-    if (imageFile) formData.append("profileImage", imageFile);
+    // 지역 ID 변환 먼저 확인
+    console.log("=== 지역 ID 변환 과정 ===");
+    const regionIds: number[] = [];
 
-    // 동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
-    selectedAreas.forEach((area) => {
-      const id = ID_BY_SHORT.get(area);
-      if (id) formData.append("chosenRegionIds", String(id));
+    selectedAreas.forEach((area, index) => {
+      console.log(`지역 ${index + 1}: "${area}"`);
+
+      // 여러 방법으로 ID 찾기 시도
+      let id = ID_BY_SHORT.get(area);
+
+      if (!id) {
+        // 전체 주소에서 찾기
+        const fullAddress = FULL_BY_SHORT.get(area);
+        if (fullAddress) {
+          id = ID_BY_SHORT.get(fullAddress);
+        }
+      }
+
+      if (!id) {
+        // 임시 매핑 (동탄 = 1, 다른 지역들도 추가 가능)
+        const tempMapping: { [key: string]: number } = {
+          동탄: 1,
+          동탄동: 1,
+          동탄1동: 1,
+          동탄2동: 2
+        };
+        id = tempMapping[area];
+      }
+
+      console.log(`  -> ID: ${id}`);
+
+      if (id) {
+        regionIds.push(id);
+        console.log(`  -> 추가됨: ${id}`);
+      } else {
+        console.error(`  -> 실패: "${area}"에 대한 ID를 찾을 수 없습니다!`);
+      }
     });
 
-    // FormData 내용 디버깅
-    console.log("FormData contents:");
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
+    console.log("최종 지역 IDs:", regionIds);
+
+    if (regionIds.length === 0) {
+      alert('선택된 지역의 ID를 찾을 수 없습니다. "동탄"을 선택해보세요.');
+      return;
     }
 
-    submitOnboarding(formData, {
-      onSuccess: () => {
-        console.log("Onboarding successful");
-        navigate("/home");
-      },
-      onError: (err: any) => {
-        console.error("Onboarding error:", err);
-        const code = err?.response?.data?.code;
-        const message = err?.response?.data?.message;
+    // 순수 fetch로만 처리 (axios 완전 배제)
+    try {
+      const csrfToken = getCookieValue("XSRF-TOKEN");
+      console.log("CSRF 토큰:", csrfToken);
 
-        // CSRF 관련 에러 처리
-        if (err?.response?.status === 403) {
-          if (message?.includes("CSRF") || message?.includes("토큰")) {
-            alert("보안 인증에 실패했습니다. 페이지를 새로고침해주세요.");
-            window.location.reload();
-            return;
-          }
+      // FormData 생성
+      const formData = new FormData();
+      formData.append("nickname", nickname);
+
+      if (imageFile) {
+        formData.append("profileImage", imageFile);
+      }
+
+      // 지역 IDs 추가
+      regionIds.forEach((id) => {
+        formData.append("chosenRegionIds", String(id));
+      });
+
+      // FormData 최종 확인
+      console.log("=== 최종 FormData 내용 ===");
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
+      // 헤더 설정
+      const headers: { [key: string]: string } = {};
+
+      if (csrfToken) {
+        headers["X-XSRF-TOKEN"] = csrfToken;
+      }
+
+      console.log("요청 헤더:", headers);
+      console.log(
+        "요청 URL:",
+        `${import.meta.env.VITE_API_BASE_URL}/api/member/onboarding`
+      );
+
+      // fetch 요청
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/member/onboarding`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers,
+          body: formData
+        }
+      );
+
+      console.log("응답 상태:", response.status);
+      console.log("응답 헤더:", Object.fromEntries(response.headers.entries()));
+
+      const responseText = await response.text();
+      console.log("응답 내용:", responseText);
+
+      if (response.ok) {
+        const data = JSON.parse(responseText);
+        console.log("✅ 온보딩 성공:", data);
+        navigate("/home");
+      } else {
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { message: responseText };
         }
 
-        // 닉네임 중복
+        const code = errorData.code;
+        const message = errorData.message;
+
+        console.error("❌ 온보딩 실패:", {
+          code,
+          message,
+          status: response.status
+        });
+
+        if (response.status === 401) {
+          alert("로그인이 필요합니다. 다시 로그인해주세요.");
+          window.location.href = "/login";
+          return;
+        }
+
+        if (
+          response.status === 403 &&
+          (code === "TOKEN4004" || message?.includes("CSRF"))
+        ) {
+          alert("보안 인증에 실패했습니다. 페이지를 새로고침해주세요.");
+          window.location.reload();
+          return;
+        }
+
         if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
           setStep(1);
           setNicknameError("이미 사용 중인 닉네임입니다.");
           return;
         }
 
-        // 닉네임 비어있음
-        if (code === "NICKNAME_NOT_EXIST" || code === "EMPTY_NICKNAME") {
-          setStep(1);
-          setNicknameError("닉네임을 입력해주세요");
-          return;
-        }
-
-        // 지역 개수 오류
         if (code === "INVALID_REGION_COUNT" || code === "MEMBERA004") {
           alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
           return;
         }
 
-        // 그 외
-        alert(message ?? "온보딩에 실패했습니다. 다시 시도해주세요.");
+        alert(message || "온보딩에 실패했습니다. 다시 시도해주세요.");
       }
-    });
+    } catch (error) {
+      console.error("네트워크 에러:", error);
+      alert("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    }
   };
 
   const matchedFullAddress = useMemo(() => {
@@ -248,7 +347,7 @@ function OnboardingPage() {
             </div>
           </div>
 
-          {/* 닉네임 입력 부분은 동일 */}
+          {/* 닉네임 */}
           <div className="w-[350px] h-[202px] relative">
             <label
               htmlFor="nickname"
@@ -322,12 +421,14 @@ function OnboardingPage() {
       {/* STEP 2 */}
       {step === 2 && (
         <>
+          {/* 상단 문구 */}
           <div className="mt-[69px] ml-[42px] mb-[22px]">
             <h2 className="text-[24px] font-normal text-black">
               좋아하는 동네를 알려주세요!
             </h2>
           </div>
 
+          {/* 검색박스 */}
           <div
             onClick={() => setStep(3)}
             className="flex items-center mx-[12.5px] h-[52px] w-[350px] px-[13px] cursor-pointer
@@ -342,10 +443,12 @@ function OnboardingPage() {
             <span className="text-[16px] text-[#666]">동네명, 장소명 검색</span>
           </div>
 
+          {/* 최대 3개 선택 */}
           <p className="mt-[22px] ml-[90px] text-[20px] text-[#FF6A00] font-normal font-pretendard leading-none">
             최소 1개, 최대 3개 선택
           </p>
 
+          {/* 선택된 태그 */}
           <div className="flex flex-wrap gap-2 mx-[26px] mt-2">
             {selectedAreas.map((area) => (
               <div
@@ -365,33 +468,35 @@ function OnboardingPage() {
 
           <div className="flex-1" />
 
+          {/* 버튼 */}
           <div className="flex justify-center pb-[30px]">
             <button
-              disabled={selectedAreas.length === 0 || isPending}
+              disabled={selectedAreas.length === 0}
               onClick={handleOnboardingSubmit}
               className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center gap-[10px] px-[70px] py-[15px]
       ${
-        selectedAreas.length === 0 || isPending
+        selectedAreas.length === 0
           ? "bg-[#D9D9D9] text-gray-500 shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
           : "bg-[#FFAC33] text-white shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
       }
     `}
             >
-              {isPending ? "처리 중..." : "시작하기"}
+              시작하기
             </button>
           </div>
         </>
       )}
 
-      {/* STEP 3 - 나머지 부분은 동일 */}
+      {/* STEP 3 */}
       {step === 3 && (
         <div className="relative flex flex-col flex-1">
+          {/* 헤더 */}
           <div className="w-full h-[76px] flex items-center justify-center px-5">
             <span className="text-[24px] font-normal text-center w-full">
               좋아하는 동네를 알려주세요!
             </span>
           </div>
-
+          {/* 검색박스 */}
           <div
             className={`flex items-center mx-[12.5px] h-[52px] w-[350px] px-[13px]
     rounded-[12px] border bg-white
@@ -425,7 +530,7 @@ function OnboardingPage() {
               </span>
             )}
           </div>
-
+          {/* 검색 결과 리스트 */}
           {matchedFullAddress && (
             <label className="flex items-center gap-[5px] mt-[20px] ml-[20px] cursor-pointer">
               <input
@@ -461,11 +566,17 @@ function OnboardingPage() {
             </label>
           )}
 
+          {/* 상단선 + 문구 + 태그 묶음 */}
           <div className="mt-88">
+            {/* 상단선 */}
             <div className="w-full border-t border-gray-300" />
+
+            {/* 문구 */}
             <p className="mt-2 ml-6 text-[14px] font-normal text-[#FF6A00]">
               최소 1개, 최대 3개 선택
             </p>
+
+            {/* 태그 */}
             <div className="flex flex-wrap gap-2 mx-6 mt-2">
               {selectedAreas.map((area) => (
                 <div
@@ -483,9 +594,9 @@ function OnboardingPage() {
               ))}
             </div>
           </div>
-
+          {/* 하단선: 화면 하단에서 100px 고정 */}
           <div className="absolute bottom-[100px] left-0 w-full border-t border-gray-300" />
-
+          {/* 버튼 */}
           <div className="flex gap-2 mt-auto pb-[30px] px-[63px]">
             <button
               onClick={() => setStep(2)}
