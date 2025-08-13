@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useMemo } from "react";
-import { ID_BY_SHORT, FULL_BY_SHORT } from "../constants/regions";
+import {
+  normalizeToShort,
+  normalizeToId,
+  FULL_BY_SHORT,
+  SHORT_BY_FULL
+} from "../constants/regions";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import CameraIcon from "../assets/icon-camera.svg";
 import SearchIcon from "../assets/icon-search.svg";
@@ -21,7 +26,8 @@ function OnboardingPage() {
   const [isSearching, setIsSearching] = useState(false);
 
   // 체크박스 토글 핸들러
-  const handleToggleArea = (area: string) => {
+  const handleToggleArea = (raw: string) => {
+    const area = normalizeToShort(raw) ?? raw; // 항상 short 보관
     if (selectedAreas.includes(area)) {
       setSelectedAreas(selectedAreas.filter((a) => a !== area));
     } else {
@@ -58,9 +64,12 @@ function OnboardingPage() {
       e.preventDefault();
       const keyword = areaInput.trim();
       if (!keyword) return;
+
+      const area = normalizeToShort(keyword) ?? keyword; // short로 통일
       if (selectedAreas.length >= 3) return;
-      if (selectedAreas.includes(keyword)) return;
-      setSelectedAreas([...selectedAreas, keyword]);
+      if (selectedAreas.includes(area)) return;
+
+      setSelectedAreas([...selectedAreas, area]);
       setAreaInput("");
     }
   };
@@ -75,8 +84,8 @@ function OnboardingPage() {
     if (imageFile) formData.append("profileImage", imageFile);
 
     //  동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
-    selectedAreas.forEach((area) => {
-      const id = ID_BY_SHORT.get(area); // "연남동" → 1
+    selectedAreas.forEach((name) => {
+      const id = normalizeToId(name); // short 또는 full 모두 처리
       if (id) formData.append("chosenRegionIds", String(id));
     });
 
@@ -119,7 +128,8 @@ function OnboardingPage() {
 
   const matchedFullAddress = useMemo(() => {
     const t = areaInput.trim();
-    return FULL_BY_SHORT.get(t) ?? null; // "연남동" → "서울시 마포구 연남동"
+    const short = normalizeToShort(t); // 풀네임이 들어와도 short로 정규화
+    return short ? (FULL_BY_SHORT.get(short) ?? null) : null;
   }, [areaInput]);
 
   return (
@@ -362,10 +372,15 @@ function OnboardingPage() {
             <label className="flex items-center gap-[5px] mt-[20px] ml-[20px] cursor-pointer">
               <input
                 type="checkbox"
-                checked={selectedAreas.includes(matchedFullAddress)}
-                onChange={() => handleToggleArea(matchedFullAddress)}
+                checked={selectedAreas.includes(
+                  normalizeToShort(matchedFullAddress ?? "") ??
+                    matchedFullAddress ??
+                    ""
+                )}
+                onChange={() => handleToggleArea(matchedFullAddress!)}
                 className="hidden"
               />
+
               <img
                 src={
                   selectedAreas.includes(matchedFullAddress)
