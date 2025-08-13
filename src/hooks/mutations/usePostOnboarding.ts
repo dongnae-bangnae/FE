@@ -1,8 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { postOnboarding } from "../../apis/onboarding";
+import { OnboardingPayload, postOnboarding } from "../../apis/onboarding";
 
-export const usePostOnboarding = () => {
-  return useMutation({
-    mutationFn: postOnboarding
+export const usePostOnboarding = () =>
+  useMutation({
+    mutationFn: (payload: OnboardingPayload) => postOnboarding(payload),
   });
-};
