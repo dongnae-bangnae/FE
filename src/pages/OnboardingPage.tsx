@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useMemo } from "react";
 import { ID_BY_SHORT, FULL_BY_SHORT } from "../constants/regions";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import CameraIcon from "../assets/icon-camera.svg";
@@ -14,15 +15,10 @@ function OnboardingPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState("");
+  //const [isNicknameValid, setIsNicknameValid] = useState(false);
   const [areaInput, setAreaInput] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  const { mutate: submitOnboarding } = usePostOnboarding();
-
-  // 이미지 미리보기만 유지 (업로드 전송은 온보딩에서 제외)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
 
   // 체크박스 토글 핸들러
   const handleToggleArea = (area: string) => {
@@ -69,67 +65,57 @@ function OnboardingPage() {
     }
   };
 
-  /** "연남동" 또는 "서울시 마포구 연남동" 같은 문자열에서 regionId 추출 */
-  function toRegionId(area: string): number | null {
-    const direct = ID_BY_SHORT.get(area);
-    if (direct) return direct;
-    const last = area.trim().split(/\s+/).pop()!;
-    const byLast = ID_BY_SHORT.get(last);
-    return byLast ?? null;
-  }
+  const { mutate: submitOnboarding } = usePostOnboarding();
 
-  /** 온보딩 제출: FormData → JSON 전송으로 변경 (디자인 변경 없음) */
   const handleOnboardingSubmit = async () => {
-    const nick = nickname.trim();
-    if (!nick || selectedAreas.length === 0) return;
+    if (!nickname || selectedAreas.length === 0) return;
 
-    // 선택된 지역을 regionId 배열로 변환 (최대 3개)
-    const chosenRegionIds = selectedAreas
-      .map(toRegionId)
-      .filter((v): v is number => v !== null)
-      .slice(0, 3);
+    const formData = new FormData();
+    formData.append("nickname", nickname);
+    if (imageFile) formData.append("profileImage", imageFile);
 
-    if (chosenRegionIds.length === 0) {
-      alert("선택한 동네를 인식하지 못했어요. 다시 선택해 주세요.");
-      return;
-    }
+    //  동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
+    selectedAreas.forEach((area) => {
+      const id = ID_BY_SHORT.get(area); // "연남동" → 1
+      if (id) formData.append("chosenRegionIds", String(id));
+    });
 
-    submitOnboarding(
-      { nickname: nick, chosenRegionIds },
-      {
-        onSuccess: () => navigate("/home"),
-        onError: (err: any) => {
-          const code = err?.response?.data?.code;
+    submitOnboarding(formData, {
+      onSuccess: () => navigate("/home"),
+      onError: (err: any) => {
+        const code = err?.response?.data?.code;
 
-          // 닉네임 중복
-          if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
-            setStep(1);
-            setNicknameError("이미 사용 중인 닉네임입니다.");
-            return;
-          }
+        // 닉네임 중복
+        if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
+          setStep(1);
+          setNicknameError("이미 사용 중인 닉네임입니다.");
+          return;
+        }
 
-          // 닉네임 비어있음
-          if (code === "NICKNAME_NOT_EXIST" || code === "EMPTY_NICKNAME") {
-            setStep(1);
-            setNicknameError("닉네임을 입력해주세요");
-            return;
-          }
+        // 닉네임 비어있음
+        if (code === "NICKNAME_NOT_EXIST" || code === "EMPTY_NICKNAME") {
+          setStep(1);
+          setNicknameError("닉네임을 입력해주세요");
+          return;
+        }
 
-          // 지역 개수 오류
-          if (code === "INVALID_REGION_COUNT" || code === "MEMBERA004") {
-            alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
-            return;
-          }
+        // 지역 개수 오류
+        if (code === "INVALID_REGION_COUNT" || code === "MEMBERA004") {
+          alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
+          return;
+        }
 
-          // 그 외
-          alert(
-            err?.response?.data?.message ??
-              "온보딩에 실패했습니다. 다시 시도해주세요."
-          );
-        },
+        // 그 외
+        alert(
+          err?.response?.data?.message ??
+            "온보딩에 실패했습니다. 다시 시도해주세요."
+        );
       }
-    );
+    });
   };
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const matchedFullAddress = useMemo(() => {
     const t = areaInput.trim();
@@ -397,7 +383,9 @@ function OnboardingPage() {
                     return (
                       <span key={i}>
                         {part}
-                        {!isLast && <span className="text-[#F95F00]">{areaInput}</span>}
+                        {!isLast && (
+                          <span className="text-[#F95F00]">{areaInput}</span>
+                        )}
                       </span>
                     );
                   })}
