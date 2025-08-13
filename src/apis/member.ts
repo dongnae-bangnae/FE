@@ -6,7 +6,7 @@ export const patchNickname = async (nickname: string) => {
     { nickname },
     {
       headers: {
-        "Content-Type": "multipart/form-data"
+        "Content-Type": "application/json"
       }
     }
   );
@@ -19,7 +19,7 @@ export const patchRegions = async (regionIds: number[]) => {
     { regionIds },
     {
       headers: {
-        "Content-Type": "multipart/form-data"
+        "Content-Type": "application/json"
       }
     }
   );
