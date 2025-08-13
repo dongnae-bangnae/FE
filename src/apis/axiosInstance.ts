@@ -43,12 +43,48 @@ axiosInstance.interceptors.request.use((config) => {
     console.warn("No CSRF token found in cookies"); // 디버깅용
   }
 
-  // FormData일 때는 Content-Type을 자동으로 설정하도록 하고
-  // 다른 헤더는 그대로 유지
-  if (config.data instanceof FormData) {
-    // FormData의 경우 브라우저가 자동으로 Content-Type을 설정하도록 해야 함
-    // boundary를 포함한 정확한 Content-Type이 설정됨
+  // FormData 감지 및 Content-Type 처리
+  console.log(
+    "Request data type:",
+    typeof config.data,
+    config.data?.constructor?.name
+  );
+  console.log("Is FormData?", config.data instanceof FormData);
+
+  // 더 강력한 FormData 감지 및 Content-Type 제거
+  if (
+    config.data &&
+    (config.data instanceof FormData ||
+      config.data.constructor?.name === "FormData" ||
+      Object.prototype.toString.call(config.data) === "[object FormData]")
+  ) {
+    console.log("FormData detected, forcefully removing Content-Type");
+
+    // 모든 가능한 Content-Type 제거
+    delete h["Content-Type"];
+    delete h["content-type"];
+    delete h["CONTENT-TYPE"];
     h.delete("Content-Type");
+    h.delete("content-type");
+    h.delete("CONTENT-TYPE");
+
+    // config에서도 직접 제거
+    if (config.headers) {
+      delete config.headers["Content-Type"];
+      delete config.headers["content-type"];
+      delete config.headers["CONTENT-TYPE"];
+    }
+
+    // 헤더를 완전히 새로 만들어서 Content-Type 제외
+    const newHeaders = new AxiosHeaders();
+    Object.keys(h).forEach((key) => {
+      if (key.toLowerCase() !== "content-type") {
+        newHeaders.set(key, h[key]);
+      }
+    });
+
+    config.headers = newHeaders;
+    return config;
   }
 
   config.headers = h;
@@ -123,7 +159,10 @@ axiosInstance.interceptors.response.use(
 
       // FormData 재시도 시에도 Content-Type 처리
       if (original.data instanceof FormData) {
+        console.log("Retry: FormData detected, removing Content-Type header");
         h.delete("Content-Type");
+        delete h["Content-Type"];
+        delete h["content-type"];
       }
 
       original.headers = h;
