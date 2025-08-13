@@ -36,7 +36,7 @@ axiosInstance.interceptors.response.use(
     if (original?._retry) throw error;
 
     const shouldTry = status === 401 || status === 403 ||
-                      code === "TOKEN4001" || code === "TOKEN4002";
+                      code === "TOKEN4001" || code === "TOKEN4002" || code === "TOKEN4004";
     if (!shouldTry) throw error;
 
     const ok = await (async () => {
