@@ -138,161 +138,158 @@ function OnboardingPage() {
     console.log("선택된 지역:", selectedAreas);
     console.log("이미지 파일:", imageFile);
 
-    const formData = new FormData();
-    formData.append("nickname", nickname);
-    if (imageFile) formData.append("profileImage", imageFile);
-
-    // 동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
+    // 지역 ID 변환 먼저 확인
     console.log("=== 지역 ID 변환 과정 ===");
+    const regionIds: number[] = [];
+
     selectedAreas.forEach((area, index) => {
       console.log(`지역 ${index + 1}: "${area}"`);
-      const id = ID_BY_SHORT.get(area);
+
+      // 여러 방법으로 ID 찾기 시도
+      let id = ID_BY_SHORT.get(area);
+
+      if (!id) {
+        // 전체 주소에서 찾기
+        const fullAddress = FULL_BY_SHORT.get(area);
+        if (fullAddress) {
+          id = ID_BY_SHORT.get(fullAddress);
+        }
+      }
+
+      if (!id) {
+        // 임시 매핑 (동탄 = 1, 다른 지역들도 추가 가능)
+        const tempMapping: { [key: string]: number } = {
+          동탄: 1,
+          동탄동: 1,
+          동탄1동: 1,
+          동탄2동: 2
+        };
+        id = tempMapping[area];
+      }
+
       console.log(`  -> ID: ${id}`);
 
       if (id) {
-        formData.append("chosenRegionIds", String(id));
-        console.log(`  -> FormData에 추가됨: ${id}`);
+        regionIds.push(id);
+        console.log(`  -> 추가됨: ${id}`);
       } else {
-        console.warn(`  -> 경고: "${area}"에 대한 ID를 찾을 수 없습니다!`);
-        // ID를 찾을 수 없는 경우, 지역명을 그대로 사용하거나 기본값 사용
-        console.log("ID_BY_SHORT 맵 내용:", ID_BY_SHORT);
-        console.log("FULL_BY_SHORT 맵 내용:", FULL_BY_SHORT);
-
-        // 임시 해결책: 지역명이 '동탄'이면 임시 ID 사용
-        if (area === "동탄") {
-          console.log("동탄에 대한 임시 ID 1 사용");
-          formData.append("chosenRegionIds", "1");
-        }
+        console.error(`  -> 실패: "${area}"에 대한 ID를 찾을 수 없습니다!`);
       }
     });
 
-    // chosenRegionIds가 하나도 없으면 경고
-    const regionIdsCount = formData.getAll("chosenRegionIds").length;
-    console.log(`총 ${regionIdsCount}개의 지역 ID가 FormData에 추가됨`);
+    console.log("최종 지역 IDs:", regionIds);
 
-    if (regionIdsCount === 0) {
-      console.error("경고: chosenRegionIds가 하나도 없습니다!");
-      alert("선택된 지역의 ID를 찾을 수 없습니다. 개발팀에 문의해주세요.");
+    if (regionIds.length === 0) {
+      alert('선택된 지역의 ID를 찾을 수 없습니다. "동탄"을 선택해보세요.');
       return;
     }
 
-    // FormData 내용 디버깅
-    console.log("FormData contents:");
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
-    // 순수 fetch API 사용 (axios 완전히 우회)
+    // 순수 fetch로만 처리 (axios 완전 배제)
     try {
       const csrfToken = getCookieValue("XSRF-TOKEN");
-      console.log("Using CSRF Token:", csrfToken);
+      console.log("CSRF 토큰:", csrfToken);
 
-      // JWT 토큰도 쿠키에서 가져오기 (만약 쿠키에 저장되어 있다면)
-      const jwtToken =
-        getCookieValue("accessToken") ||
-        getCookieValue("ACCESS_TOKEN") ||
-        getCookieValue("jwt");
-      console.log("JWT Token found:", jwtToken ? "YES" : "NO");
+      // FormData 생성
+      const formData = new FormData();
+      formData.append("nickname", nickname);
 
-      const fetchHeaders: HeadersInit = {
-        "X-XSRF-TOKEN": csrfToken || "",
-        "X-DEBUG-INSTANCE": "fetch-api"
-      };
-
-      // JWT 토큰이 있으면 Authorization 헤더 추가
-      if (jwtToken) {
-        fetchHeaders["Authorization"] = `Bearer ${jwtToken}`;
-        console.log("Authorization 헤더 추가됨");
+      if (imageFile) {
+        formData.append("profileImage", imageFile);
       }
 
-      console.log("Fetch headers:", fetchHeaders);
-      console.log("FormData being sent:", formData);
+      // 지역 IDs 추가
+      regionIds.forEach((id) => {
+        formData.append("chosenRegionIds", String(id));
+      });
 
+      // FormData 최종 확인
+      console.log("=== 최종 FormData 내용 ===");
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
+      // 헤더 설정
+      const headers: { [key: string]: string } = {};
+
+      if (csrfToken) {
+        headers["X-XSRF-TOKEN"] = csrfToken;
+      }
+
+      console.log("요청 헤더:", headers);
+      console.log(
+        "요청 URL:",
+        `${import.meta.env.VITE_API_BASE_URL}/api/member/onboarding`
+      );
+
+      // fetch 요청
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/api/member/onboarding`,
         {
           method: "POST",
-          credentials: "include", // 쿠키 포함 (JWT가 HttpOnly 쿠키로 저장된 경우)
-          headers: fetchHeaders,
-          body: formData // Content-Type은 브라우저가 자동으로 multipart/form-data로 설정
+          credentials: "include",
+          headers,
+          body: formData
         }
       );
 
-      console.log("Response status:", response.status);
-      console.log(
-        "Response headers:",
-        Object.fromEntries(response.headers.entries())
-      );
+      console.log("응답 상태:", response.status);
+      console.log("응답 헤더:", Object.fromEntries(response.headers.entries()));
+
+      const responseText = await response.text();
+      console.log("응답 내용:", responseText);
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("온보딩 성공:", data);
-
-        // 온보딩 완료 후 쿠키 업데이트 확인
-        console.log("온보딩 완료 후 쿠키:", document.cookie);
-
+        const data = JSON.parse(responseText);
+        console.log("✅ 온보딩 성공:", data);
         navigate("/home");
       } else {
-        const errorText = await response.text();
-        console.error("온보딩 실패 응답:", errorText);
-        console.error("응답 상태:", response.status, response.statusText);
-
         let errorData;
         try {
-          errorData = JSON.parse(errorText);
+          errorData = JSON.parse(responseText);
         } catch {
-          errorData = { message: errorText };
+          errorData = { message: responseText };
         }
 
         const code = errorData.code;
         const message = errorData.message;
 
-        // 인증 관련 에러 (401, 403)
+        console.error("❌ 온보딩 실패:", {
+          code,
+          message,
+          status: response.status
+        });
+
         if (response.status === 401) {
           alert("로그인이 필요합니다. 다시 로그인해주세요.");
           window.location.href = "/login";
           return;
         }
 
-        // CSRF 관련 에러 처리
-        if (response.status === 403) {
-          if (
-            message?.includes("CSRF") ||
-            message?.includes("토큰") ||
-            code === "TOKEN4004"
-          ) {
-            alert("보안 인증에 실패했습니다. 페이지를 새로고침해주세요.");
-            window.location.reload();
-            return;
-          }
+        if (
+          response.status === 403 &&
+          (code === "TOKEN4004" || message?.includes("CSRF"))
+        ) {
+          alert("보안 인증에 실패했습니다. 페이지를 새로고침해주세요.");
+          window.location.reload();
+          return;
         }
 
-        // 닉네임 중복
         if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
           setStep(1);
           setNicknameError("이미 사용 중인 닉네임입니다.");
           return;
         }
 
-        // 닉네임 비어있음
-        if (code === "NICKNAME_NOT_EXIST" || code === "EMPTY_NICKNAME") {
-          setStep(1);
-          setNicknameError("닉네임을 입력해주세요");
-          return;
-        }
-
-        // 지역 개수 오류
         if (code === "INVALID_REGION_COUNT" || code === "MEMBERA004") {
           alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
           return;
         }
 
-        // 그 외
         alert(message || "온보딩에 실패했습니다. 다시 시도해주세요.");
       }
     } catch (error) {
       console.error("네트워크 에러:", error);
-      alert("네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.");
+      alert("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
