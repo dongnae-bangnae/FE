@@ -1,15 +1,15 @@
 // src/apis/axiosInstance.ts
 import axios, {
   AxiosError,
-  AxiosHeaders,
   AxiosRequestConfig,
+  AxiosHeaders,
   type AxiosRequestHeaders
 } from "axios";
 
 /** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
 function getCookieValue(name: string): string | null {
   const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-  return m ? m[2] : null;
+  return m ? decodeURIComponent(m[2]) : null;
 }
 
 /** headers를 AxiosHeaders 인스턴스로 보장 */
