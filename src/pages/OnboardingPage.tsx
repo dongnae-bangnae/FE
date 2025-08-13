@@ -3,8 +3,8 @@ import { useMemo } from "react";
 import {
   normalizeToShort,
   normalizeToId,
-  FULL_BY_SHORT,
-  SHORT_BY_FULL
+  FULL_BY_SHORT
+  //SHORT_BY_FULL
 } from "../constants/regions";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import CameraIcon from "../assets/icon-camera.svg";
@@ -13,7 +13,7 @@ import Header from "../components/common/Header";
 import { useNavigate } from "react-router-dom";
 import IconDefault from "../assets/icon-default.svg";
 import IconRedChecked from "../assets/icon-redChecked.svg";
-import { usePostOnboarding } from "../hooks/mutations/usePostOnboarding";
+import { useCompleteOnboarding } from "../hooks/mutations/useCompleteOnboarding";
 
 function OnboardingPage() {
   const navigate = useNavigate();
@@ -24,6 +24,8 @@ function OnboardingPage() {
   const [areaInput, setAreaInput] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const toShort = (v: string | null | undefined) =>
+    normalizeToShort(v ?? "") ?? "";
 
   // 체크박스 토글 핸들러
   const handleToggleArea = (raw: string) => {
@@ -74,53 +76,71 @@ function OnboardingPage() {
     }
   };
 
-  const { mutate: submitOnboarding } = usePostOnboarding();
+  const { mutateAsync: completeOnboarding, isPending } =
+    useCompleteOnboarding();
+
+  const buildRegionIds = (): number[] => {
+    const ids: number[] = [];
+    selectedAreas.forEach((name) => {
+      const short = normalizeToShort(name) ?? name;
+      const id = normalizeToId(short) ?? normalizeToId(name);
+      if (typeof id === "number") ids.push(id);
+    });
+    return ids;
+  };
 
   const handleOnboardingSubmit = async () => {
-    if (!nickname || selectedAreas.length === 0) return;
+    const t = nickname.trim();
+    if (!t) {
+      setStep(1);
+      setNicknameError("닉네임을 입력해주세요");
+      return;
+    }
+    if (t.length > 10) {
+      setStep(1);
+      setNicknameError("닉네임은 최대 10자입니다.");
+      return;
+    }
 
-    const formData = new FormData();
-    formData.append("nickname", nickname);
-    if (imageFile) formData.append("profileImage", imageFile);
+    const regionIds = buildRegionIds();
+    if (regionIds.length < 1 || regionIds.length > 3) {
+      alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
+      return;
+    }
 
-    //  동이름 → 풀주소 → regionId로 변환해서 formData에 넣기
-    selectedAreas.forEach((name) => {
-      const id = normalizeToId(name); // short 또는 full 모두 처리
-      if (id) formData.append("chosenRegionIds", String(id));
-    });
+    try {
+      await completeOnboarding({ nickname: t, regionIds, imageFile });
+      navigate("/home");
+    } catch (err: any) {
+      const code = err?.response?.data?.code ?? "";
+      const DUP = ["NICKNAME_DUPLICATE", "MEMBER4008", "MEMBERA008"];
+      const EMPTY = ["NICKNAME_NOT_EXIST", "EMPTY_NICKNAME"];
+      const BAD_REGION = ["INVALID_REGION_COUNT", "MEMBERA004"];
 
-    submitOnboarding(formData, {
-      onSuccess: () => navigate("/home"),
-      onError: (err: any) => {
-        const code = err?.response?.data?.code;
-
-        // 닉네임 중복
-        if (code === "NICKNAME_DUPLICATE" || code === "MEMBER4008") {
-          setStep(1);
-          setNicknameError("이미 사용 중인 닉네임입니다.");
-          return;
-        }
-
-        // 닉네임 비어있음
-        if (code === "NICKNAME_NOT_EXIST" || code === "EMPTY_NICKNAME") {
-          setStep(1);
-          setNicknameError("닉네임을 입력해주세요");
-          return;
-        }
-
-        // 지역 개수 오류
-        if (code === "INVALID_REGION_COUNT" || code === "MEMBERA004") {
-          alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
-          return;
-        }
-
-        // 그 외
-        alert(
-          err?.response?.data?.message ??
-            "온보딩에 실패했습니다. 다시 시도해주세요."
-        );
+      if (DUP.includes(code)) {
+        setStep(1);
+        setNicknameError("이미 사용 중인 닉네임입니다.");
+        return;
       }
-    });
+      if (EMPTY.includes(code)) {
+        setStep(1);
+        setNicknameError("닉네임을 입력해주세요");
+        return;
+      }
+      if (BAD_REGION.includes(code)) {
+        alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
+        return;
+      }
+      if (err?.response?.status === 403) {
+        alert("보안 토큰이 유효하지 않아요. 다시 로그인 후 시도해주세요.");
+        return;
+      }
+
+      alert(
+        err?.response?.data?.message ??
+          "온보딩에 실패했습니다. 다시 시도해주세요."
+      );
+    }
   };
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -307,7 +327,7 @@ function OnboardingPage() {
           {/* 버튼 */}
           <div className="flex justify-center pb-[30px]">
             <button
-              disabled={selectedAreas.length === 0}
+              disabled={isPending || selectedAreas.length === 0}
               onClick={handleOnboardingSubmit}
               className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center gap-[10px] px-[70px] py-[15px]
       ${
@@ -317,7 +337,7 @@ function OnboardingPage() {
       }
     `}
             >
-              시작하기
+              {isPending ? "처리 중..." : "시작하기"}
             </button>
           </div>
         </>
@@ -368,45 +388,40 @@ function OnboardingPage() {
             )}
           </div>
           {/* 검색 결과 리스트 */}
-          {matchedFullAddress && (
-            <label className="flex items-center gap-[5px] mt-[20px] ml-[20px] cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedAreas.includes(
-                  normalizeToShort(matchedFullAddress ?? "") ??
-                    matchedFullAddress ??
-                    ""
-                )}
-                onChange={() => handleToggleArea(matchedFullAddress!)}
-                className="hidden"
-              />
+          {matchedFullAddress &&
+            (() => {
+              const full = matchedFullAddress; // UI 노출은 풀네임
+              const short = toShort(full); // 선택/저장은 숏
+              const isChecked = selectedAreas.includes(short);
 
-              <img
-                src={
-                  selectedAreas.includes(matchedFullAddress)
-                    ? IconRedChecked
-                    : IconDefault
-                }
-                alt="체크박스 커스텀 아이콘"
-                className="w-[25px] h-[25px] flex-shrink-0"
-              />
-              <span className="text-[16px] leading-[24px] font-normal font-pretendard text-[#000]">
-                {matchedFullAddress
-                  .split(areaInput)
-                  .map((part: string, i: number, arr: string[]) => {
-                    const isLast = i === arr.length - 1;
-                    return (
+              return (
+                <label className="flex items-center gap-[5px] mt-[20px] ml-[20px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handleToggleArea(full)} // 내부에서 short로 저장됨
+                    className="hidden"
+                  />
+
+                  <img
+                    src={isChecked ? IconRedChecked : IconDefault}
+                    alt="체크박스 커스텀 아이콘"
+                    className="w-[25px] h-[25px] flex-shrink-0"
+                  />
+
+                  <span className="text-[16px] leading-[24px] font-normal font-pretendard text-[#000]">
+                    {full.split(areaInput).map((part, i, arr) => (
                       <span key={i}>
                         {part}
-                        {!isLast && (
+                        {i !== arr.length - 1 && (
                           <span className="text-[#F95F00]">{areaInput}</span>
                         )}
                       </span>
-                    );
-                  })}
-              </span>
-            </label>
-          )}
+                    ))}
+                  </span>
+                </label>
+              );
+            })()}
 
           {/* 상단선 + 문구 + 태그 묶음 */}
           <div className="mt-88">
