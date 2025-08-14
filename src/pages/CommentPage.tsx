@@ -327,6 +327,8 @@ function CommentPage() {
         <MessagePopup icon={CheckIcon_g} message="댓글이 등록되었어요" />
       )}
 
+      {/* api 연동 후 팝업 */}
+      
       {/*<SpamModal 
         title="신고사유를 알려주세요" 
         cancelText="취소"
