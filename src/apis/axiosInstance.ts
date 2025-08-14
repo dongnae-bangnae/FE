@@ -1,102 +1,63 @@
 // src/apis/axiosInstance.ts
 import axios, {
   AxiosError,
-  AxiosHeaders,
   AxiosRequestConfig,
+  AxiosHeaders,
   type AxiosRequestHeaders
 } from "axios";
 
-/** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
-function getCookieValue(name: string): string | null {
-  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-  return m ? decodeURIComponent(m[2]) : null;
-}
+// /** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
+// function getCookieValue(name: string): string | null {
+//   const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+//   return m ? decodeURIComponent(m[2]) : null;
+// }
 
 /** headers를 AxiosHeaders 인스턴스로 보장 */
 function ensureAxiosHeaders(
   headers?: AxiosRequestHeaders | undefined
 ): AxiosHeaders {
   if (headers instanceof AxiosHeaders) return headers;
+  // 기존 값이 plain object여도 여기서 AxiosHeaders로 흡수
   return new AxiosHeaders(headers ?? {});
 }
 
-const API = import.meta.env.VITE_API_BASE_URL;
-
-/**
- * ✅ 백엔드 수정 없이 CSRF를 최신으로 맞추기 위한 "인증된 GET" 폴백
- * - 이미 존재하는 내 정보 조회 API 사용
- */
-const CSRF_GET_FALLBACKS = ["/api/member/info"];
-
-/** 간단한 sleep */
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 export const axiosInstance = axios.create({
-  baseURL: API,
-  withCredentials: true, // JWT/refresh/JSESSIONID/XSRF 쿠키 전송
-  xsrfCookieName: "XSRF-TOKEN",
-  xsrfHeaderName: "X-XSRF-TOKEN"
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true // JWT/refresh/JSESSIONID 쿠키 전송
+  // xsrfCookieName: "XSRF-TOKEN",
+  // xsrfHeaderName: "X-XSRF-TOKEN"
 });
 
-/** (프론트만으로) XSRF 쿠키를 가능한 최신으로 맞춘다 */
-async function ensureFreshCsrfViaFallback(): Promise<string | null> {
-  // 1) 우선 쿠키에 있으면 사용
-  let csrf = getCookieValue("XSRF-TOKEN");
-  if (csrf) return csrf;
-
-  // 2) 리프레시 직후 Set-Cookie 반영 지연 대비 (최대 300ms 대기)
-  for (let i = 0; i < 3; i++) {
-    await sleep(100);
-    csrf = getCookieValue("XSRF-TOKEN");
-    if (csrf) return csrf;
-  }
-
-  // 3) 그래도 없으면, 인증된 GET을 호출해 서버가 쿠키를 세팅/갱신하도록 유도
-  for (const path of CSRF_GET_FALLBACKS) {
-    try {
-      await axios.get(`${API}${path}`, { withCredentials: true });
-      await sleep(50);
-      csrf = getCookieValue("XSRF-TOKEN");
-      if (csrf) return csrf;
-    } catch {
-      // 404/401 등은 무시하고 다음 후보 시도
-    }
-  }
-
-  // 4) 실패 시 null
-  return null;
-}
-
-/* ------------------- 요청 인터셉터: CSRF 자동 주입 + 디버그 ------------------- */
-axiosInstance.interceptors.request.use(async (config) => {
+/* ------------------- 요청: CSRF 헤더 자동 주입 + 디버그 헤더 ------------------- */
+axiosInstance.interceptors.request.use((config) => {
+  // 항상 AxiosHeaders로 변환
   const h = ensureAxiosHeaders(config.headers as AxiosRequestHeaders);
 
-  // 디버그 라벨(이 인스턴스에서 나간 요청 식별)
+  // 디버그 라벨 (이 instance에서 나간 요청인지 구분)
   h.set("X-DEBUG-INSTANCE", "main-axiosInstance");
 
-  // 쿠키에 없으면 폴백 로직으로 확보 시도
-  let csrf = getCookieValue("XSRF-TOKEN");
-  if (!csrf) csrf = await ensureFreshCsrfViaFallback();
-  if (csrf) {
-    // 👉 대문자 헤더 두 종류 모두 세팅
-    h.set("X-XSRF-TOKEN", csrf);
-    h.set("X-CSRF-TOKEN", csrf);
-  }
+  // // CSRF 쿠키가 있을 때만 XSRF 헤더 추가
+  // const csrf = getCookieValue("XSRF-TOKEN");
+  // if (csrf) {
+  //   h.set("X-XSRF-TOKEN", csrf);
+  // }
 
   config.headers = h;
   return config;
 });
 
-/* ------------------- 응답 인터셉터: 토큰 리프레시 + CSRF 확보 후 재시도 ------------------- */
+/* -------- 응답: accessToken 만료 시 /api/auth/reissue 호출 -------- */
 let isRefreshing = false;
 let waiters: Array<(ok: boolean) => void> = [];
 
 async function refreshAccessToken(): Promise<boolean> {
   try {
-    await axios.post(`${API}/api/auth/reissue`, null, {
-      withCredentials: true
-    });
-    return true; // 서버가 Set-Cookie로 새 accessToken 내려줌
+    await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/auth/reissue`,
+      null,
+      { withCredentials: true }
+    );
+    return true; // 서버가 Set-Cookie로 새 accessToken 내려줌(전제)
   } catch {
     return false;
   }
@@ -106,21 +67,36 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (error: AxiosError<any>) => {
     const status = error.response?.status;
-    const code = (error.response?.data as any)?.code;
+    const data = error.response?.data as any;
+    const code = data?.code;
+    const message: string | undefined = data?.message;
     const original = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    // 이미 한 번 재시도했다면 더 이상 반복 방지
+    // 재시도 루프 방지
     if (original?._retry) throw error;
 
+    // 재발급 엔드포인트/로그아웃 등은 건너뛰기(보호)
+    const url = (original?.url || "").toString();
+    if (url.includes("/api/auth/reissue") || url.includes("/api/auth/logout")) {
+      throw error;
+    }
+
+    // 만료/무효 신호에만 재발급
+    const isAccessTokenInvalidByCode =
+      code === "TOKEN4001" || // 백엔드가 access 만료에 쓰는 코드
+      code === "INVALID_JWT_ACCESS_TOKEN"; // JwtTokenProvider에서 던지는 커스텀 코드 가능성
+
+    const isAccessTokenInvalidByMessage =
+      typeof message === "string" &&
+      message.includes("유효하지 않은 AccessToken입니다");
+
     const shouldTry =
-      status === 401 ||
-      status === 403 ||
-      code === "TOKEN4001" ||
-      code === "TOKEN4002";
+      status === 401 &&
+      (isAccessTokenInvalidByCode || isAccessTokenInvalidByMessage);
 
     if (!shouldTry) throw error;
 
-    // 액세스 토큰 리프레시(중복 호출 동기화)
+    // === 재발급 동시성 제어 (기존 로직 유지) ===
     if (!isRefreshing) {
       isRefreshing = true;
       const ok = await refreshAccessToken();
@@ -139,17 +115,15 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // ⬇️ 리프레시 직후: XSRF 최신값을 "프론트만으로" 확보
-    const fresh = await ensureFreshCsrfViaFallback();
-
-    // 원 요청 재시도 (가능하면 최신 CSRF 재주입)
+    // 리프레시 성공 → 원 요청 재시도 (CSRF 재주입)
     original._retry = true;
-    if (fresh) {
-      const h = ensureAxiosHeaders(original.headers as AxiosRequestHeaders);
-      h.set("X-XSRF-TOKEN", fresh);
-      h.set("X-CSRF-TOKEN", fresh);
-      original.headers = h;
-    }
+    // const csrf = getCookieValue("XSRF-TOKEN");
+    // if (csrf) {
+    //   const h = ensureAxiosHeaders(original.headers as AxiosRequestHeaders);
+    //   h.set("X-XSRF-TOKEN", csrf);
+    //   original.headers = h;
+    // }
     return axiosInstance(original);
   }
 );
+
