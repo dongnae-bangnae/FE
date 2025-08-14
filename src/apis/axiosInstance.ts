@@ -6,11 +6,11 @@ import axios, {
   type AxiosRequestHeaders
 } from "axios";
 
-/** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
-function getCookieValue(name: string): string | null {
-  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-  return m ? decodeURIComponent(m[2]) : null;
-}
+// /** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
+// function getCookieValue(name: string): string | null {
+//   const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+//   return m ? decodeURIComponent(m[2]) : null;
+// }
 
 /** headers를 AxiosHeaders 인스턴스로 보장 */
 function ensureAxiosHeaders(
@@ -23,9 +23,9 @@ function ensureAxiosHeaders(
 
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  withCredentials: true, // JWT/refresh/JSESSIONID 쿠키 전송
-  xsrfCookieName: "XSRF-TOKEN",
-  xsrfHeaderName: "X-XSRF-TOKEN"
+  withCredentials: true // JWT/refresh/JSESSIONID 쿠키 전송
+  // xsrfCookieName: "XSRF-TOKEN",
+  // xsrfHeaderName: "X-XSRF-TOKEN"
 });
 
 /* ------------------- 요청: CSRF 헤더 자동 주입 + 디버그 헤더 ------------------- */
@@ -36,11 +36,11 @@ axiosInstance.interceptors.request.use((config) => {
   // 디버그 라벨 (이 instance에서 나간 요청인지 구분)
   h.set("X-DEBUG-INSTANCE", "main-axiosInstance");
 
-  // CSRF 쿠키가 있을 때만 XSRF 헤더 추가
-  const csrf = getCookieValue("XSRF-TOKEN");
-  if (csrf) {
-    h.set("X-XSRF-TOKEN", csrf);
-  }
+  // // CSRF 쿠키가 있을 때만 XSRF 헤더 추가
+  // const csrf = getCookieValue("XSRF-TOKEN");
+  // if (csrf) {
+  //   h.set("X-XSRF-TOKEN", csrf);
+  // }
 
   config.headers = h;
   return config;
@@ -83,7 +83,7 @@ axiosInstance.interceptors.response.use(
 
     // 만료/무효 신호에만 재발급
     const isAccessTokenInvalidByCode =
-      code === "TOKEN4001" || // 백엔드가 access 만료에 쓰는 코드(예시)
+      code === "TOKEN4001" || // 백엔드가 access 만료에 쓰는 코드
       code === "INVALID_JWT_ACCESS_TOKEN"; // JwtTokenProvider에서 던지는 커스텀 코드 가능성
 
     const isAccessTokenInvalidByMessage =
@@ -117,12 +117,12 @@ axiosInstance.interceptors.response.use(
 
     // 리프레시 성공 → 원 요청 재시도 (CSRF 재주입)
     original._retry = true;
-    const csrf = getCookieValue("XSRF-TOKEN");
-    if (csrf) {
-      const h = ensureAxiosHeaders(original.headers as AxiosRequestHeaders);
-      h.set("X-XSRF-TOKEN", csrf);
-      original.headers = h;
-    }
+    // const csrf = getCookieValue("XSRF-TOKEN");
+    // if (csrf) {
+    //   const h = ensureAxiosHeaders(original.headers as AxiosRequestHeaders);
+    //   h.set("X-XSRF-TOKEN", csrf);
+    //   original.headers = h;
+    // }
     return axiosInstance(original);
   }
 );
