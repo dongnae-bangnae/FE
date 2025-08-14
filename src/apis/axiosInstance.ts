@@ -1,3 +1,4 @@
+// src/apis/axiosInstance.ts
 import axios, {
   AxiosError,
   AxiosHeaders,
@@ -76,7 +77,11 @@ axiosInstance.interceptors.request.use(async (config) => {
   // 쿠키에 없으면 폴백 로직으로 확보 시도
   let csrf = getCookieValue("XSRF-TOKEN");
   if (!csrf) csrf = await ensureFreshCsrfViaFallback();
-  if (csrf) h.set("X-XSRF-TOKEN", csrf);
+  if (csrf) {
+    // 👉 대문자 헤더 두 종류 모두 세팅
+    h.set("X-XSRF-TOKEN", csrf);
+    h.set("X-CSRF-TOKEN", csrf);
+  }
 
   config.headers = h;
   return config;
@@ -134,7 +139,7 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // 리프레시 직후: XSRF 최신값을 "프론트만으로" 확보
+    // ⬇️ 리프레시 직후: XSRF 최신값을 "프론트만으로" 확보
     const fresh = await ensureFreshCsrfViaFallback();
 
     // 원 요청 재시도 (가능하면 최신 CSRF 재주입)
@@ -142,6 +147,7 @@ axiosInstance.interceptors.response.use(
     if (fresh) {
       const h = ensureAxiosHeaders(original.headers as AxiosRequestHeaders);
       h.set("X-XSRF-TOKEN", fresh);
+      h.set("X-CSRF-TOKEN", fresh);
       original.headers = h;
     }
     return axiosInstance(original);

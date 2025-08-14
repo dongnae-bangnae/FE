@@ -1,29 +1,40 @@
-import { useState } from "react";
-import { useMemo } from "react";
-import {
-  normalizeToShort,
-  normalizeToId,
-  FULL_BY_SHORT
-  //SHORT_BY_FULL
-} from "../constants/regions";
-import DefaultProfile from "../assets/icon-defaultProfile.svg";
+// src/pages/OnboardingPage.tsx
+import { useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { axiosInstance } from "../apis/axiosInstance";
 import CameraIcon from "../assets/icon-camera.svg";
+import IconDefault from "../assets/icon-default.svg";
+import DefaultProfile from "../assets/icon-defaultProfile.svg";
+import IconRedChecked from "../assets/icon-redChecked.svg";
 import SearchIcon from "../assets/icon-search.svg";
 import Header from "../components/common/Header";
-import { useNavigate } from "react-router-dom";
-import IconDefault from "../assets/icon-default.svg";
-import IconRedChecked from "../assets/icon-redChecked.svg";
+import {
+  FULL_BY_SHORT,
+  normalizeToId,
+  normalizeToShort
+} from "../constants/regions";
 import { useCompleteOnboarding } from "../hooks/mutations/useCompleteOnboarding";
 
 function OnboardingPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState("");
-  //const [isNicknameValid, setIsNicknameValid] = useState(false);
   const [areaInput, setAreaInput] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  // ✅ 이미지 상태를 먼저 선언 (아래에서 사용하므로)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const { mutateAsync: completeOnboarding, isPending } =
+    useCompleteOnboarding();
+
   const toShort = (v: string | null | undefined) =>
     normalizeToShort(v ?? "") ?? "";
 
@@ -76,9 +87,6 @@ function OnboardingPage() {
     }
   };
 
-  const { mutateAsync: completeOnboarding, isPending } =
-    useCompleteOnboarding();
-
   const buildRegionIds = (): number[] => {
     const ids: number[] = [];
     selectedAreas.forEach((name) => {
@@ -109,8 +117,34 @@ function OnboardingPage() {
     }
 
     try {
-      await completeOnboarding({ nickname: t, regionIds, imageFile });
-      navigate("/home");
+      const result = await completeOnboarding({
+        nickname: t,
+        regionIds,
+        imageFile
+      });
+
+      // [ADD] 온보딩 완료 여부 확인 (catch는 그대로 둠)
+      const completedFromAPI =
+        result?.result?.isOnboardingCompleted ?? result?.isOnboardingCompleted;
+
+      const myInfo = await queryClient.fetchQuery({
+        queryKey: ["myInfo"],
+        queryFn: () =>
+          axiosInstance
+            .get("/api/member/info")
+            .then((r) => r.data?.result ?? r.data),
+        staleTime: 0
+      });
+
+      const completed = completedFromAPI ?? myInfo?.isOnboardingCompleted;
+
+      if (completed) {
+        navigate("/home");
+      } else {
+        alert(
+          "온보딩 완료 상태 확인에 실패했습니다. 다시 로그인 후 시도해주세요."
+        );
+      }
     } catch (err: any) {
       const code = err?.response?.data?.code ?? "";
       const DUP = ["NICKNAME_DUPLICATE", "MEMBER4008", "MEMBERA008"];
@@ -143,9 +177,6 @@ function OnboardingPage() {
     }
   };
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
   const matchedFullAddress = useMemo(() => {
     const t = areaInput.trim();
     const short = normalizeToShort(t); // 풀네임이 들어와도 short로 정규화
@@ -165,7 +196,6 @@ function OnboardingPage() {
           {/* 이미지 업로드 영역 */}
           <div className="h-[188px] w-full flex justify-center items-center">
             <div className="relative w-[111px] h-[111px]">
-              {/* 숨겨진 파일 인풋 (바깥에 위치) */}
               <input
                 type="file"
                 accept="image/*"
@@ -183,8 +213,6 @@ function OnboardingPage() {
                   }
                 }}
               />
-
-              {/* 프로필 & 카메라 묶은 클릭 라벨 */}
               <label htmlFor="profile-upload" className="cursor-pointer">
                 <div className="relative w-[111px] h-[111px]">
                   <img
@@ -343,8 +371,7 @@ function OnboardingPage() {
         </>
       )}
 
-      {/* STEP 3 
-      확인 버튼 누르면 → formData 구성 후 postOnboarding 실행*/}
+      {/* STEP 3 */}
       {step === 3 && (
         <div className="relative flex flex-col flex-1">
           {/* 헤더 */}
@@ -387,6 +414,7 @@ function OnboardingPage() {
               </span>
             )}
           </div>
+
           {/* 검색 결과 리스트 */}
           {matchedFullAddress &&
             (() => {
@@ -425,15 +453,10 @@ function OnboardingPage() {
 
           {/* 상단선 + 문구 + 태그 묶음 */}
           <div className="mt-88">
-            {/* 상단선 */}
             <div className="w-full border-t border-gray-300" />
-
-            {/* 문구 */}
             <p className="mt-2 ml-6 text-[14px] font-normal text-[#FF6A00]">
               최소 1개, 최대 3개 선택
             </p>
-
-            {/* 태그 */}
             <div className="flex flex-wrap gap-2 mx-6 mt-2">
               {selectedAreas.map((area) => (
                 <div
@@ -451,9 +474,9 @@ function OnboardingPage() {
               ))}
             </div>
           </div>
-          {/* 하단선: 화면 하단에서 100px 고정 */}
+
           <div className="absolute bottom-[100px] left-0 w-full border-t border-gray-300" />
-          {/* 버튼 */}
+
           <div className="flex gap-2 mt-auto pb-[30px] px-[63px]">
             <button
               onClick={() => setStep(2)}
