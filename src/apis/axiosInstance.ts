@@ -67,19 +67,36 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (error: AxiosError<any>) => {
     const status = error.response?.status;
-    const code = (error.response?.data as any)?.code;
+    const data = error.response?.data as any;
+    const code = data?.code;
+    const message: string | undefined = data?.message;
     const original = error.config as AxiosRequestConfig & { _retry?: boolean };
 
+    // 재시도 루프 방지
     if (original?._retry) throw error;
 
+    // 재발급 엔드포인트/로그아웃 등은 건너뛰기(보호)
+    const url = (original?.url || "").toString();
+    if (url.includes("/api/auth/reissue") || url.includes("/api/auth/logout")) {
+      throw error;
+    }
+
+    // 만료/무효 신호에만 재발급
+    const isAccessTokenInvalidByCode =
+      code === "TOKEN4001" || // 백엔드가 access 만료에 쓰는 코드(예시)
+      code === "INVALID_JWT_ACCESS_TOKEN"; // JwtTokenProvider에서 던지는 커스텀 코드 가능성
+
+    const isAccessTokenInvalidByMessage =
+      typeof message === "string" &&
+      message.includes("유효하지 않은 AccessToken입니다");
+
     const shouldTry =
-      status === 401 ||
-      status === 403 ||
-      code === "TOKEN4001" ||
-      code === "TOKEN4002";
+      status === 401 &&
+      (isAccessTokenInvalidByCode || isAccessTokenInvalidByMessage);
 
     if (!shouldTry) throw error;
 
+    // === 재발급 동시성 제어 (기존 로직 유지) ===
     if (!isRefreshing) {
       isRefreshing = true;
       const ok = await refreshAccessToken();

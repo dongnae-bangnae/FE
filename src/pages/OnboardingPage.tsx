@@ -1,10 +1,8 @@
-import { useState } from "react";
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   normalizeToShort,
   normalizeToId,
   FULL_BY_SHORT
-  //SHORT_BY_FULL
 } from "../constants/regions";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import CameraIcon from "../assets/icon-camera.svg";
@@ -13,19 +11,38 @@ import Header from "../components/common/Header";
 import { useNavigate } from "react-router-dom";
 import IconDefault from "../assets/icon-default.svg";
 import IconRedChecked from "../assets/icon-redChecked.svg";
-import { useCompleteOnboarding } from "../hooks/mutations/useCompleteOnboarding";
+
+// 기존 훅 사용
+import { usePatchNickname } from "../hooks/mutations/usePatchNickname";
+import { usePatchProfileImage } from "../hooks/mutations/usePatchProfileImage";
+import { usePatchRegions } from "../hooks/mutations/usePatchRegions";
+import { postOnboarding } from "../apis/member";
 
 function OnboardingPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  // Step1
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState("");
-  //const [isNicknameValid, setIsNicknameValid] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  // Step2/3
   const [areaInput, setAreaInput] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+
   const toShort = (v: string | null | undefined) =>
     normalizeToShort(v ?? "") ?? "";
+
+  // 기존 훅 사용
+  const { mutateAsync: saveNickname, isPending: isNickSaving } =
+    usePatchNickname();
+  const { mutateAsync: saveImage, isPending: isImgSaving } =
+    usePatchProfileImage();
+  const { mutateAsync: saveRegions, isPending: isRegionSaving } =
+    usePatchRegions();
 
   // 체크박스 토글 핸들러
   const handleToggleArea = (raw: string) => {
@@ -38,11 +55,19 @@ function OnboardingPage() {
     }
   };
 
-  const handleRemoveArea = (areaToRemove: string) => {
-    setSelectedAreas(selectedAreas.filter((area) => area !== areaToRemove));
+  // x표
+  const handleRemoveArea = async (areaToRemove: string) => {
+    const next = selectedAreas.filter((a) => a !== areaToRemove);
+    setSelectedAreas(next);
+
+    const nextIds = next
+      .map((name) => normalizeToId(normalizeToShort(name) ?? name))
+      .filter((id): id is number => typeof id === "number");
+
+    await saveRegions(nextIds); // 서버에 바로 반영
   };
 
-  // 동기 로컬 검사로 단순화
+  // 닉네임 로컬 검사
   const validateNickname = (): boolean => {
     const t = nickname.trim();
     if (!t) {
@@ -57,27 +82,31 @@ function OnboardingPage() {
     return true;
   };
 
-  const handleNextFromNickname = () => {
-    if (validateNickname()) setStep(2);
+  // STEP1: 이미지(선택) → 닉네임 저장 → Step2로 이동
+  const handleNextFromNickname = async () => {
+    if (!validateNickname()) return;
+    try {
+      if (imageFile) await saveImage(imageFile);
+      await saveNickname(nickname.trim());
+      setStep(2);
+    } catch (e) {
+      // 필요 시 에러코드 분기(중복 닉네임 등)
+    }
   };
 
+  // Enter로 태그 추가
   const handleAreaKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       const keyword = areaInput.trim();
       if (!keyword) return;
-
-      const area = normalizeToShort(keyword) ?? keyword; // short로 통일
+      const area = normalizeToShort(keyword) ?? keyword;
       if (selectedAreas.length >= 3) return;
       if (selectedAreas.includes(area)) return;
-
       setSelectedAreas([...selectedAreas, area]);
       setAreaInput("");
     }
   };
-
-  const { mutateAsync: completeOnboarding, isPending } =
-    useCompleteOnboarding();
 
   const buildRegionIds = (): number[] => {
     const ids: number[] = [];
@@ -89,68 +118,39 @@ function OnboardingPage() {
     return ids;
   };
 
-  const handleOnboardingSubmit = async () => {
-    const t = nickname.trim();
-    if (!t) {
-      setStep(1);
-      setNicknameError("닉네임을 입력해주세요");
-      return;
-    }
-    if (t.length > 10) {
-      setStep(1);
-      setNicknameError("닉네임은 최대 10자입니다.");
-      return;
-    }
+  // STEP2: 시작하기(완료 플래그만 호출)
+  const [isFinishing, setIsFinishing] = useState(false);
 
-    const regionIds = buildRegionIds();
-    if (regionIds.length < 1 || regionIds.length > 3) {
-      alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
+  const handleOnboardingSubmit = async () => {
+    if (selectedAreas.length === 0) return; // 상태 체크
+    const ids = buildRegionIds();
+    if (ids.length < 1 || ids.length > 3) {
+      alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택해 주세요.");
       return;
     }
 
     try {
-      await completeOnboarding({ nickname: t, regionIds, imageFile });
+      setIsFinishing(true);
+      await saveRegions(ids); // ← 여기! (Step3에서 저장했어도 한 번 더 맞춰줌)
+      await postOnboarding(); // 완료 플래그
       navigate("/home");
     } catch (err: any) {
-      const code = err?.response?.data?.code ?? "";
-      const DUP = ["NICKNAME_DUPLICATE", "MEMBER4008", "MEMBERA008"];
-      const EMPTY = ["NICKNAME_NOT_EXIST", "EMPTY_NICKNAME"];
-      const BAD_REGION = ["INVALID_REGION_COUNT", "MEMBERA004"];
-
-      if (DUP.includes(code)) {
-        setStep(1);
-        setNicknameError("이미 사용 중인 닉네임입니다.");
-        return;
-      }
-      if (EMPTY.includes(code)) {
-        setStep(1);
-        setNicknameError("닉네임을 입력해주세요");
-        return;
-      }
-      if (BAD_REGION.includes(code)) {
-        alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택할 수 있어요.");
-        return;
-      }
-      if (err?.response?.status === 403) {
-        alert("보안 토큰이 유효하지 않아요. 다시 로그인 후 시도해주세요.");
-        return;
-      }
-
       alert(
-        err?.response?.data?.message ??
-          "온보딩에 실패했습니다. 다시 시도해주세요."
+        err?.response?.data?.message ?? "온보딩 완료 처리 중 오류가 발생했어요."
       );
+    } finally {
+      setIsFinishing(false);
     }
   };
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
+  // 검색 매칭
   const matchedFullAddress = useMemo(() => {
     const t = areaInput.trim();
-    const short = normalizeToShort(t); // 풀네임이 들어와도 short로 정규화
+    const short = normalizeToShort(t);
     return short ? (FULL_BY_SHORT.get(short) ?? null) : null;
   }, [areaInput]);
+
+  // --------------------------------------------
 
   return (
     <div className="w-full max-w-[390px] mx-auto min-h-screen bg-white flex flex-col">
@@ -260,15 +260,17 @@ function OnboardingPage() {
           {/* 버튼 */}
           <div className="mt-auto flex justify-center pb-[30px]">
             <button
+              type="button"
               onClick={handleNextFromNickname}
+              disabled={!nickname.trim() || isNickSaving || isImgSaving}
               className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center transition-all
-      ${
-        nickname.trim()
-          ? "bg-[#FFAC33] text-white shadow-[0_2px_4px_0_rgba(255,172,51,0.5)] border border-[#FFAC33]"
-          : "bg-white text-black border border-black"
-      }`}
+                ${
+                  !nickname.trim() || isNickSaving || isImgSaving
+                    ? "bg-white text-black border border-black opacity-60 cursor-not-allowed"
+                    : "bg-[#FFAC33] text-white shadow-[0_2px_4px_0_rgba(255,172,51,0.5)] border border-[#FFAC33]"
+                }`}
             >
-              다음으로 넘어가기
+              {isNickSaving || isImgSaving ? "저장 중..." : "다음으로 넘어가기"}
             </button>
           </div>
         </>
@@ -324,20 +326,19 @@ function OnboardingPage() {
 
           <div className="flex-1" />
 
-          {/* 버튼 */}
+          {/* 시작하기기 */}
           <div className="flex justify-center pb-[30px]">
             <button
-              disabled={isPending || selectedAreas.length === 0}
+              disabled={isFinishing || selectedAreas.length === 0}
               onClick={handleOnboardingSubmit}
               className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center gap-[10px] px-[70px] py-[15px]
-      ${
-        selectedAreas.length === 0
-          ? "bg-[#D9D9D9] text-gray-500 shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
-          : "bg-[#FFAC33] text-white shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
-      }
-    `}
+                ${
+                  selectedAreas.length === 0
+                    ? "bg-[#D9D9D9] text-gray-500 shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+                    : "bg-[#FFAC33] text-white shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
+                }`}
             >
-              {isPending ? "처리 중..." : "시작하기"}
+              {isFinishing ? "처리 중..." : "시작하기"}
             </button>
           </div>
         </>
@@ -461,16 +462,28 @@ function OnboardingPage() {
             >
               취소
             </button>
+
             <button
-              onClick={() => setStep(2)}
-              disabled={selectedAreas.length === 0}
+              type="button"
+              onClick={async () => {
+                const ids = buildRegionIds();
+                if (ids.length < 1 || ids.length > 3) {
+                  alert(
+                    "좋아하는 동네는 최소 1개, 최대 3개까지 선택해 주세요."
+                  );
+                  return;
+                }
+                await saveRegions(ids); // 서버에 즉시 저장
+                setStep(2); // 요약 화면으로
+              }}
+              disabled={selectedAreas.length === 0 || isRegionSaving}
               className={`w-[110px] h-[45px] rounded-[9px] text-[17px] font-bold leading-[150%] ${
-                selectedAreas.length === 0
+                selectedAreas.length === 0 || isRegionSaving
                   ? "bg-[#D9D9D9] text-gray-500"
                   : "bg-[#FF9700] text-white"
               }`}
             >
-              확인
+              {isRegionSaving ? "저장 중..." : "확인"}
             </button>
           </div>
         </div>
