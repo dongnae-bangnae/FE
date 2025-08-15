@@ -15,10 +15,13 @@ import GalleryPreview from "../components/Record/GalleryPreview";
 import VerticalToolbar from "../components/Record/VerticalToolbar";
 import MiniMap from "../components/Record/MiniMap";
 import { useEditArticle } from "../hooks/mutations/useEditArticle";
+import { useCategorySelectionStore } from "../stores/categorySelection";
+import { useShallow } from "zustand/react/shallow";
 
 function RecordWritingPage() {
   const location = useLocation();
   const navigate = useNavigate();
+
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [title, setTitle] = useState("");
@@ -33,25 +36,20 @@ function RecordWritingPage() {
   const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
   const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
   const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
-  const [categoryId, setCategoryId] = useState(location.state?.categoryId ?? null);
-  const [categoryName, setCategoryName] = useState(location.state?.categoryName ?? "카테고리");
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 위치 관련 정보 
-  // const latitude = location.state?.latitude ?? 37.5665;
-  // const longitude = location.state?.longitude ?? 126.9080;126.9080 //임시 위도, 경도 지정
-  // const detailAddress = location.state?.detailAddress ?? "";
-  // const placeName = location.state?.placeName ?? "";
-  // const pinCategory = location.state?.pinCategory ?? "";
-
-  // 카테고리 관련 정보 (게시글에 필요한 변수)
-  // const categoryName = location.state?.categoryName ?? "카테고리";
-  // const categoryId = location.state?.categoryId; 
 
   const [ isLoading, setIsLoading ] = useState(false);
 
   const { mutateAsync: uploadArticle } = useCreateArticle();
+
+  const { categoryId, categoryName, reset } =  useCategorySelectionStore(
+    useShallow((s) => ({
+      categoryId: s.categoryId,
+      categoryName: s.categoryName,
+      reset: s.reset,  
+    }))
+  ); 
 
 
   useEffect(() => {
@@ -63,6 +61,11 @@ function RecordWritingPage() {
   }, [selectedImages]);
 
   const handleSubmit = async () => {
+    if (categoryId== null) {
+      alert("카테고리를 먼저 선택해 주세요.");
+      return;
+    }
+
     const missing: string[] = [];
     if (!title.trim()) missing.push("제목");
     if (!content.trim()) missing.push("내용");
@@ -76,6 +79,8 @@ function RecordWritingPage() {
       alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
       return;
     }
+
+    
 
     // 등록
     setIsLoading(true);
@@ -98,6 +103,9 @@ function RecordWritingPage() {
       };
 
       const articleId = await uploadArticle(articleData);
+
+      reset();
+
       navigate(`/record/${articleId}`, {
         state: {
           articleId,
@@ -165,7 +173,9 @@ function RecordWritingPage() {
       {/* 상단 바 */}
       <div className="w-full h-[56px] flex items-center border-b border-[#000] justify-between">
         <div className="w-[60px] flex items-center justify-start pl-2">
-          <button onClick={() => navigate('/home')}>
+          <button onClick={() => {
+              reset();
+              navigate('/home');}}>
             <img
               src={BackIcon}
               alt="뒤로가기"
@@ -316,9 +326,6 @@ function RecordWritingPage() {
             <button style={{ all: "unset" }} 
                     onClick={() => navigate("/map/new", {
                       state: {
-                        categoryColor: location.state?.categoryColor,
-                        categoryName, 
-                        categoryId,
                         pinCategory,
                         placeName,
                         detailAddress,
