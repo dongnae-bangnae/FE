@@ -16,6 +16,26 @@ export async function patchRegions(regionIds: number[]) {
   return data;
 }
 
+// 동네 검색
+export type RegionSearchItem = {
+  regionId: number;
+  province: string;
+  city: string;
+  district: string;
+};
+
+export async function searchRegions(params: {
+  keyword: string;
+  cursor?: number | null;
+  limit?: number;
+}) {
+  const { data } = await axiosInstance.get("/api/regions/search", {
+    params
+  });
+  // data.result.regions: RegionSearchItem[]
+  return data;
+}
+
 // 프로필 이미지 (최초등록/수정 겸용)
 export async function patchProfileImage(file: File) {
   const fd = new FormData();
