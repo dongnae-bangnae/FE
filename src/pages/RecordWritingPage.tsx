@@ -14,6 +14,7 @@ import ImagePreview from "../components/Record/ImagePreview";
 import GalleryPreview from "../components/Record/GalleryPreview";
 import VerticalToolbar from "../components/Record/VerticalToolbar";
 import MiniMap from "../components/Record/MiniMap";
+import { useEditArticle } from "../hooks/mutations/useEditArticle";
 
 function RecordWritingPage() {
   const location = useLocation();

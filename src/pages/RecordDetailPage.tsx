@@ -10,6 +10,7 @@ import RecordSpinner from "../components/Record/RecordSpinner";
 import MypageModal from "../components/MypageModal";
 import { useToggleSpamReport } from "../hooks/mutations/useToggleSpamReport";
 import { useDeleteArticle } from "../hooks/mutations/useDeleteArticle";
+import EditModal from "../components/Record/EditModal";
 // import MessagePopup from "../components/MessagaePopup";
 
 const RecordDetailPage = () => {
@@ -218,7 +219,7 @@ const RecordDetailPage = () => {
       />
 
       {/* 메뉴 모달 */}
-      {showMenu && (
+      {/* {showMenu && (
         <div
           className="fixed z-50 bg-white border border-gray-300 rounded-[10px] shadow-md"
           style={{
@@ -258,6 +259,35 @@ const RecordDetailPage = () => {
             취소
           </button>
         </div>
+      )} */}
+
+      {showMenu && (
+        <EditModal
+          onClose={() => setShowMenu(false)}
+          onEdit={() => {
+            setShowMenu(false);
+            // 작성 화면으로 이동
+            navigate("/record/write", {
+              state: {
+                mode: "edit",
+                articleId,
+                form: {
+                  title,
+                  content,
+                  date,
+                  mainImageUuid,
+                  imageUuids,
+                  latitude,
+                  longitude,
+                },
+              },
+            });
+          }}
+          onDelete={() => {
+            setShowMenu(false);
+            setShowDeleteModal(true);
+          }}
+        />
       )}
 
       {showConfirm && (
