@@ -3,6 +3,7 @@ import { useState } from "react";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
 import UpperIcon from "../assets/record/icon-upper.svg";
 import CheckIcon_g from "../assets/icon-check-green.svg";
+import DefaultProfileIcon from "../assets/icon-defaultProfile.svg";
 import fonts from "../styles/fonts";
 import colors from "../styles/colors";
 import { useCreateComment } from "../hooks/mutations/useCreateComment";
@@ -290,12 +291,18 @@ function CommentPage() {
 
       {/* 새 댓글 입력창 */}
       <div className="w-full px-5 py-1 mb-[15px]">
-        <div className="flex justify-between items-center gap-3">
-          <div className="rounded-full w-[46.5px] h-[46.5px]">
-            {myInfo?.profileImage}
-            {/* 임시값 */}
+        <div className="flex items-center gap-3">
+          {/* 프로필사진 */}
+          <div className="rounded-full w-[47px] h-[47px] overflow-hidden flex-shrink-0">
+            <img
+              src={myInfo?.profileImage && myInfo.profileImage.trim() !== "" 
+                ? myInfo.profileImage 
+                : DefaultProfileIcon}
+              alt="프로필"
+              className="w-full h-full object-cover rounded-full"
+            />
           </div>
-          <div className="relative flex-1 h-[47px] mb-[5px]">
+          <div className="relative flex-1 h-[47px]">
             <input
               type="text"
               value={newComment}
