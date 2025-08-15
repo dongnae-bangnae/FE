@@ -1,7 +1,23 @@
-// src/hooks/queries/useArticles.ts
-import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
-import { fetchArticlesByPlace, type PlaceArticleRow } from "../../apis/article";
+import {
+  useQuery,
+  useInfiniteQuery,
+  type InfiniteData
+} from "@tanstack/react-query";
+import {
+  fetchArticles,
+  fetchArticlesByPlace,
+  type PlaceArticleRow
+} from "../../apis/article";
 
+/** 🔹 기존 페이지들이 쓰는 기본 목록 훅 (cursor/limit) */
+export function useArticles(cursor = 0, limit = 10) {
+  return useQuery({
+    queryKey: ["articles", cursor, limit] as const,
+    queryFn: () => fetchArticles(cursor, limit)
+  });
+}
+
+/** 🔹 장소(placeId) 기반 무한 스크롤 훅 */
 export type PlaceArticlesPage = {
   items: PlaceArticleRow[];
   nextCursor: number | null;
@@ -11,11 +27,11 @@ export type PlaceArticlesPage = {
 
 export function usePlaceArticles(placeId: number, limit = 10) {
   return useInfiniteQuery<
-    PlaceArticlesPage, // TQueryFnData
-    Error, // TError
-    InfiniteData<PlaceArticlesPage>, // TData = InfiniteData<...>
-    readonly ["placeArticles", number, number], // TQueryKey
-    number // TPageParam
+    PlaceArticlesPage,
+    Error,
+    InfiniteData<PlaceArticlesPage>,
+    readonly ["placeArticles", number, number],
+    number
   >({
     queryKey: ["placeArticles", placeId, limit] as const,
     initialPageParam: -1,
