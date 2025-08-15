@@ -1,5 +1,5 @@
 // src/utils/image.ts
-import PlaceholderImg from "../assets/Rectangle 50.svg";
+import PlaceholderImg from "../assets/icon-article-basic.svg";
 
 export const imageUrlFromUuid = (uuid?: string | null) => {
   if (!uuid) return PlaceholderImg; // 기본값: 로컬 SVG
