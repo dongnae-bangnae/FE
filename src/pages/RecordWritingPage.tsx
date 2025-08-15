@@ -28,9 +28,9 @@ function RecordWritingPage() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   )
-  const [latitude, setLatitude] = useState(location.state?.latitude);
-  const [longitude, setLongitude] = useState(location.state?.longitude);
-  const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
+  const [latitude, setLatitude] = useState(location.state?.latitude ?? 37.5665);
+  const [longitude, setLongitude] = useState(location.state?.longitude ?? 126.9080);
+  const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "안암동4가 123-345");
   const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
   const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
   const [categoryId, setCategoryId] = useState(location.state?.categoryId ?? null);
@@ -40,7 +40,7 @@ function RecordWritingPage() {
 
   // 위치 관련 정보 
   // const latitude = location.state?.latitude ?? 37.5665;
-  // const longitude = location.state?.longitude ?? 126.9080; //임시 위도, 경도 지정
+  // const longitude = location.state?.longitude ?? 126.9080;126.9080 //임시 위도, 경도 지정
   // const detailAddress = location.state?.detailAddress ?? "";
   // const placeName = location.state?.placeName ?? "";
   // const pinCategory = location.state?.pinCategory ?? "";
@@ -85,7 +85,7 @@ function RecordWritingPage() {
       const articleData = {
         categoryId,          
         latitude,
-        longitude,
+        longitude:1,
         detailAddress,
         regionId: 1,
         title,
@@ -103,9 +103,9 @@ function RecordWritingPage() {
           articleId,
           title,
           content,
-          latitude,
-          longitude,
-          detailAddress,
+          latitude:1,
+          longitude:1,
+          detailAddress: "안암동",
           date: selectedDate,
           mainImageUuid,
           imageUuids,
