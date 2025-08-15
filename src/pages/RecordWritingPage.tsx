@@ -28,9 +28,9 @@ function RecordWritingPage() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   )
-  const [latitude, setLatitude] = useState(location.state?.latitude ?? 37.5665);
-  const [longitude, setLongitude] = useState(location.state?.longitude ?? 126.9080);
-  const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "안암동4가 123-345");
+  const [latitude, setLatitude] = useState(location.state?.latitude);
+  const [longitude, setLongitude] = useState(location.state?.longitude);
+  const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
   const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
   const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
   const [categoryId, setCategoryId] = useState(location.state?.categoryId ?? null);
