@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SearchMapBar from "../components/common/SearchMapBar";
 import PinCategoryModal from "../components/common/PinCategoryModal";
-import { useLocation } from "react-router-dom";
 import { useFetchPlacesWithinBounds } from "../hooks/queries/useFetchPlacesWithinBounds";
 import { Place } from "../types/place";
 import { getPinImageSrc } from "../utils/getPinImageSrc";
@@ -14,17 +13,13 @@ declare global {
 }
 
 function NewPlacePage() {
-	// location 변수 
-	const location = useLocation();
-	const categoryName = location.state?.categoryName ?? "카테고리 미선택";
-	const categoryColor = location.state?.categoryColor ?? "BLACK";
-
 	// 지도 관련 
 	const mapContainerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<any>(null);
 	const markerRef = useRef<any>(null);
 	const lastClickedPositionRef = useRef<any>(null);
 	const placeMarkersRef = useRef<any[]>([]); 
+	const clickHandlerRef = useRef<any>(null); 
 	
 	// 상태 관련 
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,35 +69,42 @@ function NewPlacePage() {
 								}
 							);
 
-							window.kakao.maps.event.addListener(
-								mapRef.current,
-								"click",
-								(MouseEvent: any) => {
-									const clickPosition = MouseEvent.latLng;
-									console.log("선택한 위치 위도:", clickPosition.getLat());
-									console.log("선택한 위치 경도:", clickPosition.getLng());
-									if (!markerRef.current) {
-										markerRef.current = new window.kakao.maps.Marker({
-											position: clickPosition,
-											map: mapRef.current,
-											title: "선택한 위치",
-											image: new window.kakao.maps.MarkerImage(
-												pinPick, 
-												new window.kakao.maps.Size(36, 36),
-												{
-													offset: new window.kakao.maps.Point(18, 36),
-												}
-											),
-										});
-									} else {
-										markerRef.current.setPosition(clickPosition);
-									}
-									lastClickedPositionRef.current = clickPosition;
-									setIsModalOpen(true);
-									fetchDetailAddress(clickPosition.getLat(), clickPosition.getLng());
-								}
-							);
+							const onClick  = (evt: any) => {
+								const clickPosition = evt.latLng; 
 
+								if (!markerRef.current) {
+									markerRef.current = new window.kakao.maps.Marker({
+										position: clickPosition,
+										map: mapRef.current,
+										title: "선택한 위치",
+										image: new window.kakao.maps.MarkerImage(
+											pinPick, 
+											new window.kakao.maps.Size(36, 36),
+											{
+												offset: new window.kakao.maps.Point(18, 36),
+											}
+										),
+									});
+								} else {
+									markerRef.current.setPosition(clickPosition);
+								}
+
+								lastClickedPositionRef.current = clickPosition;
+
+								fetchDetailAddress(clickPosition.getLat(), clickPosition.getLng(), {
+									onDone: (addr) => {
+										if (addr) {
+											setDetailAddress(addr);
+											setIsModalOpen(true);
+										} else {
+											setDetailAddress(null);
+											setIsModalOpen(false);
+										}
+									},
+								});
+							};
+							clickHandlerRef.current = onClick;
+							window.kakao.maps.event.addListener(mapRef.current, "click", onClick);
 							setIsMapLoaded(true);
 						}
 					},
@@ -120,20 +122,27 @@ function NewPlacePage() {
 			if (window.kakao?.maps) {
 				window.kakao.maps.load(initMap);
 			}
-			return;
+		} else {
+			const script = document.createElement("script");
+			script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_KEY}&autoload=false&libraries=services`;
+			script.async = true;
+			script.onload = () => {
+				window.kakao.maps.load(initMap);
+			};
+			document.head.appendChild(script);
 		}
 
-		const script = document.createElement("script");
-		script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${
-			import.meta.env.VITE_KAKAO_MAP_KEY
-		}&autoload=false&libraries=services`;
-		script.async = true;
-
-		script.onload = () => {
-			window.kakao.maps.load(initMap);
+		return () => {
+			try {
+				if (mapRef.current && clickHandlerRef.current) {
+					window.kakao.maps.event.removeListener(mapRef.current, "click", clickHandlerRef.current);
+				}
+				placeMarkersRef.current.forEach((m) => m.setMap(null));
+				if (markerRef.current) markerRef.current.setMap(null);
+			} catch (e) {
+				console.error(e);
+			}
 		};
-
-		document.head.appendChild(script);
 	}, []);
 
 
@@ -164,18 +173,15 @@ function NewPlacePage() {
 		placeMarkersRef.current = newMarkers;
 	}, [places, currentLat, currentLng]);
 
-		// 지번 주소 구하는 함수 
-	const fetchDetailAddress = (lat: number, lng: number) => {
+	// 지번 주소 구하는 함수 
+	const fetchDetailAddress = (lat: number, lng: number, opts?: { onDone?: (addr: string | null) => void }) => {
 		const geocoder = new window.kakao.maps.services.Geocoder();
 		geocoder.coord2Address(lng, lat, (result: any, status: any) => {
-			if (status === window.kakao.maps.services.Status.OK) {
-				const detailAddr = result[0].address?.address_name || null;
-				setDetailAddress(detailAddr);
-				console.log("지번 주소:", detailAddr);
-			} else {
-				console.warn("주소를 불러오지 못했어요.");
-				setDetailAddress(null);
-			}
+			const addr =
+			status === window.kakao.maps.services.Status.OK
+				? result[0]?.address?.address_name ?? null
+				: null;
+			opts?.onDone?.(addr);
 		});
 	};
 
@@ -193,12 +199,9 @@ function NewPlacePage() {
 				ref={mapContainerRef}
 				className="w-full h-full border border-gray-200"
 			/>
-			{isModalOpen && (
+			{isModalOpen && detailAddress && (
 				<PinCategoryModal
-					categoryId={location.state.categoryId}
-					categoryName={categoryName}
-					categoryColor={categoryColor}
-					detailAddress={detailAddress!}
+					detailAddress={detailAddress}
 					lastClickedPositionRef={lastClickedPositionRef}
 					onClose={() => setIsModalOpen(false)}
 				/>

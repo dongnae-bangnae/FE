@@ -2,22 +2,19 @@ import {  useState } from "react";
 import CategoryColor from "../../assets/icon-writeCategoryColor.svg?react"; 
 import CancelButton from "../../assets/icon-cancelPlaceName.svg?react";
 import { getColorCode } from "../../utils/getColorCode";
-import { CategoryColorName } from "../../types/categoryColors";
 import PinCategorySelector, { PinCategoryType } from "../PinCategorySelector";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useCategorySelectionStore } from "../../stores/categorySelection";
+import { useShallow } from "zustand/react/shallow";
 
 interface PinCategoryModalProps {
-  categoryId?: number; 
-  categoryColor?: CategoryColorName; 
-  categoryName?: string; 
   detailAddress: string; 
   onClose: () => void;
   lastClickedPositionRef: React.MutableRefObject<any>; 
 }
 
-const PinCategoryModal = ({categoryColor = "BLACK", categoryName = "카테고리 미선택", onClose, lastClickedPositionRef, detailAddress}: PinCategoryModalProps) => {
+const PinCategoryModal = ({ onClose, lastClickedPositionRef, detailAddress}: PinCategoryModalProps) => {
   const navigate = useNavigate(); 
-  const location = useLocation();
 
   // 상태 관리 
   const [placeName, setPlaceName] = useState("");
@@ -29,15 +26,21 @@ const PinCategoryModal = ({categoryColor = "BLACK", categoryName = "카테고리
   const isPinCategoryEmpty = selectedPinCategory === null;
   const isValid = !isPlaceNameEmpty && !isPinCategoryEmpty;
 
+  const { categoryName, categoryColor } = useCategorySelectionStore(
+    useShallow((s) => ({
+      categoryName: s.categoryName, 
+      categoryColor: s.categoryColor 
+    }))
+  ); 
+
   const handleSubmit = () => {
     setIsSubmitted(true);
     if (!isValid) return;
+
     console.log("지번 주소는 " + detailAddress);
     const pos = lastClickedPositionRef.current; 
     navigate("/record/new/write", {
       state: {
-        categoryId: location.state?.categoryId,
-        categoryName: location.state?.categoryName,
         detailAddress,
         latitude: Number(pos.getLat().toFixed(5)),
 				longitude: Number(pos.getLng().toFixed(5)),
@@ -79,6 +82,7 @@ const PinCategoryModal = ({categoryColor = "BLACK", categoryName = "카테고리
 					/>
         </div>
         <button 
+          disabled={!isValid}
           className={`h-[45px] px-35 rounded-xl my-2 transition-all duration-200 ${isValid ? "bg-[#FFB54D] cursor-pointer" : "border-3 border-[#FFB54D]  cursor-not-allowed"}`}
           onClick={handleSubmit}
           style={{boxShadow: `3px 3px 4px -1px  #FFB54D60`}}>등록</button>
