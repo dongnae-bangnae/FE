@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import { useFetchPlacesWithinBounds } from "../hooks/queries/useFetchPlacesWithinBounds";
 import { Place } from "../types/place";
 import { getPinImageSrc } from "../utils/getPinImageSrc";
+import pinPick from "../assets/pin/pin_addPlace.svg";
 
 declare global {
 	interface Window {
@@ -86,7 +87,7 @@ function NewPlacePage() {
 											map: mapRef.current,
 											title: "선택한 위치",
 											image: new window.kakao.maps.MarkerImage(
-												"/src/assets/pin/pin_addPlace.svg",
+												pinPick, 
 												new window.kakao.maps.Size(36, 36),
 												{
 													offset: new window.kakao.maps.Point(18, 36),
