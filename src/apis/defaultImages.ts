@@ -1,7 +1,7 @@
 import { axiosInstance } from "./axiosInstance";
 
 export const fetchDefaultImages = async (): Promise<string[]> => {
-  const res = await axiosInstance.get("/api/default-images/default-images"); //경로수정
+  const res = await axiosInstance.get("/api/default-images"); //경로수정
   const data = res.data;
 
   if (Array.isArray(data)) return data;           
