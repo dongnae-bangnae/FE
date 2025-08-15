@@ -83,7 +83,7 @@ export const createArticle = async (data: ArticleForm): Promise<number> => {
 //게시글 수정
 export const editArticle = async (articleId: number, data: ArticleForm): Promise<void> => {
   const formData = toFormData(data);
-  await axiosInstance.patch(`/api/articles/${articleId}`, formData);
+  await axiosInstance.put(`/api/articles/${articleId}`, formData);
 };
 
 //게시글 삭제

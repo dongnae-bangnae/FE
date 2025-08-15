@@ -1,14 +1,14 @@
-interface CommentActionModalProps {
+interface EditActionModalProps {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-const CommentEditModal = ({
+const EditModal = ({
   onClose,
   onEdit,
   onDelete,
-}: CommentActionModalProps) => {
+}: EditActionModalProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
       <div className="w-full bg-white rounded-t-[15px] h-[262px] flex flex-col items-center">
@@ -43,4 +43,4 @@ const CommentEditModal = ({
   );
 };
 
-export default CommentEditModal;
+export default EditModal;
