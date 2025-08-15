@@ -178,6 +178,7 @@ function OnboardingPage() {
                   }
                 }}
               />
+              {/* 프로필 & 카메라 묶은 클릭 라벨 */}
               <label htmlFor="profile-upload" className="cursor-pointer">
                 <div className="relative w-[111px] h-[111px]">
                   <img
@@ -188,7 +189,8 @@ function OnboardingPage() {
                   <img
                     src={CameraIcon}
                     alt="카메라"
-                    className="absolute bottom-0 right-0 w-[37.44px] h-[32.222px]"
+                    className="absolute bottom-0 right-0 w-[37.44px] h-[32.222px]
+                 filter contrast-[250%] brightness-[0.85] drop-shadow-[0_0_1px_black]"
                   />
                 </div>
               </label>
@@ -199,7 +201,7 @@ function OnboardingPage() {
           <div className="w-[350px] h-[202px] relative">
             <label
               htmlFor="nickname"
-              className="absolute top-[61px] left-[20px] text-[#1E1E1E] font-pretendard text-[14px] font-semibold"
+              className="absolute top-[61px] left-[20px] text-[#1E1E1E] font-pretendard text-[14px] font-semibold leading-[18px]"
             >
               닉네임
             </label>
@@ -209,8 +211,36 @@ function OnboardingPage() {
               placeholder="닉네임을 입력해주세요"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="absolute top-[92px] left-[20px] w-[336px] h-[49px] px-[16px] py-[15px] rounded-[10px] border border-[#EBEBED]"
+              className="
+      absolute
+      top-[92px]
+      left-[20px]
+      w-[336px]
+      h-[49px]
+      px-[16px]
+      py-[15px]
+      flex items-center gap-[16px] shrink-0
+    rounded-[10px]
+    border border-[#EBEBED]
+    shadow-[0_2px_4px_0_rgba(0,0,0,0.25)]
+    placeholder-[#B0B0B8]
+    text-[#1E1E1E] text-[16px] font-pretendard
+    focus:outline-none
+    focus:shadow-[0_2px_4px_0_rgba(255,172,51,0.5)]
+    focus:shadow-none
+    focus:border-[#FFAC33]
+    "
+              style={{ fontWeight: 500 }}
             />
+            <style>{`
+    input::placeholder {
+      color: #B0B0B8;
+      font-family: Pretendard;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: left;
+    }
+  `}</style>
             {nicknameError && (
               <p className="text-red-500 text-sm mt-[160px] px-[20px]">
                 {nicknameError}
@@ -224,11 +254,12 @@ function OnboardingPage() {
               type="button"
               onClick={handleNextFromNickname}
               disabled={!nickname.trim() || isNickSaving || isImgSaving}
-              className={`w-[264px] h-[56px] rounded-[10px] font-bold ${
-                !nickname.trim() || isNickSaving || isImgSaving
-                  ? "bg-white text-black border border-black opacity-60"
-                  : "bg-[#FFAC33] text-white"
-              }`}
+              className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center transition-all
+                ${
+                  !nickname.trim() || isNickSaving || isImgSaving
+                    ? "bg-white text-black border border-black opacity-60 cursor-not-allowed"
+                    : "bg-[#FFAC33] text-white shadow-[0_2px_4px_0_rgba(255,172,51,0.5)] border border-[#FFAC33]"
+                }`}
             >
               {isNickSaving || isImgSaving ? "저장 중..." : "다음으로 넘어가기"}
             </button>
@@ -240,12 +271,16 @@ function OnboardingPage() {
       {step === 2 && (
         <>
           <div className="mt-[69px] ml-[42px] mb-[22px]">
-            <h2 className="text-[24px]">좋아하는 동네를 알려주세요!</h2>
+            <h2 className="text-[24px] font-normal text-black">
+              좋아하는 동네를 알려주세요!
+            </h2>
           </div>
 
           <div
             onClick={() => setStep(3)}
-            className="flex items-center mx-[12.5px] h-[52px] px-[13px] cursor-pointer border border-[#E0E0E0] bg-white"
+            className="flex items-center mx-[12.5px] h-[52px] w-[350px] px-[13px] cursor-pointer
+             rounded-[12px] border border-[#E0E0E0] bg-white
+             shadow-[0_2px_4px_0_rgba(0,0,0,0.25)]"
           >
             <img
               src={SearchIcon}
@@ -255,18 +290,25 @@ function OnboardingPage() {
             <span className="text-[16px] text-[#666]">동네명, 장소명 검색</span>
           </div>
 
-          <p className="mt-[22px] ml-[90px] text-[20px] text-[#FF6A00]">
+          {/* 최대 3개 선택 */}
+          <p className="mt-[22px] ml-[90px] text-[20px] text-[#FF6A00] font-normal font-pretendard leading-none">
             최소 1개, 최대 3개 선택
           </p>
 
+          {/* 선택된 태그 */}
           <div className="flex flex-wrap gap-2 mx-[26px] mt-2">
             {selected.map((r) => (
               <div
                 key={r.id}
-                className="flex items-center border px-3 py-1 rounded-full"
+                className="flex items-center bg-white border border-gray-300 px-3 py-1 rounded-full"
               >
                 <span>{r.label}</span>
-                <button onClick={() => removeRegion(r.id)}>✕</button>
+                <button
+                  onClick={() => removeRegion(r.id)}
+                  className="ml-1 text-gray-500 hover:text-black"
+                >
+                  ✕
+                </button>
               </div>
             ))}
           </div>
@@ -277,11 +319,12 @@ function OnboardingPage() {
             <button
               disabled={isFinishing || selected.length === 0}
               onClick={handleOnboardingSubmit}
-              className={`w-[264px] h-[56px] rounded-[10px] ${
-                selected.length === 0
-                  ? "bg-[#D9D9D9]"
-                  : "bg-[#FFAC33] text-white"
-              }`}
+              className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center gap-[10px] px-[70px] py-[15px]
+                ${
+                  selected.length === 0
+                    ? "bg-[#D9D9D9] text-gray-500 shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+                    : "bg-[#FFAC33] text-white shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
+                }`}
             >
               {isFinishing ? "처리 중..." : "시작하기"}
             </button>
@@ -292,14 +335,21 @@ function OnboardingPage() {
       {/* STEP 3 */}
       {step === 3 && (
         <div className="relative flex flex-col flex-1">
-          <div className="w-full h-[76px] flex items-center justify-center">
-            <span className="text-[24px]">좋아하는 동네를 알려주세요!</span>
+          {/* 헤더 */}
+          <div className="w-full h-[76px] flex items-center justify-center px-5">
+            <span className="text-[24px] font-normal text-center w-full">
+              좋아하는 동네를 알려주세요!
+            </span>
           </div>
 
           <div
-            className={`flex items-center mx-[12.5px] h-[52px] px-[13px] border ${
-              isSearching ? "border-[3px] border-[#FFAC33]" : "border-[#E0E0E0]"
-            }`}
+            className={`flex items-center mx-[12.5px] h-[52px] w-[350px] px-[13px]
+    rounded-[12px] border bg-white
+    ${
+      isSearching
+        ? "border-[3px] border-[rgba(255,170,51,0.87)] shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
+        : "border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.25)]"
+    }`}
           >
             <img
               src={SearchIcon}
@@ -309,7 +359,7 @@ function OnboardingPage() {
             {isSearching ? (
               <input
                 type="text"
-                className="flex-1 bg-transparent outline-none"
+                className="flex-1 bg-transparent outline-none text-[16px] text-black placeholder-[#666]"
                 placeholder="동네명, 장소명 검색"
                 value={areaInput}
                 onChange={(e) => setAreaInput(e.target.value)}
@@ -331,6 +381,26 @@ function OnboardingPage() {
             <div className="mt-[20px] ml-[20px] flex flex-col gap-3">
               {options.map((opt) => {
                 const checked = !!selected.find((s) => s.id === opt.id);
+
+                // 기존 UI처럼 검색어 하이라이트(대소문자 무시)
+                const renderHighlighted = (label: string, q: string) => {
+                  if (!q) return label;
+                  const li = label.toLowerCase();
+                  const qi = q.toLowerCase();
+                  const idx = li.indexOf(qi);
+                  if (idx === -1) return label;
+                  const before = label.slice(0, idx);
+                  const mid = label.slice(idx, idx + q.length);
+                  const after = label.slice(idx + q.length);
+                  return (
+                    <>
+                      {before}
+                      <span className="text-[#F95F00]">{mid}</span>
+                      {after}
+                    </>
+                  );
+                };
+
                 return (
                   <label
                     key={opt.id}
@@ -346,10 +416,12 @@ function OnboardingPage() {
                     />
                     <img
                       src={checked ? IconRedChecked : IconDefault}
-                      alt="체크박스"
-                      className="w-[25px] h-[25px]"
+                      alt="체크박스 커스텀 아이콘"
+                      className="w-[25px] h-[25px] flex-shrink-0"
                     />
-                    <span className="text-[16px]">{opt.label}</span>
+                    <span className="text-[16px] leading-[24px] font-normal font-pretendard text-[#000]">
+                      {renderHighlighted(opt.label, areaInput)}
+                    </span>
                   </label>
                 );
               })}
@@ -362,24 +434,34 @@ function OnboardingPage() {
               {selected.map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center border px-3 py-1 rounded-full"
+                  className="flex items-center bg-white border border-gray-300 px-3 py-1 rounded-full"
                 >
                   <span>{r.label}</span>
-                  <button onClick={() => removeRegion(r.id)}>✕</button>
+                  <button
+                    onClick={() => removeRegion(r.id)}
+                    className="ml-1 text-gray-500 hover:text-black"
+                  >
+                    ✕
+                  </button>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* 하단선: 화면 하단에서 100px 고정 */}
+          <div className="absolute bottom-[100px] left-0 w-full border-t border-gray-300" />
+
           {/* 확인/취소 버튼 */}
-          <div className="flex gap-2 px-[63px] pb-[30px]">
+          <div className="flex gap-2 mt-auto pb-[30px] px-[63px]">
             <button
               onClick={() => setStep(2)}
-              className="w-[110px] bg-[#D9D9D9]"
+              className="w-[110px] h-[45px] rounded-[9px] bg-[#D9D9D9] text-[17px] font-bold leading-[150%]"
             >
               취소
             </button>
+
             <button
+              type="button"
               onClick={async () => {
                 const ids = selected.map((s) => s.id);
                 if (ids.length < 1 || ids.length > 3) {
@@ -388,11 +470,15 @@ function OnboardingPage() {
                   );
                   return;
                 }
-                await saveRegions(ids);
-                setStep(2);
+                await saveRegions(ids); // 서버에 즉시 저장
+                setStep(2); // 요약 화면으로
               }}
               disabled={selected.length === 0 || isRegionSaving}
-              className={`w-[110px] ${selected.length === 0 ? "bg-[#D9D9D9]" : "bg-[#FF9700] text-white"}`}
+              className={`w-[110px] h-[45px] rounded-[9px] text-[17px] font-bold leading-[150%] ${
+                selected.length === 0 || isRegionSaving
+                  ? "bg-[#D9D9D9] text-gray-500"
+                  : "bg-[#FF9700] text-white"
+              }`}
             >
               {isRegionSaving ? "저장 중..." : "확인"}
             </button>
