@@ -291,10 +291,8 @@ function CommentPage() {
       {/* 새 댓글 입력창 */}
       <div className="w-full px-5 py-1 mb-[15px]">
         <div className="flex justify-between items-center gap-3">
-          <div className="rounded-full w-[46.5px] h-[46.5px] text-[white] text-center"
-               style={{backgroundColor: colors.primaryDark}}
-          >
-            <p className="text-sm">프로필prev</p>
+          <div className="rounded-full w-[46.5px] h-[46.5px]">
+            {myInfo?.profileImage}
             {/* 임시값 */}
           </div>
           <div className="relative flex-1 h-[47px] mb-[5px]">
