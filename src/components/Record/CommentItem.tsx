@@ -4,19 +4,19 @@ import fonts from "../../styles/fonts";
 import { useState } from "react";
 import CommentEditModal from "./EditModal"
 import colors from "../../styles/colors";
+import { CommentModel } from "../../types/comment";
 
-interface CommentItemProps {
-  nickname: string;
-  content: string;
+type CommentItemProps = Pick<CommentModel, "nickname" | "content" | "profileImage"> & {
+  id?: number; // 필요시
   showReplyButton?: boolean;
   onReplyClick?: () => void;
   children?: React.ReactNode;
   isReply?: boolean;
   isMine?: boolean;
-  profileImage?: string,
-  onEdit?: () =>  void;
+  onEdit?: () => void;
   onDelete?: () => void;
-}
+};
+
 
 const CommentItem = ({
   nickname,
