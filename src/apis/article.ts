@@ -81,7 +81,10 @@ export const createArticle = async (data: ArticleForm): Promise<number> => {
 };
 
 //게시글 수정
-export const editArticle = async (articleId: number, data: ArticleForm): Promise<void> => {
+export const editArticle = async (
+  articleId: number,
+  data: ArticleForm
+): Promise<void> => {
   const formData = toFormData(data);
   await axiosInstance.put(`/api/articles/${articleId}`, formData);
 };
@@ -146,4 +149,55 @@ export async function fetchArticles(cursor = 0, limit = 10) {
     ? data.result
     : [];
   return { articles: list, cursor, limit };
+}
+
+// GET /api/articles?placeId&cursor&limit (단일 커서 Long 방식)
+export type PlaceArticleRow = {
+  memberId: number;
+  articleId: number;
+  regionId: number;
+  placeId: number;
+  nickname: string;
+  title: string;
+  pinCategory: string;
+  mainImageUuid: string | null;
+  likeCount: number;
+  spamCount: number;
+  commentCount: number;
+  isLiked: boolean;
+  isSpammed: boolean;
+  isMine: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function fetchArticlesByPlace(
+  placeId: number,
+  cursor?: number | null, // null/-1 => 첫 페이지로 간주
+  limit: number = 10
+): Promise<{
+  items: PlaceArticleRow[];
+  nextCursor: number | null;
+  hasNext: boolean;
+  limit: number;
+}> {
+  const params: Record<string, any> = { placeId, limit };
+
+  // 명세서 상: cursor가 null 이거나 -1이면 첫 페이지
+  if (cursor !== undefined && cursor !== null && cursor !== -1) {
+    params.cursor = cursor;
+  }
+
+  const { data } = await axiosInstance.get("/api/articles", { params });
+
+  // 안전 가드: result가 배열이라는 가정
+  const items: PlaceArticleRow[] = Array.isArray(data?.result)
+    ? data.result
+    : [];
+
+  // 다음 커서/hasNext 유추 (서버에서 명시 안 주면 마지막 articleId 기준)
+  const nextCursor = items.length ? items[items.length - 1].articleId : null;
+  const hasNext = items.length === limit;
+
+  return { items, nextCursor, hasNext, limit };
 }
