@@ -63,39 +63,49 @@ function RecordWritingPage() {
   }, [selectedImages]);
 
   const handleSubmit = async () => {
-    if (!categoryId || selectedImages.length === 0) return;
+    const missing: string[] = [];
+    if (!title.trim()) missing.push("제목");
+    if (!content.trim()) missing.push("내용");
+    if (!Array.isArray(selectedImages) || selectedImages.length < 1) {
+      missing.push("사진(1장 이상)");
+    }
+    const hasLatLng = typeof latitude === "number" && typeof longitude === "number";
+    if (!hasLatLng) missing.push("핀 위치(위도/경도)");
 
+    if (missing.length > 0) {
+      alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
+      return;
+    }
+
+    // 등록
     setIsLoading(true);
-   try {
-    const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
+    try {
+      const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
 
-    const articleData = {
-      categoryId,
-      latitude,
-      longitude, 
-      detailAddress, 
-      regionId: 1, // location.state.regionId,
-      title,
-      content,
-      date: selectedDate,
-      mainImageUuid: mainImageUuid ?? "",
-      imageUuids,
-      placeName,
-      pinCategory,
-    };
+      const articleData = {
+        categoryId,          
+        latitude,
+        longitude,
+        detailAddress,
+        regionId: 1,
+        title,
+        content,
+        date: selectedDate,
+        mainImageUuid: mainImageUuid ?? "",
+        imageUuids,
+        placeName,
+        pinCategory,
+      };
 
-    console.log("mainImageUuid:", mainImageUuid);
-    console.log("imageUuids:", imageUuids);
-
-    const articleId = await uploadArticle(articleData);
+      const articleId = await uploadArticle(articleData);
       navigate(`/record/${articleId}`, {
         state: {
           articleId,
           title,
           content,
           latitude,
-          longitude, 
-          detailAddress, 
+          longitude,
+          detailAddress,
           date: selectedDate,
           mainImageUuid,
           imageUuids,
@@ -111,6 +121,7 @@ function RecordWritingPage() {
       setIsLoading(false);
     }
   };
+
 
   const handleGalleryClick = () => {
     fileInputRef.current?.click();
