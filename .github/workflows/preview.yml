@@ -1,0 +1,40 @@
+name: Vercel Preview Deployment
+on:
+  push:
+    branches-ignore:
+      - develop
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # (선택) Node 세팅 + 의존성 설치를 vercel build 전에 확실히 하고 싶다면:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      # Vercel의 Env(Preview)를 로컬로 끌어와 .vercel/.env 생성
+      - name: Pull Vercel Env (preview)
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      # 로컬에서 빌드(.vercel/output 생성)
+      - name: Build (preview)
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      # 빌드 산출물 업로드(서버 빌드 스킵)
+      - name: Deploy (preview)
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
