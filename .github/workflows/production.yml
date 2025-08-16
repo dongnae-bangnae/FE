@@ -3,7 +3,7 @@ name: Vercel Production Deployment
 on:
   push:
     branches:
-      - develop # develop 브랜치 push 시 production 배포
+      - develop # develop에 push 시 프로덕션 배포
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -18,7 +18,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
 
       - uses: pnpm/action-setup@v4
         with:

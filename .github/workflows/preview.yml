@@ -3,7 +3,7 @@ name: Vercel Preview Deployment
 on:
   push:
     branches-ignore:
-      - develop # develop 제외 → 나머지 브랜치 push 시 preview
+      - develop # develop은 프로덕션으로 돌리니 preview에선 제외
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -15,11 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Node만 설치 (캐시 옵션 X)
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
 
+      # pnpm은 package.json의 "packageManager" 버전 자동 감지해서 설치
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
