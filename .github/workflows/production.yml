@@ -3,7 +3,7 @@ name: Vercel Production Deployment
 on:
   push:
     branches:
-      - main # main push 시 production 배포 (필요시 develop 으로 바꾸면 됨)
+      - develop # develop 브랜치 push 시 production 배포
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -15,30 +15,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Node.js 설치
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "pnpm"
 
-      # pnpm 설치 + 캐싱 + install 실행
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
           run_install: true
-          cache: true
 
-      # Vercel CLI 설치
+      - name: Check pnpm
+        run: pnpm -v
+
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
 
-      # Vercel Env (production) 불러오기
       - name: Pull Vercel Env (production)
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      # 로컬 빌드
       - name: Build (production)
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-      # 빌드 산출물 배포
       - name: Deploy (production)
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
