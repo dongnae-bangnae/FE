@@ -2,53 +2,46 @@ import {  useState } from "react";
 import CategoryColor from "../../assets/icon-writeCategoryColor.svg?react"; 
 import CancelButton from "../../assets/icon-cancelPlaceName.svg?react";
 import { getColorCode } from "../../utils/getColorCode";
-import PinCategorySelector, { PinCategoryType } from "../PinCategorySelector";
+import PinCategorySelector from "../PinCategorySelector";
 import { useNavigate } from "react-router-dom";
 import { useCategorySelectionStore } from "../../stores/categorySelection";
 import { useShallow } from "zustand/react/shallow";
+import { usePinDraftStore } from "../../stores/pinDraftStore";
 
 interface PinCategoryModalProps {
-  detailAddress: string; 
   onClose: () => void;
-  lastClickedPositionRef: React.MutableRefObject<any>; 
 }
 
-const PinCategoryModal = ({ onClose, lastClickedPositionRef, detailAddress}: PinCategoryModalProps) => {
+const PinCategoryModal = ({ onClose }: PinCategoryModalProps) => {
   const navigate = useNavigate(); 
 
-  // 상태 관리 
-  const [placeName, setPlaceName] = useState("");
-  const [selectedPinCategory, setSelectedPinCategory] = useState<PinCategoryType | null>(null);
-  const [isSubmitted, setIsSubmitted] = useState(false); 
+  // draft 
+  const placeName = usePinDraftStore((s) => s.placeName);
+  const pinCategory = usePinDraftStore((s) => s.pinCategory);
+  const setPlaceName = usePinDraftStore((s) => s.setPlaceName);
+	const setPinCategory = usePinDraftStore((s) => s.setPinCategory);
 
-  // 유효성 검사 
-  const isPlaceNameEmpty = placeName.trim() === "";
-  const isPinCategoryEmpty = selectedPinCategory === null;
-  const isValid = !isPlaceNameEmpty && !isPinCategoryEmpty;
-
-  const { categoryName, categoryColor } = useCategorySelectionStore(
+  // category 
+    const { categoryName, categoryColor } = useCategorySelectionStore(
     useShallow((s) => ({
       categoryName: s.categoryName, 
       categoryColor: s.categoryColor 
     }))
   ); 
 
+  // 유효성 검사
+  const [isSubmitted, setIsSubmitted] = useState(false); 
+  const isPlaceNameEmpty = placeName.trim() === "";
+  const isPinCategoryEmpty = pinCategory === null;
+  const isValid = !isPlaceNameEmpty && !isPinCategoryEmpty;
+
+
+
   const handleSubmit = () => {
     setIsSubmitted(true);
     if (!isValid) return;
-
-    console.log("지번 주소는 " + detailAddress);
-    const pos = lastClickedPositionRef.current; 
-    navigate("/record/new/write", {
-      state: {
-        detailAddress,
-        latitude: Number(pos.getLat().toFixed(5)),
-				longitude: Number(pos.getLng().toFixed(5)),
-				placeName: placeName.trim(),
-				pinCategory: selectedPinCategory,
-      },
-    });
-    onClose();
+    navigate("/record/new/write");
+		onClose();
   };
   
   return (
@@ -72,13 +65,13 @@ const PinCategoryModal = ({ onClose, lastClickedPositionRef, detailAddress}: Pin
             placeholder="장소명을 입력해 주세요" />
           <CancelButton 
             className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-            onClick={() => setPlaceName("")} />
+            onClick={() => {setPlaceName(""); setIsSubmitted(false);}} />
         </div>
         <p className="text-sm py-3 text-left pl-8">장소 필터 선택</p>
         <div>
           <PinCategorySelector
-						selected={selectedPinCategory}
-						onSelect={setSelectedPinCategory}
+						selected={pinCategory}
+						onSelect={setPinCategory}
 					/>
         </div>
         <button 

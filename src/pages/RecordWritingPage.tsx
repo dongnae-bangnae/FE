@@ -17,9 +17,9 @@ import MiniMap from "../components/Record/MiniMap";
 import { useEditArticle } from "../hooks/mutations/useEditArticle";
 import { useCategorySelectionStore } from "../stores/categorySelection";
 import { useShallow } from "zustand/react/shallow";
+import { selectDraftValues, usePinDraftStore } from "../stores/pinDraftStore";
 
 function RecordWritingPage() {
-  const location = useLocation();
   const navigate = useNavigate();
 
   const [showCalendar, setShowCalendar] = useState(false);
@@ -31,18 +31,10 @@ function RecordWritingPage() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   )
-  const [latitude, setLatitude] = useState(location.state?.latitude);
-  const [longitude, setLongitude] = useState(location.state?.longitude);
-  const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
-  const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
-  const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
-  const [regionId, setregionId] = useState(location.state?.regionId ?? 1);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [ isLoading, setIsLoading ] = useState(false);
-
-  const { mutateAsync: uploadArticle } = useCreateArticle();
 
   const { categoryId, categoryName, reset } =  useCategorySelectionStore(
     useShallow((s) => ({
@@ -52,7 +44,10 @@ function RecordWritingPage() {
     }))
   ); 
 
+  const { latitude, longitude, detailAddress, placeName, pinCategory } = usePinDraftStore(selectDraftValues);
 
+  const { mutateAsync: uploadArticle } = useCreateArticle();
+  
   useEffect(() => {
     if (selectedImages.length > 0) {
       setMainImageUuid(selectedImages[0]);
@@ -66,6 +61,19 @@ function RecordWritingPage() {
       alert("카테고리를 먼저 선택해 주세요.");
       return;
     }
+    if (latitude == null || longitude == null) {
+      alert("위치 정보가 필요합니다.");
+      return;
+    }
+    if (pinCategory == null) {
+      alert("핀 카테고리를 선택해 주세요.");
+      return;
+    }
+    if (detailAddress == null || detailAddress.trim() === "") {
+      alert("상세 주소가 필요해요.");
+      return;
+    }
+    const addr = detailAddress.trim();
 
     const missing: string[] = [];
     if (!title.trim()) missing.push("제목");
@@ -73,15 +81,11 @@ function RecordWritingPage() {
     if (!Array.isArray(selectedImages) || selectedImages.length < 1) {
       missing.push("사진(1장 이상)");
     }
-    const hasLatLng = typeof latitude === "number" && typeof longitude === "number";
-    if (!hasLatLng) missing.push("핀 등록");
 
     if (missing.length > 0) {
       alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
       return;
     }
-
-    
 
     // 등록
     setIsLoading(true);
@@ -92,8 +96,8 @@ function RecordWritingPage() {
         categoryId,          
         latitude,
         longitude,
-        detailAddress,
-        regionId,
+        detailAddress: addr,
+        regionId: 1,
         title,
         content,
         date: selectedDate,
@@ -326,20 +330,7 @@ function RecordWritingPage() {
 
 
             <button style={{ all: "unset" }} 
-                    onClick={() => navigate("/map/new", {
-                      state: {
-                        pinCategory,
-                        placeName,
-                        detailAddress,
-                        latitude,
-                        longitude,
-                        title,
-                        content,
-                        selectedImages,
-                        selectedDate,
-                        regionId,
-                      }
-                    })}>
+                    onClick={() => navigate("/map/new")}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
                    style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
               />
