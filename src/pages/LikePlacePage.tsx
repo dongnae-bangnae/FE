@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -18,15 +18,15 @@ type RegionOption = { id: number; label: string };
 export default function LikePlacePage() {
   const navigate = useNavigate();
 
-  /** ====== step 상태: intro(맨 첫 단계) / select(선택 단계) ====== */
-  const [step, setStep] = useState<"intro" | "select">("select");
+  /** ===== 단계: intro(피그마 첫 화면) / select(검색·선택 단계) ===== */
+  const [step, setStep] = useState<"intro" | "select">("intro");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  /** ----- 선택 상태 (초기 선택 주입 대상) ----- */
+  /** ----- 선택 상태 ----- */
   const [selected, setSelected] = useState<RegionOption[]>([]);
   const selectedIds = useMemo(() => selected.map((s) => s.id), [selected]);
 
-  /** ----- 마이정보로부터 초기 선택 주입 ----- */
+  /** ----- 마이정보 초기 주입 ----- */
   const { data: myInfo, isLoading: myInfoLoading } = useMyInfo();
   useEffect(() => {
     if (!myInfo?.likePlaces) return;
@@ -47,7 +47,7 @@ export default function LikePlacePage() {
     return () => clearTimeout(t);
   }, [areaInput]);
 
-  /** ----- 검색 API 호출 ----- */
+  /** ----- 검색 API ----- */
   const { data: options = [], isFetching } = useQuery<RegionOption[]>({
     queryKey: ["regionSearch", debounced],
     enabled: debounced.length > 0,
@@ -62,7 +62,7 @@ export default function LikePlacePage() {
     staleTime: 60_000
   });
 
-  /** ----- 추가/삭제/Enter로 첫 결과 추가 ----- */
+  /** ----- 추가/삭제/Enter 추가 ----- */
   const addRegion = (opt: RegionOption) => {
     if (selected.find((s) => s.id === opt.id)) return;
     if (selected.length >= 3) {
@@ -83,7 +83,7 @@ export default function LikePlacePage() {
     }
   };
 
-  /** ----- 저장: 성공 시 intro로 전환 + 토스트 노출 ----- */
+  /** ----- 저장: 성공 시 intro로 전환 + 토스트 ----- */
   const [saving, setSaving] = useState(false);
   const handleSave = async () => {
     const ids = selectedIds;
@@ -91,11 +91,13 @@ export default function LikePlacePage() {
       alert("좋아하는 동네는 최소 1개, 최대 3개까지 선택해 주세요.");
       return;
     }
-    // 변경 없음 방지
     const orig = new Set((myInfo?.likePlaces ?? []).map((p) => p.regionId));
     const same = ids.length === orig.size && ids.every((id) => orig.has(id));
     if (same) {
-      alert("변경 사항이 없어요.");
+      // 변경 없으면 그냥 intro로만 돌아가고 토스트는 안 띄움(원하면 띄워도 OK)
+      setStep("intro");
+      setIsSearching(false);
+      setAreaInput("");
       return;
     }
 
@@ -103,7 +105,7 @@ export default function LikePlacePage() {
       setSaving(true);
       await patchRegions(ids);
 
-      // ✅ 같은 페이지 내에서 '맨 첫 단계'로 이동 + 토스트 노출
+      // ✅ 초기 화면으로 전환 + 토스트 노출
       setIsSearching(false);
       setAreaInput("");
       setStep("intro");
@@ -124,7 +126,7 @@ export default function LikePlacePage() {
     }
   };
 
-  /** ----- 검색어 하이라이트 ----- */
+  /** ----- 하이라이트 ----- */
   const renderHighlighted = (label: string, q: string) => {
     if (!q) return label;
     const li = label.toLowerCase();
@@ -145,12 +147,25 @@ export default function LikePlacePage() {
 
   const disabled = myInfoLoading || saving || selectedIds.length === 0;
 
+  /** ----- select 진입 시 인풋 포커스 ----- */
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    if (step === "select") {
+      setIsSearching(true);
+      // 다음 tick에 포커스
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  }, [step]);
+
+  /** ----- intro에서 검색 박스/버튼 클릭 시 select로 ----- */
+  const goSelect = () => setStep("select");
+
   return (
     <div className="w-full max-w-[390px] mx-auto min-h-screen bg-white flex flex-col relative">
       {step === "intro" ? (
-        /* ===================== [맨 첫 단계 화면] ===================== */
+        /* ===================== [피그마 0.2.3-1 초기 화면] ===================== */
         <>
-          {/* 상단 여백/뒤로가기 필요시 여기에 */}
+          {/* 헤더 (필요 시 아이콘 추가) */}
           <div className="h-[56px] flex items-center px-4" />
 
           <div className="px-6">
@@ -158,16 +173,26 @@ export default function LikePlacePage() {
               좋아하는 동네를 알려주세요!
             </h1>
 
-            {/* 비활성 검색박스 모양 */}
-            <div className="mt-4 h-[44px] w-full flex items-center px-3 rounded-xl border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
+            {/* 비활성 검색박스: 클릭 시 select로 이동 */}
+            <button
+              type="button"
+              onClick={goSelect}
+              className="mt-4 h-[44px] w-full flex items-center px-3 rounded-xl border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.1)] text-left"
+            >
+              <img
+                src={SearchIcon}
+                alt=""
+                className="w-5 h-5 mr-2 opacity-70"
+              />
               <span className="text-[#999] text-sm">동네명, 장소명 검색</span>
-            </div>
+            </button>
 
+            {/* 안내 문구 */}
             <p className="mt-2 text-[12px] text-[#FF6A00]">
               최소 1개, 최대 3개 선택
             </p>
 
-            {/* 선택된 태그 표시 */}
+            {/* 선택된 태그(있으면 표시) */}
             <div className="mt-4 flex flex-wrap gap-2">
               {selected.map((r) => (
                 <div
@@ -180,9 +205,9 @@ export default function LikePlacePage() {
             </div>
           </div>
 
-          {/* 하단: 토스트 + 시작하기 버튼 (고정) */}
+          {/* 하단: 토스트 + 시작하기 버튼 */}
           <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-white px-6 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))]">
-            {/* ✅ 토스트 (피그마 스타일) */}
+            {/* 토스트 (버튼 위 회색 바) */}
             {toastMessage && (
               <div className="mb-2 w-full flex justify-center">
                 <div className="w-[354px] px-4 py-2.5 bg-[#9A7B6F]/80 text-white text-sm rounded-lg flex items-center gap-2 z-50 shadow-md">
@@ -197,64 +222,56 @@ export default function LikePlacePage() {
             )}
             <button
               className="w-full h-[52px] rounded-xl bg-[#FF9700] text-white text-[16px] font-semibold shadow-[0_6px_12px_rgba(0,0,0,0.08)]"
-              onClick={() => setStep("select")}
+              onClick={goSelect}
             >
               시작하기
             </button>
           </div>
         </>
       ) : (
-        /* ===================== [선택 단계 화면 - 기존 UI 유지] ===================== */
+        /* ===================== [피그마 0.2.3-2/0.2.4-x 검색·선택 단계] ===================== */
         <>
-          {/* 헤더 */}
+          {/* 헤더 (제목/보더 톤 자유) */}
           <div className="w-full h-[56px] flex items-center justify-center border-b">
             <span className="text-[18px] font-semibold">관심 동네 변경</span>
           </div>
 
-          {/* 검색 바 */}
-          <div
-            className={`flex items-center mx-[12.5px] mt-[16px] h-[52px] w-[350px] px-[13px]
-            rounded-[12px] border bg-white
-            ${
-              isSearching
-                ? "border-[3px] border-[rgba(255,170,51,0.87)] shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
-                : "border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.25)]"
-            }`}
-          >
-            <img
-              src={SearchIcon}
-              alt="검색"
-              className="w-[25px] h-[25px] mr-[7px]"
-            />
-            {isSearching ? (
+          <div className="flex-1 px-4 pb-[140px]">
+            {/* 검색 바 (포커스 시 오렌지 보더/그림자) */}
+            <div
+              className={`mt-4 h-[52px] w-full flex items-center px-[13px] rounded-[12px] bg-white
+                ${
+                  isSearching
+                    ? "border-[3px] border-[rgba(255,170,51,0.87)] shadow-[4px_4px_4px_rgba(255,170,51,0.25)]"
+                    : "border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.25)]"
+                }`}
+              onFocus={() => setIsSearching(true)}
+              onBlur={() => setIsSearching(false)}
+            >
+              <img
+                src={SearchIcon}
+                alt="검색"
+                className="w-[25px] h-[25px] mr-[7px]"
+              />
               <input
+                ref={inputRef}
                 type="text"
                 className="flex-1 bg-transparent outline-none text-[16px] text-black placeholder-[#666]"
                 placeholder="동네명, 장소명 검색"
                 value={areaInput}
                 onChange={(e) => setAreaInput(e.target.value)}
                 onKeyDown={handleEnterAddFirst}
-                autoFocus
                 disabled={myInfoLoading}
               />
-            ) : (
-              <span
-                onClick={() => !myInfoLoading && setIsSearching(true)}
-                className="text-[16px] text-[#666] cursor-text"
-              >
-                동네명, 장소명 검색
-              </span>
-            )}
-          </div>
+            </div>
 
-          {/* 안내 문구 */}
-          <p className="mt-[16px] ml-[90px] text-[20px] text-[#FF6A00] font-normal">
-            최소 1개, 최대 3개 선택
-          </p>
+            {/* 안내 문구 */}
+            <p className="mt-2 text-[12px] text-[#FF6A00]">
+              최소 1개, 최대 3개 선택
+            </p>
 
-          {/* 검색 결과 리스트 */}
-          {isSearching && (
-            <div className="mt-[20px] ml-[20px] flex flex-col gap-3">
+            {/* 검색 결과 리스트 */}
+            <div className="mt-4 flex flex-col gap-3">
               {isFetching && (
                 <span className="text-sm text-gray-500">검색 중…</span>
               )}
@@ -263,7 +280,7 @@ export default function LikePlacePage() {
                 return (
                   <label
                     key={opt.id}
-                    className="flex items-center gap-[5px] cursor-pointer"
+                    className="flex items-center gap-2 cursor-pointer"
                   >
                     <input
                       type="checkbox"
@@ -275,60 +292,61 @@ export default function LikePlacePage() {
                     />
                     <img
                       src={checked ? IconRedChecked : IconDefault}
-                      alt="체크박스 커스텀 아이콘"
-                      className="w-[25px] h-[25px] flex-shrink-0"
+                      alt="체크박스"
+                      className="w-[24px] h-[24px] flex-shrink-0"
                     />
-                    <span className="text-[16px] leading-[24px] font-normal text-[#000]">
+                    <span className="text-[16px] leading-[24px] text-[#000]">
                       {renderHighlighted(opt.label, areaInput)}
                     </span>
                   </label>
                 );
               })}
             </div>
-          )}
 
-          {/* 선택된 태그 */}
-          <div className="mt-auto pb-[30px] px-[20px]">
-            <div className="flex flex-wrap gap-2">
-              {selected.map((r) => (
-                <div
-                  key={r.id}
-                  className="flex items-center bg-white border border-gray-300 px-3 py-1 rounded-full"
-                >
-                  <span>{r.label}</span>
-                  <button
-                    onClick={() => removeRegion(r.id)}
-                    className="ml-1 text-gray-500 hover:text-black"
+            {/* 선택된 태그 */}
+            <div className="mt-6">
+              <div className="flex flex-wrap gap-2">
+                {selected.map((r) => (
+                  <div
+                    key={r.id}
+                    className="flex items-center bg-white border border-gray-300 px-3 py-1 rounded-full"
                   >
-                    ✕
-                  </button>
-                </div>
-              ))}
+                    <span className="text-sm">{r.label}</span>
+                    <button
+                      onClick={() => removeRegion(r.id)}
+                      className="ml-1 text-gray-500 hover:text-black"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* 하단 구분선 + 버튼 */}
-          <div className="absolute bottom-[100px] left-0 w-full border-t border-gray-300" />
-          <div className="flex gap-2 mt-auto pb-[30px] px-[63px]">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-[110px] h-[45px] rounded-[9px] bg-[#D9D9D9] text-[17px] font-bold leading-[150%]"
-              disabled={myInfoLoading}
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={disabled}
-              className={`w-[110px] h-[45px] rounded-[9px] text-[17px] font-bold leading-[150%] ${
-                disabled
-                  ? "bg-[#D9D9D9] text-gray-500"
-                  : "bg-[#FF9700] text-white"
-              }`}
-            >
-              {saving ? "저장 중..." : "확인"}
-            </button>
+          {/* 하단 고정: 취소/확인 (토스트는 intro에서만) */}
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-white border-t border-gray-200 px-6 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))]">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setStep("intro")} // 취소 → 초기 화면으로
+                className="w-1/2 h-[45px] rounded-[9px] bg-[#D9D9D9] text-[17px] font-bold leading-[150%]"
+                disabled={myInfoLoading}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={disabled}
+                className={`w-1/2 h-[45px] rounded-[9px] text-[17px] font-bold leading-[150%] ${
+                  disabled
+                    ? "bg-[#D9D9D9] text-gray-500"
+                    : "bg-[#FF9700] text-white"
+                }`}
+              >
+                {saving ? "저장 중..." : "확인"}
+              </button>
+            </div>
           </div>
         </>
       )}
