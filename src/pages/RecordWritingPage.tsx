@@ -281,7 +281,7 @@ function RecordWritingPage() {
               overflow: "hidden",
             }}
           >
-            {latitude !== null && longitude !== null && (
+            {typeof latitude === "number" && typeof longitude === "number" && (
               <>
                 <MiniMap latitude={latitude} longitude={longitude} />
               </>
