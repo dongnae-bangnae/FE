@@ -9,6 +9,7 @@ import useFetchCategories from "../hooks/queries/useFetchCategories";
 import { useSavePlaceToCategory } from "../hooks/mutations/useSavePlaceToCategory";
 import { useCategorySelectionStore } from "../stores/categorySelection";
 import { CategoryColorName } from "../types/categoryColors";
+import MessagePopup from "../components/MessagePopup";
 
 
 function CategoryPage() {
@@ -22,9 +23,18 @@ function CategoryPage() {
 	// 상태 관리 변수 
 	const [selectedCategory, setSelectedCategory] = useState<{categoryId: number; name: string; color: CategoryColorName;} | null>(null);
 	const [showEditPopup, setShowEditPopup] = useState(false);
+	const [popup, setPopup] = useState<{ message: string; icon?: string } | null>(null);
 
 	const {data: categories = [], isLoading, isError} = useFetchCategories(); 
-	const { mutate: saveMutate } = useSavePlaceToCategory(); 
+	const { mutate: saveMutate } = useSavePlaceToCategory({
+		onSuccess: () => {
+			setPopup({ message: "장소가 카테고리에 저장되었습니다." });
+			navigate("/map");
+		},
+		onError: () => {
+			setPopup({ message: "장소 저장에 실패했어요. 다시 시도해주세요!" });
+		},
+	});
 
 	const setSelection = useCategorySelectionStore((s) => s.setSelection); 
 
@@ -96,6 +106,7 @@ function CategoryPage() {
 					완료
 				</button>
 			</div>
+			{popup && <MessagePopup message={popup.message} />}
 		</div>
 	);
 }

@@ -9,7 +9,7 @@ import colors from "../styles/colors";
 import { useCreateComment } from "../hooks/mutations/useCreateComment";
 import CommentItem from "../components/Record/CommentItem";
 import { useMyInfo } from "../hooks/queries/useMyInfo";
-import MessagePopup from "../components/MessagaePopup";
+import MessagePopup from "../components/MessagePopup";
 import { useUpdateComment } from "../hooks/mutations/useUpdateComment";
 import { useDeleteComment } from "../hooks/mutations/useDeleteComment";
 import SpamPopup from "../components/Record/SpamPopup";
