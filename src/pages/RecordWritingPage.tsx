@@ -119,7 +119,7 @@ function RecordWritingPage() {
           latitude,
           longitude,
           detailAddress,
-          regionId,
+          regionId: 1,
           date: selectedDate,
           mainImageUuid,
           imageUuids,
