@@ -1,41 +1,41 @@
-name: Vercel Preview Deployment
+# name: Vercel Preview Deployment
 
-on:
-  push:
-    branches-ignore:
-      - develop # develop은 프로덕션으로 돌리니 preview에선 제외
+# on:
+#   push:
+#     branches-ignore:
+#       - develop # develop은 프로덕션으로 돌리니 preview에선 제외
 
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+# env:
+#   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+#   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-jobs:
-  deploy-preview:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   deploy-preview:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      # Node만 설치 (캐시 옵션 X)
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+#       # Node만 설치 (캐시 옵션 X)
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: "20"
 
-      # pnpm은 package.json의 "packageManager" 버전 자동 감지해서 설치
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: true
+#       # pnpm은 package.json의 "packageManager" 버전 자동 감지해서 설치
+#       - uses: pnpm/action-setup@v4
+#         with:
+#           run_install: true
 
-      - name: Check pnpm
-        run: pnpm -v
+#       - name: Check pnpm
+#         run: pnpm -v
 
-      - name: Install Vercel CLI
-        run: npm i -g vercel@latest
+#       - name: Install Vercel CLI
+#         run: npm i -g vercel@latest
 
-      - name: Pull Vercel Env (preview)
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+#       - name: Pull Vercel Env (preview)
+#         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build (preview)
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+#       - name: Build (preview)
+#         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy (preview)
-        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+#       - name: Deploy (preview)
+#         run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
