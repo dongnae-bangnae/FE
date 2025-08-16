@@ -71,12 +71,87 @@ const toFormData = (form: ArticleForm) => {
   return formData;
 };
 
+// dataURL -> File
+function dataUrlToFile(dataUrl: string, fileName: string) {
+  const [meta, base64] = dataUrl.split(",");
+  const mime = meta.match(/:(.*?);/)?.[1] ?? "image/jpeg";
+  const bin = atob(base64);
+  const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new File([u8], fileName, { type: mime });
+}
+
+// http(s) URL -> File
+async function urlToFile(url: string, fileName: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch image: " + url);
+  const blob = await res.blob();
+  const type = blob.type || "image/jpeg";
+  return new File([blob], fileName, { type });
+}
+
+async function toCreateMultipart(form: ArticleForm) {
+  const fd = new FormData();
+
+  const requestPayload = {
+    categoryId: form.categoryId,
+    regionId: form.regionId,
+    title: form.title,
+    content: form.content,
+    date: form.date,             
+    latitude: form.latitude,
+    longitude: form.longitude,
+    detailAddress: form.detailAddress,
+    placeName: form.placeName,
+    pinCategory: form.pinCategory 
+  };
+
+  fd.append(
+    "request",
+    new Blob([JSON.stringify(requestPayload)], { type: "application/json" })
+  );
+
+  // 대표 이미지
+  if (form.mainImageUuid) {
+    const mainFile = form.mainImageUuid.startsWith("data:")
+      ? dataUrlToFile(form.mainImageUuid, "main.jpg")
+      : await urlToFile(form.mainImageUuid, "main.jpg");
+    fd.append("mainImage", mainFile);
+  }
+
+  // 나머지 이미지
+  for (let i = 0; i < form.imageUuids.length; i++) {
+    const src = form.imageUuids[i];
+    try {
+      const file = src.startsWith("data:")
+        ? dataUrlToFile(src, `img_${i}.jpg`)
+        : await urlToFile(src, `img_${i}.jpg`);
+      fd.append("imageFiles", file);
+    } catch (e) {
+      console.warn("skip image due to fetch/CORS:", src, e);
+    }
+  }
+
+  return fd;
+}
+
+
 //게시글 작성
 export const createArticle = async (data: ArticleForm): Promise<number> => {
-  const formData = toFormData(data);
+  const formData = await toCreateMultipart(data);
+
+   for (const [k, v] of formData.entries()) {
+    console.log(
+      "[createArticle] FormData",
+      k,
+      v instanceof File ? `File(${v.name}, ${v.type}, ${v.size}B)` : v
+    );
+  }
+
   const { data: response } = await axiosInstance.post<
     ApiResponse<{ articleId: number }>
   >("/api/articles/with-location", formData);
+
   return response.result.articleId;
 };
 
