@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
 import UpperIcon from "../assets/record/icon-upper.svg";
 import CheckIcon_g from "../assets/icon-check-green.svg";
@@ -31,21 +32,36 @@ interface CommentData {
 function CommentPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const queryClient = useQueryClient();
   const articleId = (state as LocationState)?.articleId ?? 1;
   const deleteCommentMutation = useDeleteComment();
 
   const [newComment, setNewComment] = useState("");
   const [replyMap, setReplyMap] = useState<Record<number, string>>({});
   const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
-  const [comments, setComments] = useState<CommentData[]>([]);
   const [showPopup, setShowPopup] = useState(false);
   const [editCommentId, setEditCommentId] = useState<number | null>(null);
   const [editedContent, setEditedContent] = useState<string>("");
   const [showSubmit, setShowSubmit] = useState(false);
   const [showSpamPopup, setShowSpamPopup] = useState(false);
+  const [replyTarget, setReplyTarget] = useState<{id: number; nickname: string;} | null>(null);
+  const [comments, setComments] = useState<CommentData[]>([]);
 
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
+  const { data: fetched, isLoading, isError } = useFetchComments(articleId);
+  useEffect(() => {
+    const list = (fetched?.result ?? fetched) as any[];
+    if (!Array.isArray(list)) return;
+    const normalized: CommentData[] = list.map((c: any) => ({
+      id: c.commentId ?? c.id,
+      content: c.content ?? "",
+      nickname: c.nickname ?? c.writerNickname ?? "",
+      profileImage: c.profileImage ?? c.writerProfileImage ?? "",
+      parentCommentId: c.parentCommentId ?? null,
+    }));
+    setComments(normalized);
+  }, [fetched]);
 
   const { mutate: updateComment } = useUpdateComment(
     articleId,
@@ -74,6 +90,7 @@ function CommentPage() {
           };
 
           setComments((prev) => [...prev, newCommentObj]);
+          queryClient.invalidateQueries({ queryKey: ["comments", articleId]});
 
           if (parentCommentId === null) {
             setNewComment("");
@@ -82,6 +99,8 @@ function CommentPage() {
             setActiveReplyId(null);
           }
 
+          setNewComment("");
+          setReplyTarget(null);
           setShowPopup(true);
         },
         onError: () => {
@@ -118,6 +137,7 @@ function CommentPage() {
       {
         onSuccess: () => {
           setComments((prev) => prev.filter((c) => c.id !== commentId));
+          queryClient.invalidateQueries({ queryKey: ["comments", articleId]});
           alert("정말 댓글을 삭제하시겠습니까?");
         },
         onError: () => alert("댓글 삭제 실패"),
@@ -151,6 +171,8 @@ function CommentPage() {
       </div>
 
       {/* 댓글 목록 */}
+      {isLoading && <div className="px-4 py-2">댓글 불러오는 중...</div>}
+      {isError && <div className="px-4 py-2">댓글 불러오기에 실패했습니다</div>}
       <div className="flex-1 px-4 py-3 overflow-y-auto space-y-4">
         {comments
           .filter((comment) => comment.parentCommentId === null)
@@ -165,15 +187,19 @@ function CommentPage() {
                 }
                 profileImage={parentComment.profileImage}
                 isMine={myInfo?.nickname === parentComment.nickname}
-                onReplyClick={() =>
-                  setActiveReplyId((prev) =>
-                    prev === parentComment.id ? null : parentComment.id
-                  )
-                }
+    
                 onEdit={() =>
                   handleEditComment(parentComment.id, parentComment.content)
                 }
                 onDelete={() => handleDeleteComment(parentComment.id)}
+
+                onReplyClick={() => {
+                  setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname });
+                  setNewComment((prev) => {
+                    const mention = `${parentComment.nickname}`;
+                    return prev.startsWith(mention) ? prev : (prev ? `${mention}${prev}` : mention);
+                  });
+                }}
               >
                 {/* {editCommentId === parentComment.id && (
                   <div className="flex items-center gap-2 ml-2 mb-2">
@@ -292,6 +318,25 @@ function CommentPage() {
       {/* 새 댓글 입력창 */}
       <div className="w-full px-5 py-1 mb-[15px]">
         <div className="flex items-center gap-3">
+        {/* 답글 작성 시 */}
+        {replyTarget && (
+            <div
+             className="absolute left-1/2 -translate-x-1/2 -translate-y-[42px] z-10
+                         flex items-center gap-2 px-3 py-2 rounded-xl shadow"
+              style={{ background: "#fff" }}
+            >
+              <span className="text-sm">
+                <b>{replyTarget.nickname}</b>님에게 답글을 남기는 중…
+              </span>
+              <button
+                onClick={() => setReplyTarget(null)}
+                className="text-gray-500"
+                aria-label="답글 취소"
+              >
+                ×
+              </button>
+            </div>
+          )}
           {/* 프로필사진 */}
           <div className="rounded-full w-[47px] h-[47px] overflow-hidden flex-shrink-0">
             <img
@@ -307,7 +352,9 @@ function CommentPage() {
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="여러분의 동네 이야기도 궁금해요 💭"
+              placeholder={
+                replyTarget ? `${replyTarget.nickname}` : "여러분의 동네 이야기도 궁금해요 💭"
+              }
               className="w-full h-full px-4 text-sm border rounded-full" 
               style={{borderColor: "#B3B3B3"}}
             />
@@ -315,7 +362,7 @@ function CommentPage() {
             {newComment.trim().length > 0 && (
               <button
                 onMouseDown={(e) => e.preventDefault()} 
-                onClick={() => handleSubmitComment(newComment, null)}
+                onClick={() => handleSubmitComment(newComment, replyTarget ? replyTarget.id : null)}
                 className="absolute right-3 inset-y-0 my-auto flex items-center justify-center rounded-[12px] w-[40px] h-[27px]"
                 style={{
                   backgroundColor: colors.primaryDark,

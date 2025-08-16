@@ -21,7 +21,6 @@ interface CommentItemProps {
 const CommentItem = ({
   nickname,
   content,
-  showReplyButton = true,
   onReplyClick,
   children,
   isReply = false,
@@ -60,6 +59,7 @@ const CommentItem = ({
                      className="break-words whitespace-pre-wrap"
                   >{content}</p>
                   <button
+                    onClick={onReplyClick}
                     style={{
                       fontSize: 13,
                       color: colors.gray400,
@@ -98,32 +98,6 @@ const CommentItem = ({
 
 
       </div>
-
-      {/* 본문 + 답글버튼 */}
-      <div className="flex items-start gap-2 ml-2 mb-2" style={{ alignItems: "center" }}>
-        <p className="break-words w-full" style={{ fontSize: "15px" }}>
-          {content}
-        </p>
-
-        {showReplyButton && (
-          <button
-            onClick={onReplyClick}
-            style={{
-              fontSize: "15px",
-              fontWeight: fonts.weight.regular,
-              border: "none",
-              cursor: "pointer",
-              width: "26px",
-              height: "18px",
-              flexShrink: 0,
-              color: "#68707B",
-            }}
-          >
-            답글
-          </button>
-        )}
-      </div>
-
       {children}
     </div>
   );
