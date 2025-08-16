@@ -36,6 +36,7 @@ function RecordWritingPage() {
   const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
   const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
   const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
+  const [regionId, setregionId] = useState(location.state?.regionId);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -92,7 +93,7 @@ function RecordWritingPage() {
         latitude,
         longitude,
         detailAddress,
-        regionId: 1,
+        regionId,
         title,
         content,
         date: selectedDate,
@@ -114,6 +115,7 @@ function RecordWritingPage() {
           latitude,
           longitude,
           detailAddress,
+          regionId,
           date: selectedDate,
           mainImageUuid,
           imageUuids,
@@ -335,6 +337,7 @@ function RecordWritingPage() {
                         content,
                         selectedImages,
                         selectedDate,
+                        regionId,
                       }
                     })}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
