@@ -1,6 +1,5 @@
 import MenuBarIcon from "../../assets/record/icon-menubar.svg";
 import DefaultProfileIcon from "../../assets/icon-defaultProfile.svg";
-import fonts from "../../styles/fonts";
 import { useState } from "react";
 import CommentEditModal from "./EditModal"
 import colors from "../../styles/colors";
