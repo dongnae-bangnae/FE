@@ -44,8 +44,9 @@ function RecordWritingPage() {
     }))
   ); 
 
-  const { latitude, longitude, detailAddress, placeName, pinCategory } = usePinDraftStore(selectDraftValues);
-
+  const resetPin = usePinDraftStore(s => s.reset);
+  const { latitude, longitude, detailAddress, placeName, pinCategory } = usePinDraftStore(useShallow(selectDraftValues));
+  
   const { mutateAsync: uploadArticle } = useCreateArticle();
   
   useEffect(() => {
@@ -110,6 +111,7 @@ function RecordWritingPage() {
       const articleId = await uploadArticle(articleData);
 
       reset();
+      resetPin(); 
 
       navigate(`/record/${articleId}`, {
         state: {
@@ -181,6 +183,7 @@ function RecordWritingPage() {
         <div className="w-[60px] flex items-center justify-start pl-2">
           <button onClick={() => {
               reset();
+              resetPin();
               navigate('/home');}}>
             <img
               src={BackIcon}
