@@ -36,7 +36,7 @@ function RecordWritingPage() {
   const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
   const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
   const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
-  const [regionId, setregionId] = useState(location.state?.regionId);
+  const [regionId, setregionId] = useState(location.state?.regionId ?? 1);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,7 +74,7 @@ function RecordWritingPage() {
       missing.push("사진(1장 이상)");
     }
     const hasLatLng = typeof latitude === "number" && typeof longitude === "number";
-    if (!hasLatLng) missing.push("핀 위치(위도/경도)");
+    if (!hasLatLng) missing.push("핀 등록");
 
     if (missing.length > 0) {
       alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
