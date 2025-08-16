@@ -18,24 +18,43 @@ type PinDraftActions = {
 
 export type PinDraftState = PinDraftValues & PinDraftActions;
 
-const initial = {
+const initial: PinDraftValues = {
 	detailAddress: null,
 	latitude: null,
 	longitude: null,
 	placeName: "",
 	pinCategory: null
-} as const satisfies PinDraftValues;
+};
 
-export const usePinDraftStore = create<PinDraftState>((set) => ({
+const EPS = 1e-6;
+const eq = (a: number | null, b: number | null) =>
+	a == null || b == null ? a === b : Math.abs(a - b) < EPS;
+
+export const usePinDraftStore = create<PinDraftState>()((set, get) => ({
 	...initial,
+
 	setFromMapClick: (addr, lat, lng) =>
-		set({
-			detailAddress: addr,
-			latitude: Number(lat.toFixed(5)),
-			longitude: Number(lng.toFixed(5))
+		set((s) => {
+			const nextLat = Number(lat.toFixed(5));
+			const nextLng = Number(lng.toFixed(5));
+			const sameAddr = s.detailAddress === addr;
+			const sameLat = eq(s.latitude, nextLat);
+			const sameLng = eq(s.longitude, nextLng);
+			if (sameAddr && sameLat && sameLng) return s; // 변화 없으면 no-op
+			return {
+				...s,
+				detailAddress: addr,
+				latitude: nextLat,
+				longitude: nextLng
+			};
 		}),
-	setPlaceName: (name) => set({ placeName: name }),
-	setPinCategory: (cat) => set({ pinCategory: cat }),
+
+	setPlaceName: (name) =>
+		set((s) => (s.placeName === name ? s : { ...s, placeName: name })),
+
+	setPinCategory: (cat) =>
+		set((s) => (s.pinCategory === cat ? s : { ...s, pinCategory: cat })),
+
 	reset: () => set({ ...initial })
 }));
 
