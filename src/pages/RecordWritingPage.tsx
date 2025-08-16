@@ -113,7 +113,7 @@ function RecordWritingPage() {
           content,
           latitude,
           longitude,
-          detailAddress: "안암동",
+          detailAddress,
           date: selectedDate,
           mainImageUuid,
           imageUuids,
