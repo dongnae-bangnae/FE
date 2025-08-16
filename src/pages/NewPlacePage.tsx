@@ -5,6 +5,7 @@ import { useFetchPlacesWithinBounds } from "../hooks/queries/useFetchPlacesWithi
 import { Place } from "../types/place";
 import { getPinImageSrc } from "../utils/getPinImageSrc";
 import pinPick from "../assets/pin/pin_addPlace.svg";
+import { usePinDraftStore } from "../stores/pinDraftStore";
 
 declare global {
 	interface Window {
@@ -17,18 +18,25 @@ function NewPlacePage() {
 	const mapContainerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<any>(null);
 	const markerRef = useRef<any>(null);
-	const lastClickedPositionRef = useRef<any>(null);
 	const placeMarkersRef = useRef<any[]>([]); 
 	const clickHandlerRef = useRef<any>(null); 
 	
 	// 상태 관련 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isMapLoaded, setIsMapLoaded] = useState(false);
-	const [detailAddress, setDetailAddress] = useState<string | null>(null);
+
 
 	// 핀 조회용 현재 위치
 	const [currentLat, setCurrentLat] = useState<number | null>(null);
 	const [currentLng, setCurrentLng] = useState<number | null>(null);
+
+	const setFromMapClick = usePinDraftStore((s) => s.setFromMapClick);
+	const resetDraft = usePinDraftStore((s) => s.reset); 
+
+	// 페이지 진입 시 이전 draft 초기화 
+	useEffect(() => {
+		resetDraft();
+	}, [resetDraft]);
 
 	// 핀 조회
 	const shouldFetch = currentLat !== null && currentLng !== null;
@@ -89,15 +97,12 @@ function NewPlacePage() {
 									markerRef.current.setPosition(clickPosition);
 								}
 
-								lastClickedPositionRef.current = clickPosition;
-
 								fetchDetailAddress(clickPosition.getLat(), clickPosition.getLng(), {
 									onDone: (addr) => {
 										if (addr) {
-											setDetailAddress(addr);
+											setFromMapClick(addr, clickPosition.getLat(), clickPosition.getLng());
 											setIsModalOpen(true);
 										} else {
-											setDetailAddress(null);
 											setIsModalOpen(false);
 										}
 									},
@@ -195,17 +200,8 @@ function NewPlacePage() {
 						setCurrentLng(lng);
 					}} />
 			)}
-			<div
-				ref={mapContainerRef}
-				className="w-full h-full border border-gray-200"
-			/>
-			{isModalOpen && detailAddress && (
-				<PinCategoryModal
-					detailAddress={detailAddress}
-					lastClickedPositionRef={lastClickedPositionRef}
-					onClose={() => setIsModalOpen(false)}
-				/>
-			)}
+			<div ref={mapContainerRef} className="w-full h-full border border-gray-200"/>
+			{isModalOpen && <PinCategoryModal onClose={() => setIsModalOpen(false)}/>}
 		</div>
 	);
 }
