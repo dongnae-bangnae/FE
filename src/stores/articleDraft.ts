@@ -1,5 +1,6 @@
+//작성 관리
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { createJSONStorage, devtools, persist } from "zustand/middleware";
 
 type DraftState = {
   title: string;
@@ -93,7 +94,19 @@ export const useArticleDraftStore = create<DraftState>()(
             selectedDate: today(),
           }),
       }),
-      { name: "article-draft" }
+      {
+        name: "article-draft",
+       
+        storage: createJSONStorage(() => sessionStorage),
+       
+        partialize: (state) => ({
+          title: state.title,
+          content: state.content,
+          selectedImages: state.selectedImages,
+          mainImageUuid: state.mainImageUuid,
+          selectedDate: state.selectedDate,
+        }),
+      }
     )
   )
 );
