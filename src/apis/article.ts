@@ -71,12 +71,52 @@ const toFormData = (form: ArticleForm) => {
   return formData;
 };
 
-//게시글 작성
+export type ArticleFormAtPlace = Omit<ArticleForm, "latitude" | "longitude"> & {
+  placeId: number; // 기존 핀: placeId 필수
+};
+
+const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
+  const fd = new FormData();
+
+  // 공통 필드
+  fd.append("categoryId", String(form.categoryId));
+  fd.append("regionId", String(form.regionId));
+  fd.append("title", form.title);
+  fd.append("content", form.content);
+  fd.append("date", form.date);
+  fd.append("detailAddress", form.detailAddress);
+  fd.append("placeName", form.placeName);
+  fd.append("pinCategory", form.pinCategory);
+
+  // 기존 핀 식별
+  fd.append("placeId", String(form.placeId));
+
+  if (form.mainImageUuid) fd.append("mainImageUuid", form.mainImageUuid);
+  (form.imageUuids ?? []).forEach((uuid) => fd.append("imageUuids", uuid));
+
+  return fd;
+};
+
+
+//게시글 작성(미등록장소)
 export const createArticle = async (data: ArticleForm): Promise<number> => {
   const formData = toFormData(data);
   const { data: response } = await axiosInstance.post<
     ApiResponse<{ articleId: number }>
   >("/api/articles/with-location", formData);
+  return response.result.articleId;
+};
+
+//게시글 작성(기존 핀)
+export const createArticleAtPlace = async (
+  data: ArticleFormAtPlace
+): Promise<number> => {
+  const formData = toFormDataAtPlace(data);
+  const { data: response } = await axiosInstance.post<
+    ApiResponse<{ articleId: number }>
+  >("/api/articles", formData, {
+    headers: { "Content-Type": "multipart/form-data" }, // 서버가 명시적으로 요구하는 경우 대비
+  });
   return response.result.articleId;
 };
 
