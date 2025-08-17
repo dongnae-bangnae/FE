@@ -146,7 +146,7 @@ function RecordWritingPage() {
 
       let articleId: number;
 
-        if (typeof placeId === "number") {
+      if (typeof placeId === "number") {
         // 기존 핀
         const articleData = {
           categoryId,
