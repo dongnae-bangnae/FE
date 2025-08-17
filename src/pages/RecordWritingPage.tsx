@@ -20,6 +20,7 @@ import { useShallow } from "zustand/react/shallow";
 import { usePinDraftStore } from "../stores/pinDraftStore";
 import { useArticleDraftStore } from "../stores/articleDraft";
 import { useArticleViewStore } from "../stores/articleView";
+import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticleWithLocation";
 
 function RecordWritingPage() {
   const navigate = useNavigate();
@@ -54,7 +55,6 @@ function RecordWritingPage() {
       reset: s.reset,  
     }))
   ); 
-
 
   const { mode, placeName, pinCategory, detailAddress, placeId, latitude, longitude } = usePinDraftStore(
     useShallow((s) => {
@@ -94,7 +94,9 @@ function RecordWritingPage() {
   const resetPin = usePinDraftStore((s) => s.reset);
 
   
-  const { mutateAsync: uploadArticle } = useCreateArticle();
+  const { mutateAsync: createAtPlace } = useCreateArticle();  //기존핀
+  const { mutateAsync: createWithLocation } = useCreateArticleWithLocation(); //미등록장소
+
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
 
@@ -142,22 +144,46 @@ function RecordWritingPage() {
     try {
       const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
 
-      const articleData = {
-        categoryId,          
-        latitude,
-        longitude,
-        detailAddress: addr,
-        regionId: 1,
-        title,
-        content,
-        date: selectedDate,
-        mainImageUuid: mainImageUuid ?? "",
-        imageUuids,
-        placeName,
-        pinCategory,
-      };
+      let articleId: number;
 
-      const articleId = await uploadArticle(articleData);
+      if (typeof placeId === "number") {
+        // 기존 핀
+        const articleData = {
+          categoryId,
+          placeId,
+          detailAddress: addr,
+          regionId: 1,
+          title,
+          content,
+          date: selectedDate,
+          mainImageUuid: mainImageUuid ?? "",
+          imageUuids,
+          placeName,
+          pinCategory,
+        };
+        articleId = await createAtPlace(articleData);
+      } else if (typeof latitude === "number" && typeof longitude === "number") {
+        // 미등록 장소
+        const articleData = {
+          categoryId,          
+          latitude,
+          longitude,
+          detailAddress: addr,
+          regionId: 1,
+          title,
+          content,
+          date: selectedDate,
+          mainImageUuid: mainImageUuid ?? "",
+          imageUuids,
+          placeName,
+          pinCategory,
+        };
+        articleId = await createWithLocation(articleData);
+      } else {
+        alert("위치 정보가 없습니다. 기존 핀을 선택하거나 지도로 위치를 지정해 주세요.");
+        setIsLoading(false);
+        return;
+      }
 
       reset();
       resetPin(); 
