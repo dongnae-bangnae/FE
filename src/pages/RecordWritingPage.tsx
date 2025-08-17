@@ -114,10 +114,11 @@ function RecordWritingPage() {
       alert("카테고리를 먼저 선택해 주세요.");
       return;
     }
-    if (latitude == null || longitude == null) {
-      alert("위치 정보가 필요합니다.");
-      return;
-    }
+    // if (latitude == null || longitude == null) {
+    //   alert("위치 정보가 필요합니다.");
+    //   return;
+    // }
+
     if (pinCategory == null) {
       alert("핀 카테고리를 선택해 주세요.");
       return;
@@ -143,13 +144,20 @@ function RecordWritingPage() {
     // 등록
     setIsLoading(true);
     try {
-      const mainIdx = selectedImages.findIndex(u => u === mainImageUuid);
+      const safeFiles = selectedFiles.filter((f): f is File => f instanceof File); // [ADD]
+      if (safeFiles.length === 0) {                                                // [ADD]
+        alert("사진 파일이 첨부되지 않았어요. 다시 선택해 주세요.");                 // [ADD]
+        setIsLoading(false);                                                       // [ADD]
+        return;                                                                    // [ADD]
+      }
 
-   
+       let mainIdx = selectedImages.findIndex(u => u === mainImageUuid);            // [MOD]
+      if (mainIdx < 0 || mainIdx >= safeFiles.length) mainIdx = 0;                 // [ADD]
+
       const filesReordered =
-        mainIdx >= 0
-          ? [selectedFiles[mainIdx], ...selectedFiles.filter((_, i) => i !== mainIdx)]
-          : selectedFiles;
+        mainIdx > 0
+          ? [safeFiles[mainIdx], ...safeFiles.filter((_, i) => i !== mainIdx)]
+          : safeFiles; 
 
       let articleId: number;
 
@@ -204,8 +212,8 @@ function RecordWritingPage() {
         date: selectedDate,
         mainImageUuid: null,
         imageUuids: [],
-        latitude: latitude ?? null,
-        longitude: longitude ?? null,
+        latitude: typeof latitude === "number" ? latitude : null, 
+        longitude: typeof longitude === "number" ? longitude : null,
         likeCount: 0,
         spamCount: 0,
         commentCount: 0,

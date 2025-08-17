@@ -97,25 +97,43 @@ const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
   return fd;
 };
 
+const jsonPart = (obj: unknown) => 
+  new Blob([JSON.stringify(obj)], { type: "application/json"});
 
 //게시글 작성(미등록장소)
 export const createArticle = async (
   data: ArticleForm,
   opts?: { files?: File[]; mainIndex?: number }
 ): Promise<number> => {
-  const formData = toFormData(data);
+  const fd = new FormData();
   
-  if (opts?.files && opts.files.length) {
-    opts.files.forEach(f => formData.append("images", f));
-  }
-  // [ADD]
-  if (typeof opts?.mainIndex === "number") {
-    formData.append("mainImageIndex", String(opts.mainIndex));
+  const request = {
+    categoryId: data.categoryId,
+    regionId: data.regionId,
+    title: data.title,
+    content: data.content,
+    date: data.date,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    detailAddress: data.detailAddress,
+    placeName: data.placeName,
+    pinCategory: data.pinCategory,
+  };
+  fd.append("request", jsonPart(request));
+
+  const files = (opts?.files ?? []).filter(
+    (f): f is File => f instanceof File
+  );
+  files.forEach((f) => fd.append("images", f));
+
+  if (files.length > 0 && typeof opts?.mainIndex === "number") {
+    const idx = Math.min(Math.max(opts.mainIndex, 0), files.length - 1);
+    fd.append("mainImageIndex", String(idx));
   }
 
   const { data: response } = await axiosInstance.post<
     ApiResponse<{ articleId: number }>
-  >("/api/articles/with-location", formData);
+  >("/api/articles/with-location", fd);
   return response.result.articleId;
 };
 
@@ -124,20 +142,33 @@ export const createArticleAtPlace = async (
   data: ArticleFormAtPlace,
   opts? : { files?: File[]; mainIndex?: number}
 ): Promise<number> => {
-  const formData = toFormDataAtPlace(data);
+  const fd = new FormData();
 
-  if (opts?.files && opts.files.length) {
-    opts.files.forEach(f => formData.append("images", f));
-  }
-  if (typeof opts?.mainIndex === "number") {
-    formData.append("mainImageIndex", String(opts.mainIndex));
+  const request = {
+    categoryId: data.categoryId,
+    placeId: data.placeId,
+    regionId: data.regionId,
+    title: data.title,
+    content: data.content,
+    date: data.date,
+    detailAddress: data.detailAddress,
+    placeName: data.placeName,
+    pinCategory: data.pinCategory,
+  };
+  fd.append("request", jsonPart(request));
+
+  const files = (opts?.files ?? []).filter(
+    (f): f is File => f instanceof File
+  );
+  files.forEach((f) => fd.append("images", f));
+
+  if (files.length > 0 && typeof opts?.mainIndex === "number") {
+    fd.append("mainImageIndex", String(opts.mainIndex));
   }
 
   const { data: response } = await axiosInstance.post<
     ApiResponse<{ articleId: number }>
-  >("/api/articles", formData, {
-    headers: { "Content-Type": "multipart/form-data" }, // 서버가 명시적으로 요구하는 경우 대비
-  });
+  >("/api/articles", fd);
   return response.result.articleId;
 };
 
