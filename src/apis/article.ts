@@ -71,17 +71,112 @@ const toFormData = (form: ArticleForm) => {
   return formData;
 };
 
-//게시글 작성
-export const createArticle = async (data: ArticleForm): Promise<number> => {
-  const formData = toFormData(data);
+export type ArticleFormAtPlace = Omit<ArticleForm, "latitude" | "longitude"> & {
+  placeId: number; // 기존 핀: placeId 필수
+};
+
+const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
+  const fd = new FormData();
+
+  // 공통 필드
+  fd.append("categoryId", String(form.categoryId));
+  fd.append("regionId", String(form.regionId));
+  fd.append("title", form.title);
+  fd.append("content", form.content);
+  fd.append("date", form.date);
+  fd.append("detailAddress", form.detailAddress);
+  fd.append("placeName", form.placeName);
+  fd.append("pinCategory", form.pinCategory);
+
+  // 기존 핀 식별
+  fd.append("placeId", String(form.placeId));
+
+  if (form.mainImageUuid) fd.append("mainImageUuid", form.mainImageUuid);
+  (form.imageUuids ?? []).forEach((uuid) => fd.append("imageUuids", uuid));
+
+  return fd;
+};
+
+const jsonPart = (obj: unknown) => 
+  new Blob([JSON.stringify(obj)], { type: "application/json"});
+
+//게시글 작성(미등록장소)
+export const createArticle = async (
+  data: ArticleForm,
+  opts?: { files?: File[]; mainIndex?: number }
+): Promise<number> => {
+  const fd = new FormData();
+  
+  const request = {
+    categoryId: data.categoryId,
+    regionId: data.regionId,
+    title: data.title,
+    content: data.content,
+    date: data.date,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    detailAddress: data.detailAddress,
+    placeName: data.placeName,
+    pinCategory: data.pinCategory,
+  };
+  fd.append("request", jsonPart(request));
+
+  const files = (opts?.files ?? []).filter(
+    (f): f is File => f instanceof File
+  );
+  files.forEach((f) => fd.append("images", f));
+
+  if (files.length > 0 && typeof opts?.mainIndex === "number") {
+    const idx = Math.min(Math.max(opts.mainIndex, 0), files.length - 1);
+    fd.append("mainImageIndex", String(idx));
+  }
+
   const { data: response } = await axiosInstance.post<
     ApiResponse<{ articleId: number }>
-  >("/api/articles/with-location", formData);
+  >("/api/articles/with-location", fd);
+  return response.result.articleId;
+};
+
+//게시글 작성(기존 핀)
+export const createArticleAtPlace = async (
+  data: ArticleFormAtPlace,
+  opts? : { files?: File[]; mainIndex?: number}
+): Promise<number> => {
+  const fd = new FormData();
+
+  const request = {
+    categoryId: data.categoryId,
+    placeId: data.placeId,
+    regionId: data.regionId,
+    title: data.title,
+    content: data.content,
+    date: data.date,
+    detailAddress: data.detailAddress,
+    placeName: data.placeName,
+    pinCategory: data.pinCategory,
+  };
+  fd.append("request", jsonPart(request));
+
+  const files = (opts?.files ?? []).filter(
+    (f): f is File => f instanceof File
+  );
+  files.forEach((f) => fd.append("images", f));
+
+  if (files.length > 0 && typeof opts?.mainIndex === "number") {
+    fd.append("mainImageIndex", String(opts.mainIndex));
+  }
+
+  const { data: response } = await axiosInstance.post<
+    ApiResponse<{ articleId: number }>
+  >("/api/articles", fd);
   return response.result.articleId;
 };
 
 //게시글 수정
-export const editArticle = async (articleId: number, data: ArticleForm): Promise<void> => {
+export const editArticle = async (
+  articleId: number,
+  data: ArticleForm
+): Promise<void> => {
   const formData = toFormData(data);
   await axiosInstance.put(`/api/articles/${articleId}`, formData);
 };
@@ -146,4 +241,55 @@ export async function fetchArticles(cursor = 0, limit = 10) {
     ? data.result
     : [];
   return { articles: list, cursor, limit };
+}
+
+// GET /api/articles?placeId&cursor&limit (단일 커서 Long 방식)
+export type PlaceArticleRow = {
+  memberId: number;
+  articleId: number;
+  regionId: number;
+  placeId: number;
+  nickname: string;
+  title: string;
+  pinCategory: string;
+  mainImageUuid: string | null;
+  likeCount: number;
+  spamCount: number;
+  commentCount: number;
+  isLiked: boolean;
+  isSpammed: boolean;
+  isMine: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function fetchArticlesByPlace(
+  placeId: number,
+  cursor?: number | null, // null/-1 => 첫 페이지로 간주
+  limit: number = 10
+): Promise<{
+  items: PlaceArticleRow[];
+  nextCursor: number | null;
+  hasNext: boolean;
+  limit: number;
+}> {
+  const params: Record<string, any> = { placeId, limit };
+
+  // 명세서 상: cursor가 null 이거나 -1이면 첫 페이지
+  if (cursor !== undefined && cursor !== null && cursor !== -1) {
+    params.cursor = cursor;
+  }
+
+  const { data } = await axiosInstance.get("/api/articles", { params });
+
+  // 안전 가드: result가 배열이라는 가정
+  const items: PlaceArticleRow[] = Array.isArray(data?.result)
+    ? data.result
+    : [];
+
+  // 다음 커서/hasNext 유추 (서버에서 명시 안 주면 마지막 articleId 기준)
+  const nextCursor = items.length ? items[items.length - 1].articleId : null;
+  const hasNext = items.length === limit;
+
+  return { items, nextCursor, hasNext, limit };
 }

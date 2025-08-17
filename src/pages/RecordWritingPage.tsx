@@ -14,103 +14,221 @@ import ImagePreview from "../components/Record/ImagePreview";
 import GalleryPreview from "../components/Record/GalleryPreview";
 import VerticalToolbar from "../components/Record/VerticalToolbar";
 import MiniMap from "../components/Record/MiniMap";
-import { useEditArticle } from "../hooks/mutations/useEditArticle";
+// import { useEditArticle } from "../hooks/mutations/useEditArticle";
+import { useCategorySelectionStore } from "../stores/categorySelection";
+import { useShallow } from "zustand/react/shallow";
+import { usePinDraftStore } from "../stores/pinDraftStore";
+import { useArticleDraftStore } from "../stores/articleDraft";
+import { useArticleViewStore } from "../stores/articleView";
+import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticleWithLocation";
 
 function RecordWritingPage() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showGallery, setShowGallery] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [mainImageUuid, setMainImageUuid] = useState<string | null>(null);
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  )
-  const [latitude, setLatitude] = useState(location.state?.latitude);
-  const [longitude, setLongitude] = useState(location.state?.longitude);
-  const [detailAddress, setDetailAddress] = useState(location.state?.detailAddress ?? "");
-  const [placeName, setPlaceName] = useState(location.state?.placeName ?? "해옫연남");
-  const [pinCategory, setPinCategory] = useState(location.state?.pinCategory ?? "FOOD");
-  const [categoryId, setCategoryId] = useState(location.state?.categoryId ?? null);
-  const [categoryName, setCategoryName] = useState(location.state?.categoryName ?? "카테고리");
-  
+
+  const {
+    title, content, selectedImages, mainImageUuid, selectedDate,
+    setTitle, setContent, setDate, addImages, toggleImage, setMain, hydrateFromEdit, reset: resetDraft,
+  } = useArticleDraftStore(useShallow((s) => ({
+    title: s.title,
+    content: s.content,
+    selectedImages: s.selectedImages,
+    mainImageUuid: s.mainImageUuid,
+    selectedDate: s.selectedDate,
+    setTitle: s.setTitle,
+    setContent: s.setContent,
+    setDate: s.setDate,
+    addImages: s.addImages,
+    toggleImage: s.toggleImage,
+    setMain: s.setMain,
+    hydrateFromEdit: s.hydrateFromEdit,
+    reset: s.reset,
+  })));
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 위치 관련 정보 
-  // const latitude = location.state?.latitude ?? 37.5665;
-  // const longitude = location.state?.longitude ?? 126.9080; //임시 위도, 경도 지정
-  // const detailAddress = location.state?.detailAddress ?? "";
-  // const placeName = location.state?.placeName ?? "";
-  // const pinCategory = location.state?.pinCategory ?? "";
-
-  // 카테고리 관련 정보 (게시글에 필요한 변수)
-  // const categoryName = location.state?.categoryName ?? "카테고리";
-  // const categoryId = location.state?.categoryId; 
 
   const [ isLoading, setIsLoading ] = useState(false);
 
-  const { mutateAsync: uploadArticle } = useCreateArticle();
+  const { categoryId, categoryName, reset } =  useCategorySelectionStore(
+    useShallow((s) => ({
+      categoryId: s.categoryId,
+      categoryName: s.categoryName,
+      reset: s.reset,  
+    }))
+  ); 
 
+  const { mode, placeName, pinCategory, detailAddress, placeId, latitude, longitude } = usePinDraftStore(
+    useShallow((s) => {
+      if (s.mode === "existing") {
+        return {
+          mode: s.mode,
+          placeName: s.placeName,
+          pinCategory: s.pinCategory,
+          detailAddress: s.detailAddress,
+          placeId: s.placeId,
+          latitude: null,
+          longitude: null,
+        };
+      } else if (s.mode === "new") {
+        return {
+          mode: s.mode,
+          placeName: s.placeName,
+          pinCategory: s.pinCategory,
+          detailAddress: s.detailAddress,
+          placeId: null,
+          latitude: s.latitude,
+          longitude: s.longitude,
+        };
+      } else {
+        return {
+          mode: s.mode,
+          placeName: null,
+          pinCategory: null,
+          detailAddress: null,
+          placeId: null,
+          latitude: null,
+          longitude: null,
+        };
+      }
+    })
+  );
+  const resetPin = usePinDraftStore((s) => s.reset);
+
+  
+  const { mutateAsync: createAtPlace } = useCreateArticle();  //기존핀
+  const { mutateAsync: createWithLocation } = useCreateArticleWithLocation(); //미등록장소
+
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (selectedImages.length > 0) {
-      setMainImageUuid(selectedImages[0]);
+      setMain(selectedImages[0]);
     } else {
-      setMainImageUuid(null);
+      setMain(null);
     }
-  }, [selectedImages]);
+  }, [selectedImages, setMain]);
 
   const handleSubmit = async () => {
-    if (!categoryId || selectedImages.length === 0) return;
-
-    setIsLoading(true);
-   try {
-    const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
-
-    const articleData = {
-      categoryId,
-      latitude,
-      longitude, 
-      detailAddress, 
-      regionId: 1, // location.state.regionId,
-      title,
-      content,
-      date: selectedDate,
-      mainImageUuid: mainImageUuid ?? "",
-      imageUuids,
-      placeName,
-      pinCategory,
-    };
-
-    console.log("mainImageUuid:", mainImageUuid);
-    console.log("imageUuids:", imageUuids);
-
-    const articleId = await uploadArticle(articleData);
-      navigate(`/record/${articleId}`, {
-        state: {
-          articleId,
-          title,
-          content,
-          latitude,
-          longitude, 
-          detailAddress, 
-          date: selectedDate,
-          mainImageUuid,
-          imageUuids,
-          likeCount: 0,
-          spamCount: 0,
-          from: "writing",
-          showPopup: true,
-        },
-      });
-    } catch (e) {
-      console.error("게시글 등록 실패:", e);
-    } finally {
-      setIsLoading(false);
+    if (categoryId== null) {
+      alert("카테고리를 먼저 선택해 주세요.");
+      return;
     }
+    // if (latitude == null || longitude == null) {
+    //   alert("위치 정보가 필요합니다.");
+    //   return;
+    // }
+
+    if (pinCategory == null) {
+      alert("핀 카테고리를 선택해 주세요.");
+      return;
+    }
+    if (detailAddress == null || detailAddress.trim() === "") {
+      alert("상세 주소가 필요해요.");
+      return;
+    }
+    const addr = detailAddress.trim();
+
+    const missing: string[] = [];
+    if (!title.trim()) missing.push("제목");
+    if (!content.trim()) missing.push("내용");
+    if (!Array.isArray(selectedImages) || selectedImages.length < 1) {
+      missing.push("사진(1장 이상)");
+    }
+
+    if (missing.length > 0) {
+      alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
+      return;
+    }
+
+    // 등록
+    setIsLoading(true);
+    try {
+      const safeFiles = selectedFiles.filter((f): f is File => f instanceof File); // [ADD]
+      if (safeFiles.length === 0) {                                                // [ADD]
+        alert("사진 파일이 첨부되지 않았어요. 다시 선택해 주세요.");                 // [ADD]
+        setIsLoading(false);                                                       // [ADD]
+        return;                                                                    // [ADD]
+      }
+
+       let mainIdx = selectedImages.findIndex(u => u === mainImageUuid);            // [MOD]
+      if (mainIdx < 0 || mainIdx >= safeFiles.length) mainIdx = 0;                 // [ADD]
+
+      const filesReordered =
+        mainIdx > 0
+          ? [safeFiles[mainIdx], ...safeFiles.filter((_, i) => i !== mainIdx)]
+          : safeFiles; 
+
+      let articleId: number;
+
+      if (typeof placeId === "number") {
+        // 기존 핀
+        const payload = {
+          categoryId, placeId,
+          detailAddress: addr, 
+          regionId: 1,
+          title, content, 
+          date: selectedDate,
+          mainImageUuid: "",           
+          imageUuids: [],              
+          placeName, 
+          pinCategory,
+          files: filesReordered,       
+          mainIndex: 0,                
+        };
+        articleId = await createAtPlace(payload);
+      } else if (typeof latitude === "number" && typeof longitude === "number") {
+        // 미등록 장소
+        const payload = {
+          categoryId, 
+          latitude, 
+          longitude, 
+          detailAddress: addr, 
+          regionId: 1,
+          title, 
+          content, 
+          date: selectedDate,
+          mainImageUuid: "", 
+          imageUuids: [], 
+          placeName, 
+          pinCategory,
+          files: filesReordered,       
+          mainIndex: 0,                
+        };
+        articleId = await createWithLocation(payload);
+      } else {
+        alert("위치 정보가 없습니다. 기존 핀을 선택하거나 지도로 위치를 지정해 주세요.");
+        setIsLoading(false);
+        return;
+      }
+
+      reset();
+      resetPin(); 
+
+      useArticleViewStore.getState().hydrate({
+        articleId,
+        title,
+        content,
+        date: selectedDate,
+        mainImageUuid: null,
+        imageUuids: [],
+        latitude: typeof latitude === "number" ? latitude : null, 
+        longitude: typeof longitude === "number" ? longitude : null,
+        likeCount: 0,
+        spamCount: 0,
+        commentCount: 0,
+        liked: false,
+        isReported: false,
+      });
+
+      navigate(`/record/${articleId}`, { state: { from: "writing" } });
+      } catch (e) {
+        console.error("게시글 등록 실패:", e);
+      } finally {
+        setIsLoading(false);
+      }
   };
+
 
   const handleGalleryClick = () => {
     fileInputRef.current?.click();
@@ -121,6 +239,7 @@ function RecordWritingPage() {
     if (!files) return;
 
     const fileArray = Array.from(files);
+
     const readers = fileArray.map((file) => {
       return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -131,21 +250,14 @@ function RecordWritingPage() {
     });
 
     Promise.all(readers).then((imageUrls) => {
-      setSelectedImages((prev) => {
-        const merged = [...prev, ...imageUrls];
-        return merged.slice(0, 10); // 최대 10개 제한
-      });
+     addImages(imageUrls);
     });
+
+    setSelectedFiles((prev) => [...prev, ...fileArray].slice(0, 10));
   };
 
   const handleImageSelect = (src: string) => {
-    setSelectedImages((prev) => {
-      if (prev.includes(src)) {
-        return prev.filter((img) => img !== src);
-      }
-      if (prev.length >= 10) return prev;
-      return [...prev, src];
-    });
+    toggleImage(src);
   };
 
   return (
@@ -154,7 +266,10 @@ function RecordWritingPage() {
       {/* 상단 바 */}
       <div className="w-full h-[56px] flex items-center border-b border-[#000] justify-between">
         <div className="w-[60px] flex items-center justify-start pl-2">
-          <button onClick={() => navigate('/home')}>
+          <button onClick={() => {
+              reset();
+              resetPin();
+              navigate('/home');}}>
             <img
               src={BackIcon}
               alt="뒤로가기"
@@ -254,7 +369,7 @@ function RecordWritingPage() {
               overflow: "hidden",
             }}
           >
-            {latitude !== null && longitude !== null && (
+            {typeof latitude === "number" && typeof longitude === "number" && (
               <>
                 <MiniMap latitude={latitude} longitude={longitude} />
               </>
@@ -303,22 +418,7 @@ function RecordWritingPage() {
 
 
             <button style={{ all: "unset" }} 
-                    onClick={() => navigate("/map/new", {
-                      state: {
-                        categoryColor: location.state?.categoryColor,
-                        categoryName, 
-                        categoryId,
-                        pinCategory,
-                        placeName,
-                        detailAddress,
-                        latitude,
-                        longitude,
-                        title,
-                        content,
-                        selectedImages,
-                        selectedDate,
-                      }
-                    })}>
+                    onClick={() => navigate("/map/new")}>
               <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
                    style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
               />
@@ -356,7 +456,7 @@ function RecordWritingPage() {
           onClose={() => setShowCalendar(false)}
           selectedDate={selectedDate}
           onDateSelect={(date) => {
-            setSelectedDate(date);
+            setDate(date);
             setShowCalendar(false);
           }}
         />

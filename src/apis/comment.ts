@@ -8,7 +8,7 @@ export const createComment = async (articleId: number, data: CreateCommentReques
 
 //댓글 수정
 export const updateComment = (articleId: number, commentId: number, content: string) => {
-  return axiosInstance.put(`/api/articles/${articleId}/comments/${commentId}`, { content });
+  return axiosInstance.patch(`/api/articles/${articleId}/comments/${commentId}`, { content });
 };
 
 //댓글 삭제
@@ -21,4 +21,3 @@ export const fetchComment = async (articleId: number) => {
   const res = await axiosInstance.get(`/api/articles/${articleId}/comments`);
   return res.data;
 }
-

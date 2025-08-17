@@ -1,14 +1,21 @@
 import { useMutation } from "@tanstack/react-query";
 import { savePlaceToCategory } from "../../apis/place";
 
-export const useSavePlaceToCategory = () => {
+type Args = { placeId: number; categoryId: number };
+type Opts = {
+	onSuccess?: () => void;
+	onError?: (e: unknown) => void;
+};
+
+export const useSavePlaceToCategory = (opts?: Opts) => {
 	return useMutation({
-		mutationFn: ({placeId, categoryId}: { placeId: number; categoryId: number;}) => savePlaceToCategory(placeId, categoryId),
+		mutationFn: ({ placeId, categoryId }: Args) =>
+			savePlaceToCategory(placeId, categoryId),
 		onSuccess: () => {
-			alert("장소가 카테고리에 저장되었습니다.");
+			opts?.onSuccess?.();
 		},
-		onError: () => {
-			alert("장소 저장에 실패했어요. 다시 시도해주세요!");
+		onError: (e) => {
+			opts?.onError?.(e);
 		},
 	});
 };

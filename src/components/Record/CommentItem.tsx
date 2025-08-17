@@ -1,8 +1,8 @@
 import MenuBarIcon from "../../assets/record/icon-menubar.svg";
 import DefaultProfileIcon from "../../assets/icon-defaultProfile.svg";
-import fonts from "../../styles/fonts";
 import { useState } from "react";
 import CommentEditModal from "./EditModal"
+import colors from "../../styles/colors";
 
 interface CommentItemProps {
   nickname: string;
@@ -20,7 +20,6 @@ interface CommentItemProps {
 const CommentItem = ({
   nickname,
   content,
-  showReplyButton = true,
   onReplyClick,
   children,
   isReply = false,
@@ -38,7 +37,7 @@ const CommentItem = ({
         marginTop: isReply ? "10px" : 0,
       }}
     >
-      {/* 프로필 + 닉네임 */}
+      {/* 프로필 + 닉네임 + 댓*/}
       <div className="flex justify-between">
         <div className="flex items-center gap-2 mb-2 ml-2 mt-2">
           {isReply && (
@@ -47,17 +46,31 @@ const CommentItem = ({
           <img
             src={DefaultProfileIcon}
             alt="avatar"
-            className="w-[25px] h-[25px] rounded-full"
+            className="w-[46px] h-[46px] rounded-full"
           />
-          <span
-            style={{
-              fontSize: fonts.size.body,
-              fontWeight: fonts.weight.medium,
-            }}
-          >
-            @{nickname}
-            {/* 임시값 */}
-          </span>
+          <div className="min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[14px]" style={{fontWeight: 600}}>
+                      {nickname}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 13 }}
+                     className="break-words whitespace-pre-wrap"
+                  >{content}</p>
+                  <button
+                    onClick={onReplyClick}
+                    style={{
+                      fontSize: 13,
+                      color: colors.gray400,
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                    }}
+                  >
+                    답글
+                  </button>
+                </div>
         </div>
 
         {/* 모달 렌더링 */}
@@ -84,33 +97,6 @@ const CommentItem = ({
 
 
       </div>
-
-      <div className="w-full border-b border-[#999999] mb-2" />
-
-      {/* 본문 + 답글버튼 */}
-      <div className="flex items-start gap-2 ml-2 mb-2" style={{ alignItems: "center" }}>
-        {showReplyButton && (
-          <button
-            onClick={onReplyClick}
-            style={{
-              fontSize: "15px",
-              fontWeight: fonts.weight.regular,
-              border: "none",
-              cursor: "pointer",
-              width: "26px",
-              height: "18px",
-              flexShrink: 0,
-              color: "#68707B",
-            }}
-          >
-            답글
-          </button>
-        )}
-        <p className="break-words w-full" style={{ fontSize: "15px" }}>
-          {content}
-        </p>
-      </div>
-
       {children}
     </div>
   );
