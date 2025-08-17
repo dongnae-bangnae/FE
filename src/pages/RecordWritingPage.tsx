@@ -99,6 +99,7 @@ function RecordWritingPage() {
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (selectedImages.length > 0) {
@@ -142,43 +143,51 @@ function RecordWritingPage() {
     // 등록
     setIsLoading(true);
     try {
-      const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
+      const mainIdx = selectedImages.findIndex(u => u === mainImageUuid);
+
+   
+      const filesReordered =
+        mainIdx >= 0
+          ? [selectedFiles[mainIdx], ...selectedFiles.filter((_, i) => i !== mainIdx)]
+          : selectedFiles;
 
       let articleId: number;
 
       if (typeof placeId === "number") {
         // 기존 핀
-        const articleData = {
-          categoryId,
-          placeId,
-          detailAddress: addr,
+        const payload = {
+          categoryId, placeId,
+          detailAddress: addr, 
           regionId: 1,
-          title,
-          content,
+          title, content, 
           date: selectedDate,
-          mainImageUuid: mainImageUuid ?? "",
-          imageUuids,
-          placeName,
+          mainImageUuid: "",           
+          imageUuids: [],              
+          placeName, 
           pinCategory,
+          files: filesReordered,       
+          mainIndex: 0,                
         };
-        articleId = await createAtPlace(articleData);
+        articleId = await createAtPlace(payload);
       } else if (typeof latitude === "number" && typeof longitude === "number") {
         // 미등록 장소
-        const articleData = {
-          categoryId,          
-          latitude,
-          longitude,
-          detailAddress: addr,
+        const payload = {
+          categoryId, 
+          latitude, 
+          longitude, 
+          detailAddress: addr, 
           regionId: 1,
-          title,
-          content,
+          title, 
+          content, 
           date: selectedDate,
-          mainImageUuid: mainImageUuid ?? "",
-          imageUuids,
-          placeName,
+          mainImageUuid: "", 
+          imageUuids: [], 
+          placeName, 
           pinCategory,
+          files: filesReordered,       
+          mainIndex: 0,                
         };
-        articleId = await createWithLocation(articleData);
+        articleId = await createWithLocation(payload);
       } else {
         alert("위치 정보가 없습니다. 기존 핀을 선택하거나 지도로 위치를 지정해 주세요.");
         setIsLoading(false);
@@ -193,8 +202,8 @@ function RecordWritingPage() {
         title,
         content,
         date: selectedDate,
-        mainImageUuid: mainImageUuid ?? null,
-        imageUuids,
+        mainImageUuid: null,
+        imageUuids: [],
         latitude: latitude ?? null,
         longitude: longitude ?? null,
         likeCount: 0,
@@ -222,6 +231,7 @@ function RecordWritingPage() {
     if (!files) return;
 
     const fileArray = Array.from(files);
+
     const readers = fileArray.map((file) => {
       return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -234,6 +244,8 @@ function RecordWritingPage() {
     Promise.all(readers).then((imageUrls) => {
      addImages(imageUrls);
     });
+
+    setSelectedFiles((prev) => [...prev, ...fileArray].slice(0, 10));
   };
 
   const handleImageSelect = (src: string) => {
