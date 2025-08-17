@@ -14,23 +14,33 @@ import ImagePreview from "../components/Record/ImagePreview";
 import GalleryPreview from "../components/Record/GalleryPreview";
 import VerticalToolbar from "../components/Record/VerticalToolbar";
 import MiniMap from "../components/Record/MiniMap";
-import { useEditArticle } from "../hooks/mutations/useEditArticle";
+// import { useEditArticle } from "../hooks/mutations/useEditArticle";
 import { useCategorySelectionStore } from "../stores/categorySelection";
 import { useShallow } from "zustand/react/shallow";
 import { usePinDraftStore } from "../stores/pinDraftStore";
+import { useArticleDraftStore } from "../stores/articleDraft";
 
 function RecordWritingPage() {
   const navigate = useNavigate();
 
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showGallery, setShowGallery] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [mainImageUuid, setMainImageUuid] = useState<string | null>(null);
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  )
+  const {
+    title, content, selectedImages, mainImageUuid, selectedDate,
+    setTitle, setContent, setDate, addImages, toggleImage, setMain, hydrateFromEdit, reset: resetDraft,
+  } = useArticleDraftStore(useShallow((s) => ({
+    title: s.title,
+    content: s.content,
+    selectedImages: s.selectedImages,
+    mainImageUuid: s.mainImageUuid,
+    selectedDate: s.selectedDate,
+    setTitle: s.setTitle,
+    setContent: s.setContent,
+    setDate: s.setDate,
+    addImages: s.addImages,
+    toggleImage: s.toggleImage,
+    setMain: s.setMain,
+    hydrateFromEdit: s.hydrateFromEdit,
+    reset: s.reset,
+  })));
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,14 +94,16 @@ function RecordWritingPage() {
 
   
   const { mutateAsync: uploadArticle } = useCreateArticle();
-  
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+
   useEffect(() => {
     if (selectedImages.length > 0) {
-      setMainImageUuid(selectedImages[0]);
+      setMain(selectedImages[0]);
     } else {
-      setMainImageUuid(null);
+      setMain(null);
     }
-  }, [selectedImages]);
+  }, [selectedImages, setMain]);
 
   const handleSubmit = async () => {
     if (categoryId== null) {
@@ -194,21 +206,12 @@ function RecordWritingPage() {
     });
 
     Promise.all(readers).then((imageUrls) => {
-      setSelectedImages((prev) => {
-        const merged = [...prev, ...imageUrls];
-        return merged.slice(0, 10); // 최대 10개 제한
-      });
+     addImages(imageUrls);
     });
   };
 
   const handleImageSelect = (src: string) => {
-    setSelectedImages((prev) => {
-      if (prev.includes(src)) {
-        return prev.filter((img) => img !== src);
-      }
-      if (prev.length >= 10) return prev;
-      return [...prev, src];
-    });
+    toggleImage(src);
   };
 
   return (
@@ -407,7 +410,7 @@ function RecordWritingPage() {
           onClose={() => setShowCalendar(false)}
           selectedDate={selectedDate}
           onDateSelect={(date) => {
-            setSelectedDate(date);
+            setDate(date);
             setShowCalendar(false);
           }}
         />
