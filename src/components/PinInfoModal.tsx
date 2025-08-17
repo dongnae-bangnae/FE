@@ -93,7 +93,7 @@ export default function PinInfoModal({ place, onClose }: PinInfoModalProps) {
           {isSaved ? "저장됨" : "내 장소 저장"}
         </button>
         <button
-          onClick={() => navigate("/record/list")}
+          onClick={() => navigate(`/record/list/${placeId}`)}
           onMouseEnter={() => setIsWriteHovered(true)}
           onMouseLeave={() => setIsWriteHovered(false)}
           className="flex items-center justify-center gap-2 px-3 rounded-md py-1.5 text-sm bg-[#D9D9D91A] text-[#8F8F8F]
