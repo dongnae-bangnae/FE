@@ -303,6 +303,7 @@ function RecordWritingPage() {
           <button onClick={() => {
               reset();
               resetPin();
+              resetDraft();
               navigate('/home');}}>
             <img
               src={BackIcon}
