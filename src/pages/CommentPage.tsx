@@ -299,7 +299,7 @@ function CommentPage() {
               {comments
                 .filter((c) => c.parentCommentId === parentComment.id)
                 .map((childComment) => (
-                  <div key={childComment.id} className="bg-[#FFF5E7]">
+                  <div key={childComment.id} className="bg-[#FFF5E7] w-[375px]">
                     <CommentItem
                       nickname={childComment.nickname}
                       content={childComment.content}
@@ -318,25 +318,6 @@ function CommentPage() {
       {/* 새 댓글 입력창 */}
       <div className="w-full px-5 py-1 mb-[15px]">
         <div className="flex items-center gap-3">
-        {/* 답글 작성 시 */}
-        {replyTarget && (
-            <div
-             className="absolute left-1/2 -translate-x-1/2 -translate-y-[42px] z-10
-                         flex items-center gap-2 px-3 py-2 rounded-xl shadow"
-              style={{ background: "#fff" }}
-            >
-              <span className="text-sm">
-                <b>{replyTarget.nickname}</b>님에게 답글을 남기는 중…
-              </span>
-              <button
-                onClick={() => setReplyTarget(null)}
-                className="text-gray-500"
-                aria-label="답글 취소"
-              >
-                ×
-              </button>
-            </div>
-          )}
           {/* 프로필사진 */}
           <div className="rounded-full w-[47px] h-[47px] overflow-hidden flex-shrink-0">
             <img
@@ -348,29 +329,57 @@ function CommentPage() {
             />
           </div>
           <div className="relative flex-1 h-[47px]">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder={
-                replyTarget ? `${replyTarget.nickname}` : "여러분의 동네 이야기도 궁금해요 💭"
-              }
-              className="w-full h-full px-4 text-sm border rounded-full" 
-              style={{borderColor: "#B3B3B3"}}
-            />
-
-            {newComment.trim().length > 0 && (
+           {replyTarget && (
+            <div
+              className="absolute -top-[42px] left-0 right-0 z-10
+                        flex items-center justify-between px-3 py-2
+                        rounded-xl shadow bg-[#F5F5F5]"
+            >
+              <span className="text-sm truncate">
+                <b><span className="text-yellow-400">@{replyTarget.nickname}</span></b>
+                <span className="ml-1">님에게 답글을 남기는 중…</span>
+              </span>
               <button
-                onMouseDown={(e) => e.preventDefault()} 
-                onClick={() => handleSubmitComment(newComment, replyTarget ? replyTarget.id : null)}
-                className="absolute right-3 inset-y-0 my-auto flex items-center justify-center rounded-[12px] w-[40px] h-[27px]"
-                style={{
-                  backgroundColor: colors.primaryDark,
-                }}
+                onClick={() => setReplyTarget(null)}
+                className="ml-2 text-gray-500"
+                aria-label="답글 취소"
               >
-                <img src={UpperIcon} className="block w-[20px] h-[16px]"/>
+                ×
               </button>
-            )}
+            </div>
+          )}
+
+          {/* 겹치는 placeholder -> @닉네임 색 설정 */}
+          {replyTarget && newComment.trim() === "" && (
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+              <span style={{color: "#FFAC33"}}>@{replyTarget.nickname}</span>
+              <span className="ml-1">님에게 답글을 남기는 중…</span>
+            </span>
+          )}
+
+          <input
+            type="text"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder={
+              replyTarget ? "" : "여러분의 동네 이야기도 궁금해요 💭"
+            }
+            className="w-full h-full px-4 text-sm border rounded-full"
+            style={{ borderColor: "#B3B3B3" }}
+          />
+
+          {newComment.trim().length > 0 && (
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() =>
+                handleSubmitComment(newComment, replyTarget ? replyTarget.id : null)
+              }
+              className="absolute right-3 inset-y-0 my-auto flex items-center justify-center rounded-[12px] w-[40px] h-[27px]"
+              style={{ backgroundColor: colors.primaryDark }}
+            >
+              <img src={UpperIcon} className="block w-[20px] h-[16px]" />
+            </button>
+          )}
           </div>
         </div>
       </div>
