@@ -108,6 +108,38 @@ function RecordWritingPage() {
       setMain(null);
     }
   }, [selectedImages, setMain]);
+  
+  const dataUrlToFile = (dataUrl: string, filename: string) => {
+    const arr = dataUrl.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "image/png";
+    const bstr = atob(arr[1]);
+    const n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const collectFilesFromSelection = async (urls: string[], baseFiles: File[]) => {
+    if (baseFiles.length > 0) return baseFiles; 
+    const files: File[] = [];
+    for (let i = 0; i < urls.length; i++) {
+      const src = urls[i];
+      try {
+        if (src.startsWith("data:")) {
+          files.push(dataUrlToFile(src, `image_${i}.png`));
+        } else {
+          const res = await fetch(src, { mode: "cors" }); 
+          const blob = await res.blob();
+          const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
+          files.push(new File([blob], `image_${i}.${ext}`, { type: blob.type || "image/jpeg" }));
+        }
+      } catch (err) {
+        console.warn("이미지 변환 실패:", src, err);
+      }
+    }
+    return files;
+  };
 
   const handleSubmit = async () => {
     if (categoryId== null) {
@@ -144,15 +176,17 @@ function RecordWritingPage() {
     // 등록
     setIsLoading(true);
     try {
-      const safeFiles = selectedFiles.filter((f): f is File => f instanceof File); // [ADD]
-      if (safeFiles.length === 0) {                                                // [ADD]
-        alert("사진 파일이 첨부되지 않았어요. 다시 선택해 주세요.");                 // [ADD]
-        setIsLoading(false);                                                       // [ADD]
-        return;                                                                    // [ADD]
+      let files = await collectFilesFromSelection(selectedImages, selectedFiles); // [ADD]
+      const safeFiles = files.filter((f): f is File => f instanceof File);       // [ADD]
+
+      if (safeFiles.length === 0) {
+        alert("사진을 불러오지 못했어요. 갤러리 이미지에 CORS가 막혀 있다면, 파일로 직접 선택해 주세요.");
+        setIsLoading(false);
+        return;
       }
 
-       let mainIdx = selectedImages.findIndex(u => u === mainImageUuid);            // [MOD]
-      if (mainIdx < 0 || mainIdx >= safeFiles.length) mainIdx = 0;                 // [ADD]
+      let mainIdx = selectedImages.findIndex((u) => u === mainImageUuid);
+      if (mainIdx < 0 || mainIdx >= safeFiles.length) mainIdx = 0;
 
       const filesReordered =
         mainIdx > 0
