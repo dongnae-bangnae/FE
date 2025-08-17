@@ -11,6 +11,7 @@ import circleCheck from "../assets/icon-circleCheck.svg";
 import IconDefault from "../assets/icon-default.svg";
 import IconRedChecked from "../assets/icon-redChecked.svg";
 import SearchIcon from "../assets/icon-search.svg";
+import Header from "../components/common/Header";
 import { useMyInfo } from "../hooks/queries/useMyInfo";
 
 type RegionOption = { id: number; label: string };
@@ -105,7 +106,7 @@ export default function LikePlacePage() {
       setSaving(true);
       await patchRegions(ids);
 
-      // ✅ 초기 화면으로 전환 + 토스트 노출
+      // 초기 화면으로 전환 + 토스트 노출
       setIsSearching(false);
       setAreaInput("");
       setStep("intro");
