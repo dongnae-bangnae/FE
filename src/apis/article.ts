@@ -99,8 +99,20 @@ const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
 
 
 //게시글 작성(미등록장소)
-export const createArticle = async (data: ArticleForm): Promise<number> => {
+export const createArticle = async (
+  data: ArticleForm,
+  opts?: { files?: File[]; mainIndex?: number }
+): Promise<number> => {
   const formData = toFormData(data);
+  
+  if (opts?.files && opts.files.length) {
+    opts.files.forEach(f => formData.append("images", f));
+  }
+  // [ADD]
+  if (typeof opts?.mainIndex === "number") {
+    formData.append("mainImageIndex", String(opts.mainIndex));
+  }
+
   const { data: response } = await axiosInstance.post<
     ApiResponse<{ articleId: number }>
   >("/api/articles/with-location", formData);
@@ -109,9 +121,18 @@ export const createArticle = async (data: ArticleForm): Promise<number> => {
 
 //게시글 작성(기존 핀)
 export const createArticleAtPlace = async (
-  data: ArticleFormAtPlace
+  data: ArticleFormAtPlace,
+  opts? : { files?: File[]; mainIndex?: number}
 ): Promise<number> => {
   const formData = toFormDataAtPlace(data);
+
+  if (opts?.files && opts.files.length) {
+    opts.files.forEach(f => formData.append("images", f));
+  }
+  if (typeof opts?.mainIndex === "number") {
+    formData.append("mainImageIndex", String(opts.mainIndex));
+  }
+
   const { data: response } = await axiosInstance.post<
     ApiResponse<{ articleId: number }>
   >("/api/articles", formData, {
