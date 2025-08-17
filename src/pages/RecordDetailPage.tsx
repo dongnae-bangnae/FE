@@ -12,45 +12,25 @@ import { useToggleSpamReport } from "../hooks/mutations/useToggleSpamReport";
 import { useDeleteArticle } from "../hooks/mutations/useDeleteArticle";
 import EditModal from "../components/Record/EditModal";
 // import MessagePopup from "../components/MessagaePopup";
+import { useArticleViewStore } from "../stores/articleView";
 
 const RecordDetailPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
 
   const {
-    articleId,
-    title,
-    content,
-    date,
-    mainImageUuid,
-    imageUuids,
-    likeCount = 0,
-    spamCount = 0,
-    latitude,
-    longitude,
-    // placeName,
-    // detailAddress,
-  }: {
-    articleId: number;
-    title: string;
-    content: string;
-    date: string;
-    mainImageUuid: string;
-    imageUuids: string[];
-    likeCount?: number;
-    spamCount?: number;
-    latitude: number;
-    longitude: number;
-    placeName: string;
-    detailAddress: string;
-  } = state || {};
+    articleId, title, content, date,
+    mainImageUuid, imageUuids,
+    latitude, longitude,
+    likeCount, spamCount, commentCount,
+    isReported,
+    hydrate, setReported, incSpam, decSpam,
+    setCommentCount,
+  } = useArticleViewStore((s) => s);
 
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [spamCountState, setSpamCountState] = useState(spamCount);
-  const [commentCount, setCommentCount] = useState<number>(0);
-  const [isReported, setIsReported] = useState(spamCount>0);
   const [showMessage, setShowMessage] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -62,12 +42,29 @@ const RecordDetailPage = () => {
       setShowMessage(true);
     }
   }, [state]);
-  
-  
-  const allImages = mainImageUuid
-    ? [mainImageUuid, ...imageUuids]
-    : imageUuids;
 
+  useEffect(() => {
+    if (!articleId && state && typeof state === "object") {
+      const s = state as any;
+      hydrate({
+        articleId: s.articleId ?? articleId ?? 0,
+        title: s.title ?? title ?? "",
+        content: s.content ?? content ?? "",
+        date: s.date ?? date ?? "",
+        mainImageUuid: s.mainImageUuid ?? mainImageUuid ?? null,
+        imageUuids: s.imageUuids ?? imageUuids ?? [],
+        latitude: s.latitude ?? latitude ?? null,
+        longitude: s.longitude ?? longitude ?? null,
+        likeCount: s.likeCount ?? likeCount ?? 0,
+        spamCount: s.spamCount ?? spamCount ?? 0,
+        commentCount: commentCount ?? 0,
+        liked: s.liked ?? false,
+        isReported: s.isReported ?? ( (s.spamCount ?? spamCount ?? 0) > 0 ),
+      });
+    }
+  }, [articleId, state]);
+  
+  const allImages = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : (imageUuids ?? []));
 
   const handleOpenReportModal = () => {
     setShowConfirm(true);
@@ -78,8 +75,8 @@ const RecordDetailPage = () => {
 
     toggleSpam(true, {
       onSuccess: () => {
-        setIsReported(true);
-        setSpamCountState((prev) => prev + 1);
+        setReported(true);
+        incSpam();
         setShowConfirm(false);
       },
       onError: () => {
@@ -91,8 +88,8 @@ const RecordDetailPage = () => {
   const handleCancelReport = () => {
     toggleSpam(false, {
       onSuccess: () => {
-        setIsReported(false);
-        setSpamCountState((prev) => Math.max(prev - 1, 0));
+        setReported(false);
+        decSpam()
       },
       onError: () => {
         alert("신고 취소 중 오류가 발생했습니다.");
@@ -168,7 +165,6 @@ const RecordDetailPage = () => {
             />
           </div>
 
-
           {/* 지도 - 임시 위치 */}
           <div
             className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[270px]"
@@ -210,7 +206,7 @@ const RecordDetailPage = () => {
       <RecordBottomNav
         articleId={articleId}
         likes={likeCount}
-        spam={spamCountState}
+        spam={spamCount}
         comments={commentCount} 
         isReported={isReported}
         onShowReportModal={handleOpenReportModal}
@@ -309,6 +305,10 @@ const RecordDetailPage = () => {
           confirmText="삭제"
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={() => {
+            if (articleId <= 0) {
+              alert("잘못된 접근, 게시글 ID가 없습니다");
+              return;
+            }
             deleteArticle(articleId, {
               onSuccess: () => {
                 alert("게시글이 삭제되었습니다.");

@@ -19,6 +19,7 @@ import { useCategorySelectionStore } from "../stores/categorySelection";
 import { useShallow } from "zustand/react/shallow";
 import { usePinDraftStore } from "../stores/pinDraftStore";
 import { useArticleDraftStore } from "../stores/articleDraft";
+import { useArticleViewStore } from "../stores/articleView";
 
 function RecordWritingPage() {
   const navigate = useNavigate();
@@ -161,29 +162,28 @@ function RecordWritingPage() {
       reset();
       resetPin(); 
 
-      navigate(`/record/${articleId}`, {
-        state: {
-          articleId,
-          title,
-          content,
-          latitude,
-          longitude,
-          detailAddress,
-          regionId: 1,
-          date: selectedDate,
-          mainImageUuid,
-          imageUuids,
-          likeCount: 0,
-          spamCount: 0,
-          from: "writing",
-          showPopup: true,
-        },
+      useArticleViewStore.getState().hydrate({
+        articleId,
+        title,
+        content,
+        date: selectedDate,
+        mainImageUuid: mainImageUuid ?? null,
+        imageUuids,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
+        likeCount: 0,
+        spamCount: 0,
+        commentCount: 0,
+        liked: false,
+        isReported: false,
       });
-    } catch (e) {
-      console.error("게시글 등록 실패:", e);
-    } finally {
-      setIsLoading(false);
-    }
+
+      navigate(`/record/${articleId}`, { state: { from: "writing" } });
+      } catch (e) {
+        console.error("게시글 등록 실패:", e);
+      } finally {
+        setIsLoading(false);
+      }
   };
 
 
