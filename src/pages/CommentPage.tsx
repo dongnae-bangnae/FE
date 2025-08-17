@@ -37,11 +37,8 @@ function CommentPage() {
   const deleteCommentMutation = useDeleteComment();
 
   const [newComment, setNewComment] = useState("");
-  const [replyMap, setReplyMap] = useState<Record<number, string>>({});
-  const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
   const [showPopup, setShowPopup] = useState(false);
   const [editCommentId, setEditCommentId] = useState<number | null>(null);
-  const [editedContent, setEditedContent] = useState<string>("");
   const [showSubmit, setShowSubmit] = useState(false);
   const [showSpamPopup, setShowSpamPopup] = useState(false);
   const [replyTarget, setReplyTarget] = useState<{id: number; nickname: string;} | null>(null);
@@ -50,6 +47,7 @@ function CommentPage() {
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
   const { data: fetched, isLoading, isError } = useFetchComments(articleId);
+  
   useEffect(() => {
     const list = (fetched?.result ?? fetched) as any[];
     if (!Array.isArray(list)) return;
@@ -74,6 +72,23 @@ function CommentPage() {
   ) => {
     if (!content.trim() || !myInfo) return;
 
+    //수정
+    if (editCommentId !== null) {
+      updateComment(content, {
+        onSuccess: () => {
+          setComments((prev) =>
+            prev.map((c) => (c.id === editCommentId ? { ...c, content } : c))
+          );
+          setEditCommentId(null);
+          setNewComment("");
+          queryClient.invalidateQueries({ queryKey: ["comments", articleId] });
+          setShowPopup(true);
+        },
+        onError: () => alert("댓글 수정 실패"),
+      });
+      return;
+    }
+
     createComment(
       {
         content,
@@ -92,13 +107,6 @@ function CommentPage() {
           setComments((prev) => [...prev, newCommentObj]);
           queryClient.invalidateQueries({ queryKey: ["comments", articleId]});
 
-          if (parentCommentId === null) {
-            setNewComment("");
-          } else {
-            setReplyMap((prev) => ({ ...prev, [parentCommentId]: "" }));
-            setActiveReplyId(null);
-          }
-
           setNewComment("");
           setReplyTarget(null);
           setShowPopup(true);
@@ -111,34 +119,20 @@ function CommentPage() {
   };
 
   const handleEditComment = (id: number, content: string) => {
-    alert("수정 기능 연결 예정")
+    setEditCommentId(id);
+    setEditCommentId(id);
+    setNewComment(content);
   };
 
-  // const handleUpdateComment = () => {
-  //   if (!editedContent.trim() || editCommentId === null) return;
-
-  //   updateComment(editedContent, {
-  //     onSuccess: () => {
-  //       setComments((prev) =>
-  //         prev.map((c) =>
-  //           c.id === editCommentId ? { ...c, content: editedContent } : c
-  //         )
-  //       );
-  //       setEditCommentId(null);
-  //       setEditedContent("");
-  //     },
-  //     onError: () => alert("댓글 수정 실패"),
-  //   });
-  // };
-
   const handleDeleteComment = (commentId: number) => {
+    if (!confirm("정말 댓글을 삭제하시겠습니까?")) return;
+
     deleteCommentMutation.mutate(
       { articleId, commentId },
       {
         onSuccess: () => {
           setComments((prev) => prev.filter((c) => c.id !== commentId));
           queryClient.invalidateQueries({ queryKey: ["comments", articleId]});
-          alert("정말 댓글을 삭제하시겠습니까?");
         },
         onError: () => alert("댓글 삭제 실패"),
       }
@@ -180,120 +174,27 @@ function CommentPage() {
             <div key={parentComment.id}>
               <CommentItem
                 nickname={parentComment.nickname}
-                content={
-                  editCommentId === parentComment.id
-                    ? editedContent
-                    : parentComment.content
-                }
+                content={parentComment.content}
                 profileImage={parentComment.profileImage}
                 isMine={myInfo?.nickname === parentComment.nickname}
     
                 onEdit={() =>
                   handleEditComment(parentComment.id, parentComment.content)
                 }
+
                 onDelete={() => handleDeleteComment(parentComment.id)}
 
                 onReplyClick={() => {
+                  setEditCommentId(null);
                   setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname });
+
                   setNewComment((prev) => {
                     const mention = `${parentComment.nickname}`;
                     return prev.startsWith(mention) ? prev : (prev ? `${mention}${prev}` : mention);
                   });
                 }}
               >
-                {/* {editCommentId === parentComment.id && (
-                  <div className="flex items-center gap-2 ml-2 mb-2">
-                    <button
-                      onClick={handleUpdateComment}
-                      style={{
-                        backgroundColor: "#FFAC33",
-                        fontSize: "12px",
-                        fontWeight: fonts.weight.regular,
-                        border: "none",
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        width: "60px",
-                        height: "27px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      수정완료
-                    </button>
-                    <textarea
-                      value={editedContent}
-                      onChange={(e) => setEditedContent(e.target.value)}
-                      style={{
-                        fontSize: "13px",
-                        resize: "none",
-                        height: "35px",
-                        width: "100%",
-                        marginRight: "10px",
-                        border: "1px solid #888888",
-                        borderRadius: "10px",
-                        padding: "5px 8px",
-                      }}
-                    />
-                  </div>
-                )} */}
               </CommentItem>
-
-              {/* 답글 입력창 */}
-              {activeReplyId === parentComment.id && (
-                <CommentItem
-                  nickname={myInfo?.nickname || ""}
-                  content=""
-                  isReply
-                  showReplyButton={false}
-                  profileImage={myInfo?.profileImage}
-                >
-                  <div
-                    className="flex items-center gap-2 ml-2 mb-2"
-                    style={{ alignItems: "center" }}
-                  >
-                    <button
-                      onClick={() =>
-                        handleSubmitComment(
-                          replyMap[parentComment.id] || "",
-                          parentComment.id
-                        )
-                      }
-                      style={{
-                        backgroundColor: "#FFAC33",
-                        fontSize: "12px",
-                        fontWeight: fonts.weight.regular,
-                        border: "none",
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        width: "46px",
-                        height: "27px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      답글
-                    </button>
-                    <textarea
-                      value={replyMap[parentComment.id] || ""}
-                      placeholder="답글을 입력하세요"
-                      style={{
-                        fontSize: "13px",
-                        resize: "none",
-                        height: "35px",
-                        width: "100%",
-                        marginRight: "10px",
-                        border: "1px solid #888888",
-                        borderRadius: "10px",
-                        padding: "5px 8px",
-                      }}
-                      onChange={(e) =>
-                        setReplyMap((prev) => ({
-                          ...prev,
-                          [parentComment.id]: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                </CommentItem>
-              )}
 
               {/* 답글 */}
               {comments
@@ -308,6 +209,14 @@ function CommentPage() {
                       isMine={myInfo?.nickname === childComment.nickname}
                       onEdit={() => handleEditComment(childComment.id, childComment.content)}
                       onDelete={() => handleDeleteComment(childComment.id)}
+                      onReplyClick={() => {
+                        setEditCommentId(null);
+                        setReplyTarget({ id: parentComment.id, nickname: childComment.nickname });
+                        setNewComment((prev) => {
+                          const mention = `@${childComment.nickname} `;
+                          return prev.startsWith(mention) ? prev : (prev ? `${mention}${prev}` : mention);
+                        });
+                      }}
                     />
                   </div>
                 ))}
@@ -329,57 +238,79 @@ function CommentPage() {
             />
           </div>
           <div className="relative flex-1 h-[47px]">
-           {replyTarget && (
-            <div
-              className="absolute -top-[42px] left-0 right-0 z-10
-                        flex items-center justify-between px-3 py-2
-                        rounded-xl shadow bg-[#F5F5F5]"
-            >
-              <span className="text-sm truncate">
-                <b><span className="text-yellow-400">@{replyTarget.nickname}</span></b>
+            {/* 편집중 */}
+            {editCommentId !== null && (
+              <div className="absolute -top-[42px] left-0 right-0 z-10
+                              flex items-center justify-between px-3 py-2
+                              rounded-xl shadow bg-[#F5F5F5]">
+                <span className="text-sm truncate">
+                  <b>댓글을 수정하는 중…</b>
+                </span>
+                <button
+                  onClick={() => { setEditCommentId(null); setNewComment(""); }}
+                  className="ml-2 text-gray-500"
+                  aria-label="수정 취소"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            {/* 답글 등록 시 */}
+            {editCommentId === null && replyTarget && (
+              <div className="absolute -top-[42px] left-0 right-0 z-10
+                              flex items-center justify-between px-3 py-2
+                              rounded-xl shadow bg-[#F5F5F5]">
+                <span className="text-sm truncate">
+                  <b><span className="text-yellow-400">@{replyTarget.nickname}</span></b>
+                  <span className="ml-1">님에게 답글을 남기는 중…</span>
+                </span>
+                <button
+                  onClick={() => setReplyTarget(null)}
+                  className="ml-2 text-gray-500"
+                  aria-label="답글 취소"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            {/* placeholder 덮어씌우기 */}
+            {editCommentId === null && replyTarget && newComment.trim() === "" && (
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                <span style={{ color: "#FFAC33" }}>@{replyTarget.nickname}</span>
                 <span className="ml-1">님에게 답글을 남기는 중…</span>
               </span>
-              <button
-                onClick={() => setReplyTarget(null)}
-                className="ml-2 text-gray-500"
-                aria-label="답글 취소"
-              >
-                ×
-              </button>
-            </div>
-          )}
+            )}
 
-          {/* 겹치는 placeholder -> @닉네임 색 설정 */}
-          {replyTarget && newComment.trim() === "" && (
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-              <span style={{color: "#FFAC33"}}>@{replyTarget.nickname}</span>
-              <span className="ml-1">님에게 답글을 남기는 중…</span>
-            </span>
-          )}
-
-          <input
-            type="text"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder={
-              replyTarget ? "" : "여러분의 동네 이야기도 궁금해요 💭"
-            }
-            className="w-full h-full px-4 text-sm border rounded-full"
-            style={{ borderColor: "#B3B3B3" }}
-          />
-
-          {newComment.trim().length > 0 && (
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() =>
-                handleSubmitComment(newComment, replyTarget ? replyTarget.id : null)
+            <input
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder={
+                editCommentId !== null
+                  ? "" 
+                  : (replyTarget ? "" : "여러분의 동네 이야기도 궁금해요 💭")
               }
-              className="absolute right-3 inset-y-0 my-auto flex items-center justify-center rounded-[12px] w-[40px] h-[27px]"
-              style={{ backgroundColor: colors.primaryDark }}
-            >
-              <img src={UpperIcon} className="block w-[20px] h-[16px]" />
-            </button>
-          )}
+              className="w-full h-full px-4 text-sm border rounded-full"
+              style={{ borderColor: "#B3B3B3" }}
+            />
+
+            {newComment.trim().length > 0 && (
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() =>
+                  handleSubmitComment(
+                    newComment,
+                    replyTarget ? replyTarget.id : null
+                  )
+                }
+                className="absolute right-3 inset-y-0 my-auto flex items-center justify-center rounded-[12px] w-[40px] h-[27px]"
+                style={{ backgroundColor: colors.primaryDark }}
+              >
+                <img src={UpperIcon} className="block w-[20px] h-[16px]" />
+              </button>
+            )}
           </div>
         </div>
       </div>
