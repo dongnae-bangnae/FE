@@ -106,11 +106,7 @@ export default function LikePlacePage() {
       setSaving(true);
       await patchRegions(ids);
 
-<<<<<<< HEAD
       // 초기 화면으로 전환 + 토스트 노출
-=======
-      // ✅ 초기 화면으로 전환 + 토스트 노출
->>>>>>> 92e6f84b4faf73e2b1874f4f99f78edc5c6c714d
       setIsSearching(false);
       setAreaInput("");
       setStep("intro");
