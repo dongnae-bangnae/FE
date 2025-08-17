@@ -17,7 +17,7 @@ import MiniMap from "../components/Record/MiniMap";
 import { useEditArticle } from "../hooks/mutations/useEditArticle";
 import { useCategorySelectionStore } from "../stores/categorySelection";
 import { useShallow } from "zustand/react/shallow";
-import { selectDraftValues, usePinDraftStore } from "../stores/pinDraftStore";
+import { usePinDraftStore } from "../stores/pinDraftStore";
 
 function RecordWritingPage() {
   const navigate = useNavigate();
@@ -44,8 +44,44 @@ function RecordWritingPage() {
     }))
   ); 
 
-  const resetPin = usePinDraftStore(s => s.reset);
-  const { latitude, longitude, detailAddress, placeName, pinCategory } = usePinDraftStore(useShallow(selectDraftValues));
+
+  const { mode, placeName, pinCategory, detailAddress, placeId, latitude, longitude } = usePinDraftStore(
+    useShallow((s) => {
+      if (s.mode === "existing") {
+        return {
+          mode: s.mode,
+          placeName: s.placeName,
+          pinCategory: s.pinCategory,
+          detailAddress: s.detailAddress,
+          placeId: s.placeId,
+          latitude: null,
+          longitude: null,
+        };
+      } else if (s.mode === "new") {
+        return {
+          mode: s.mode,
+          placeName: s.placeName,
+          pinCategory: s.pinCategory,
+          detailAddress: s.detailAddress,
+          placeId: null,
+          latitude: s.latitude,
+          longitude: s.longitude,
+        };
+      } else {
+        return {
+          mode: s.mode,
+          placeName: null,
+          pinCategory: null,
+          detailAddress: null,
+          placeId: null,
+          latitude: null,
+          longitude: null,
+        };
+      }
+    })
+  );
+  const resetPin = usePinDraftStore((s) => s.reset);
+
   
   const { mutateAsync: uploadArticle } = useCreateArticle();
   

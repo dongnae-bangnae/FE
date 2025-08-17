@@ -1,67 +1,64 @@
 import { create } from "zustand";
 import { PinCategoryType } from "../components/PinCategorySelector";
 
-type PinDraftValues = {
-	detailAddress: string | null;
-	latitude: number | null;
-	longitude: number | null;
+export type DraftMode = "new" | "existing" | null;
+
+type PinDraftState = {
+	// 공통(모달에서 입력)
 	placeName: string;
 	pinCategory: PinCategoryType | null;
-};
 
-type PinDraftActions = {
-	setFromMapClick: (addr: string, lat: number, lng: number) => void;
-	setPlaceName: (name: string) => void;
-	setPinCategory: (cat: PinCategoryType | null) => void;
+	// 분기 제어 + 최소 데이터
+	mode: DraftMode;
+	placeId: number | null;       // existing 전용
+	detailAddress: string | null; // both
+	latitude: number | null;      // new 전용
+	longitude: number | null;     // new 전용
+
+	// 액션
+	setMode: (m: DraftMode) => void;
+	setExisting: (placeId: number, detailAddress: string) => void;
+	setNew: (detailAddress: string, latitude: number, longitude: number) => void;
+	setPlaceName: (v: string) => void;
+	setPinCategory: (v: PinCategoryType | null) => void;
 	reset: () => void;
 };
 
-export type PinDraftState = PinDraftValues & PinDraftActions;
-
-const initial: PinDraftValues = {
+const initial: Omit<PinDraftState, "setMode" | "setExisting" | "setNew" | "setPlaceName" | "setPinCategory" | "reset"> = {
+	placeName: "",
+	pinCategory: null,
+	mode: null,
+	placeId: null,
 	detailAddress: null,
 	latitude: null,
-	longitude: null,
-	placeName: "",
-	pinCategory: null
+	longitude: null
 };
 
-const EPS = 1e-6;
-const eq = (a: number | null, b: number | null) =>
-	a == null || b == null ? a === b : Math.abs(a - b) < EPS;
-
-export const usePinDraftStore = create<PinDraftState>()((set, get) => ({
+export const usePinDraftStore = create<PinDraftState>()((set) => ({
 	...initial,
 
-	setFromMapClick: (addr, lat, lng) =>
-		set((s) => {
-			const nextLat = Number(lat.toFixed(5));
-			const nextLng = Number(lng.toFixed(5));
-			const sameAddr = s.detailAddress === addr;
-			const sameLat = eq(s.latitude, nextLat);
-			const sameLng = eq(s.longitude, nextLng);
-			if (sameAddr && sameLat && sameLng) return s; // 변화 없으면 no-op
-			return {
-				...s,
-				detailAddress: addr,
-				latitude: nextLat,
-				longitude: nextLng
-			};
+	setMode: (mode) => set({ mode }),
+
+	setExisting: (placeId, detailAddress) =>
+		set({
+			mode: "existing",
+			placeId,
+			detailAddress,
+			latitude: null,
+			longitude: null
 		}),
 
-	setPlaceName: (name) =>
-		set((s) => (s.placeName === name ? s : { ...s, placeName: name })),
+	setNew: (detailAddress, latitude, longitude) =>
+		set({
+			mode: "new",
+			detailAddress,
+			latitude: Number(latitude.toFixed(5)),
+			longitude: Number(longitude.toFixed(5)),
+			placeId: null
+		}),
 
-	setPinCategory: (cat) =>
-		set((s) => (s.pinCategory === cat ? s : { ...s, pinCategory: cat })),
+	setPlaceName: (v) => set({ placeName: v }),
+	setPinCategory: (v) => set({ pinCategory: v }),
 
 	reset: () => set({ ...initial })
 }));
-
-export const selectDraftValues = (s: PinDraftState) => ({
-	detailAddress: s.detailAddress,
-	latitude: s.latitude,
-	longitude: s.longitude,
-	placeName: s.placeName,
-	pinCategory: s.pinCategory
-});
