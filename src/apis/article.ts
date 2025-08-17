@@ -100,6 +100,18 @@ const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
 const jsonPart = (obj: unknown) => 
   new Blob([JSON.stringify(obj)], { type: "application/json"});
 
+function pickMainAndOthers(files: (File | undefined)[], mainIndex?: number) {
+  const safe = (files ?? []).filter((f): f is File => f instanceof File);
+  if (safe.length === 0) return { main: undefined as File | undefined, others: [] as File[] };
+
+  let idx = typeof mainIndex === "number" ? mainIndex : 0;
+  idx = Math.min(Math.max(idx, 0), safe.length - 1);
+
+  const main = safe[idx];
+  const others = safe.filter((_, i) => i !== idx);
+  return { main, others };
+}
+
 //게시글 작성(미등록장소)
 export const createArticle = async (
   data: ArticleForm,
@@ -121,20 +133,15 @@ export const createArticle = async (
   };
   fd.append("request", jsonPart(request));
 
-  const files = (opts?.files ?? []).filter(
-    (f): f is File => f instanceof File
+  const { main, others } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
+  if (main) fd.append("mainImage", main);               
+  others.forEach((f) => fd.append("imageFiles", f));   
+
+  const { data: res } = await axiosInstance.post(
+    "/api/articles/with-location",
+    fd 
   );
-  files.forEach((f) => fd.append("images", f));
-
-  if (files.length > 0 && typeof opts?.mainIndex === "number") {
-    const idx = Math.min(Math.max(opts.mainIndex, 0), files.length - 1);
-    fd.append("mainImageIndex", String(idx));
-  }
-
-  const { data: response } = await axiosInstance.post<
-    ApiResponse<{ articleId: number }>
-  >("/api/articles/with-location", fd);
-  return response.result.articleId;
+  return res.result.articleId;
 };
 
 //게시글 작성(기존 핀)
@@ -157,19 +164,15 @@ export const createArticleAtPlace = async (
   };
   fd.append("request", jsonPart(request));
 
-  const files = (opts?.files ?? []).filter(
-    (f): f is File => f instanceof File
+  const { main, others } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
+  if (main) fd.append("mainImage", main);              
+  others.forEach((f) => fd.append("imageFiles", f));  
+
+  const { data: res } = await axiosInstance.post(
+    "/api/articles",
+    fd
   );
-  files.forEach((f) => fd.append("images", f));
-
-  if (files.length > 0 && typeof opts?.mainIndex === "number") {
-    fd.append("mainImageIndex", String(opts.mainIndex));
-  }
-
-  const { data: response } = await axiosInstance.post<
-    ApiResponse<{ articleId: number }>
-  >("/api/articles", fd);
-  return response.result.articleId;
+  return res.result.articleId;
 };
 
 //게시글 수정
