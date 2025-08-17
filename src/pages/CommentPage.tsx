@@ -50,6 +50,7 @@ function CommentPage() {
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
   const { data: fetched, isLoading, isError } = useFetchComments(articleId);
+  
   useEffect(() => {
     const list = (fetched?.result ?? fetched) as any[];
     if (!Array.isArray(list)) return;
@@ -195,10 +196,13 @@ function CommentPage() {
 
                 onReplyClick={() => {
                   setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname });
+
                   setNewComment((prev) => {
                     const mention = `${parentComment.nickname}`;
                     return prev.startsWith(mention) ? prev : (prev ? `${mention}${prev}` : mention);
                   });
+
+                  setActiveReplyId(null);
                 }}
               >
                 {/* {editCommentId === parentComment.id && (
@@ -308,6 +312,14 @@ function CommentPage() {
                       isMine={myInfo?.nickname === childComment.nickname}
                       onEdit={() => handleEditComment(childComment.id, childComment.content)}
                       onDelete={() => handleDeleteComment(childComment.id)}
+                      onReplyClick={() => {
+                        setReplyTarget({ id: parentComment.id, nickname: childComment.nickname });
+                        setNewComment((prev) => {
+                          const mention = `@${childComment.nickname} `;
+                          return prev.startsWith(mention) ? prev : (prev ? `${mention}${prev}` : mention);
+                        });
+                        setActiveReplyId(null);
+                      }}
                     />
                   </div>
                 ))}
