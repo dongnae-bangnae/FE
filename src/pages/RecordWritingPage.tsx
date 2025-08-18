@@ -38,7 +38,6 @@ function RecordWritingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const isEditMode = location.state?.mode === "edit";
-  const prefilled = location.state?.prefilled === true;
   const editArticleId = isEditMode ? Number(location.state?.articleId) : null;
 
   const {
@@ -122,7 +121,6 @@ function RecordWritingPage() {
   /** 수정 진입: 서버 uuid를 article/photo URL로 매핑해 미리보기 표시 */
   useEffect(() => {
     if (!isEditMode || !editArticleId) return;
-    if (prefilled) return;
 
     (async () => {
       try {
