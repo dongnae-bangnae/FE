@@ -12,6 +12,7 @@ import { useDeleteArticle } from "../hooks/mutations/useDeleteArticle";
 import EditModal from "../components/Record/EditModal";
 import { useArticleViewStore } from "../stores/articleView";
 import { fetchArticleDetail } from "../apis/article";
+import { useArticleDraftStore } from "../stores/articleDraft";
 
 // --- S3 이미지 유틸 ---
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
@@ -47,6 +48,16 @@ const RecordDetailPage = () => {
     incSpam,
     decSpam,
   } = useArticleViewStore((s) => s);
+
+  const { setTitle, setContent, setDate, addImages, setMain, reset: resetDraft } =
+    useArticleDraftStore((s) => ({
+      setTitle: s.setTitle,
+      setContent: s.setContent,
+      setDate: s.setDate,
+      addImages: s.addImages,
+      setMain: s.setMain,
+      reset: s.reset,
+    }));
 
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -237,6 +248,23 @@ const RecordDetailPage = () => {
     });
   };
 
+  const goEdit = () => {
+    if (!articleId) return;
+    // 1) draft 초기화 후 채우기
+    resetDraft();
+    setTitle(title ?? "");
+    setContent(content ?? "");
+    setDate(date ?? "");
+    const imgs = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : imageUuids ?? [])
+      .map((s) => toImgSrc(s));
+    if (imgs.length) {
+      addImages(imgs);
+      setMain(imgs[0]);
+    }
+    // 2) prefilled 플래그와 함께 이동 (Writing에서 fetch 스킵)
+    navigate("/record/write", { state: { mode: "edit", articleId, prefilled: true } });
+  };
+
   return (
     <>
       {/* 상단바 */}
@@ -341,12 +369,7 @@ const RecordDetailPage = () => {
       {showMenu && (
         <EditModal
           onClose={() => setShowMenu(false)}
-          onEdit={() => {
-            setShowMenu(false);
-            navigate("/record/write", {
-              state: { mode: "edit", articleId },
-            });
-          }}
+          onEdit={goEdit}
           onDelete={() => {
             setShowMenu(false);
             setShowDeleteModal(true);
