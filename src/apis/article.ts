@@ -104,6 +104,33 @@ function pickMainAndOthers(files: (File | undefined)[], mainIndex?: number) {
   return { main, others };
 }
 
+const toPartialFormData = (form: Partial<ArticleForm>) => {
+  const fd = new FormData();
+
+  const put = (k: keyof ArticleForm, v: any) => {
+    if (v !== undefined && v !== null && v !== "") {
+      fd.append(String(k), String(v));
+    }
+  };
+
+  put("categoryId", form.categoryId);
+  put("regionId", form.regionId);
+  put("title", form.title);
+  put("content", form.content);
+  put("date", form.date);
+  put("latitude", form.latitude);   
+  put("longitude", form.longitude); 
+  put("detailAddress", form.detailAddress);
+  put("placeName", form.placeName);
+  put("pinCategory", form.pinCategory);
+  put("mainImageUuid", form.mainImageUuid);
+
+  if (form.imageUuids) {
+    form.imageUuids.forEach((uuid) => fd.append("imageUuids", uuid));
+  }
+  return fd;
+};
+
 //게시글 작성(미등록장소)
 export const createArticle = async (
   data: ArticleForm,
@@ -176,9 +203,9 @@ export const createArticleAtPlace = async (
 //게시글 수정
 export const editArticle = async (
   articleId: number,
-  data: ArticleForm
+  data: Partial<ArticleForm>
 ): Promise<void> => {
-  const formData = toFormData(data);
+  const formData = toPartialFormData(data);
   await axiosInstance.put(`/api/articles/${articleId}`, formData);
 };
 
