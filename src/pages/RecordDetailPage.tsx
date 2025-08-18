@@ -1,4 +1,4 @@
-import { useLocation, useNavigate} from "react-router-dom";
+import { useLocation, useNavigate, useParams} from "react-router-dom";
 import { useEffect, useState } from "react";
 import MenuIcon from "../assets/record/icon-menubar.svg";
 // import CheckIcon_g from "../assets/icon-check-green.svg";
@@ -13,10 +13,12 @@ import { useDeleteArticle } from "../hooks/mutations/useDeleteArticle";
 import EditModal from "../components/Record/EditModal";
 // import MessagePopup from "../components/MessagaePopup";
 import { useArticleViewStore } from "../stores/articleView";
+import { fetchArticleDetail } from "../apis/article";
 
 const RecordDetailPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
+   const { articleId: articleIdParam } = useParams<{ articleId?: string }>();
 
   const {
     articleId, title, content, date,
@@ -44,27 +46,60 @@ const RecordDetailPage = () => {
   }, [state]);
 
   useEffect(() => {
-    if (!articleId && state && typeof state === "object") {
-      const s = state as any;
-      hydrate({
-        articleId: s.articleId ?? articleId ?? 0,
-        title: s.title ?? title ?? "",
-        content: s.content ?? content ?? "",
-        date: s.date ?? date ?? "",
-        mainImageUuid: s.mainImageUuid ?? mainImageUuid ?? null,
-        imageUuids: s.imageUuids ?? imageUuids ?? [],
-        latitude: s.latitude ?? latitude ?? null,
-        longitude: s.longitude ?? longitude ?? null,
-        likeCount: s.likeCount ?? likeCount ?? 0,
-        spamCount: s.spamCount ?? spamCount ?? 0,
-        commentCount: commentCount ?? 0,
-        liked: s.liked ?? false,
-        isReported: s.isReported ?? ( (s.spamCount ?? spamCount ?? 0) > 0 ),
-      });
+    const idFromUrl = Number(articleIdParam);                     // 경로 /record/:articleId 가정
+    const idFromState = (state && typeof state === "object" && (state as any).articleId) ? Number((state as any).articleId) : 0;
+    const targetId = articleId || idFromUrl || idFromState;
+
+    if (!targetId) {
+      return;
     }
-  }, [articleId, state]);
+
+    if (articleId) return;
+
+    (async () => {
+      try {
+        setIsLoading(true); // 서버에서 상세 조회
+        const d = await fetchArticleDetail(targetId);  
+        const toImgSrc = (s?: string | null) => {
+          if (!s) return "";
+          if (/^https?:\/\//i.test(s)) return s;
+          // 기본 이미지(또는 서버에서 uuid만 내려줄 때)
+          return `https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com/default-images/${s}`;
+        };
+
+        hydrate({
+          articleId: d.articleId ?? targetId,
+          title: d.title ?? "",
+          content: d.content ?? "",
+          date: d.date ?? "",
+          mainImageUuid: d.mainImageUuid ? toImgSrc(d.mainImageUuid) : null,      // [FIX IMG SRC]
+          imageUuids: Array.isArray(d.imageUuids) ? d.imageUuids.map(toImgSrc).filter(Boolean) : [], // [FIX IMG SRC]
+          latitude: (d as any).latitude ?? latitude ?? null,
+          longitude: (d as any).longitude ?? longitude ?? null,
+          likeCount: d.likeCount ?? 0,
+          spamCount: d.spamCount ?? 0,
+          commentCount: (d as any).commentCount ?? commentCount ?? 0,
+          liked: (d as any).liked ?? false,
+          isReported: (d as any).isReported ?? ((d.spamCount ?? 0) > 0),
+        });
+      } catch (err) {
+        console.error("상세 불러오기 실패:", err);
+        alert("게시글을 불러오지 못했어요.");
+        navigate("/home");
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [articleIdParam, articleId]);
+
+  const toImgSrc = (s?: string | null) => {
+    if (!s) return "";
+    if (/^https?:\/\//i.test(s)) return s;
+    return `https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com/default-images/${s}`;
+  };
   
-  const allImages = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : (imageUuids ?? []));
+  const allImages = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : (imageUuids ?? []))
+    .map((s) => toImgSrc(s));
 
   const handleOpenReportModal = () => {
     setShowConfirm(true);
