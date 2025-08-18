@@ -1,4 +1,4 @@
-import { ArticleDetail, ArticleForm, LikeResponse } from "../types/article";
+import { ArticleDetail, ArticleForm, LikeResponse, CreatedArticleResult } from "../types/article";
 import { ArticleListItem } from "../types/article";
 import { ApiResponse } from "../types/common";
 import { axiosInstance } from "./axiosInstance";
@@ -42,6 +42,7 @@ export const fetchCategoryArticles = async (
   return data.result;
 };
 
+
 /** FormData */
 const toFormData = (form: ArticleForm) => {
   const formData = new FormData();
@@ -58,15 +59,8 @@ const toFormData = (form: ArticleForm) => {
   formData.append("placeName", form.placeName);
   formData.append("pinCategory", form.pinCategory);
 
-  if (form.mainImageUuid) {
-    formData.append("mainImageUuid", form.mainImageUuid);
-    console.log("main 추가: ", form.mainImageUuid);
-  }
-
-  form.imageUuids.forEach((uuid) => {
-    formData.append("imageUuids", uuid);
-    console.log("나머지 추가: ", form.imageUuids);
-  });
+  if (form.mainImageUuid) formData.append("mainImageUuid", form.mainImageUuid);
+  (form.imageUuids ?? []).forEach((uuid) => formData.append("imageUuids", uuid));
 
   return formData;
 };
@@ -97,27 +91,86 @@ const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
   return fd;
 };
 
+const jsonPart = (obj: unknown) =>
+  new Blob([JSON.stringify(obj)], { type: "application/json" });
+
+function pickMainAndOthers(files: (File | undefined)[], mainIndex?: number) {
+  const safe = (files ?? []).filter((f): f is File => f instanceof File);
+  if (safe.length === 0) return { main: undefined as File | undefined, others: [] as File[] };
+  let idx = typeof mainIndex === "number" ? mainIndex : 0;
+  idx = Math.min(Math.max(idx, 0), safe.length - 1);
+  const main = safe[idx];
+  const others = safe.filter((_, i) => i !== idx);
+  return { main, others };
+}
 
 //게시글 작성(미등록장소)
-export const createArticle = async (data: ArticleForm): Promise<number> => {
-  const formData = toFormData(data);
-  const { data: response } = await axiosInstance.post<
-    ApiResponse<{ articleId: number }>
-  >("/api/articles/with-location", formData);
-  return response.result.articleId;
+export const createArticle = async (
+  data: ArticleForm,
+  opts?: { files?: File[]; mainIndex?: number }
+): Promise<CreatedArticleResult> => {
+  const fd = new FormData();
+
+  const request: any = {
+    categoryId: data.categoryId,
+    regionId: data.regionId,
+    title: data.title,
+    content: data.content,
+    date: data.date,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    detailAddress: data.detailAddress,
+    placeName: data.placeName,
+    pinCategory: data.pinCategory,
+  };
+
+  if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // UUID만
+  if (Array.isArray(data.imageUuids) && data.imageUuids.length) {
+    request.imageUuids = data.imageUuids; // UUID 배열
+  }
+
+  fd.append("request", jsonPart(request));
+
+  const { main, others } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
+  if (main) fd.append("mainImage", main);
+  others.forEach((f) => fd.append("imageFiles", f));
+
+  const { data: res } = await axiosInstance.post("/api/articles/with-location", fd);
+  return res.result as CreatedArticleResult;
 };
 
 //게시글 작성(기존 핀)
 export const createArticleAtPlace = async (
-  data: ArticleFormAtPlace
-): Promise<number> => {
-  const formData = toFormDataAtPlace(data);
-  const { data: response } = await axiosInstance.post<
-    ApiResponse<{ articleId: number }>
-  >("/api/articles", formData, {
-    headers: { "Content-Type": "multipart/form-data" }, // 서버가 명시적으로 요구하는 경우 대비
-  });
-  return response.result.articleId;
+  data: Omit<ArticleForm, "latitude" | "longitude"> & { placeId: number },
+  opts?: { files?: File[]; mainIndex?: number }
+): Promise<CreatedArticleResult> => {
+  const fd = new FormData();
+
+  const request: any = {
+    categoryId: data.categoryId,
+    placeId: data.placeId,
+    regionId: data.regionId,
+    title: data.title,
+    content: data.content,
+    date: data.date,
+    detailAddress: data.detailAddress,
+    placeName: data.placeName,
+    pinCategory: data.pinCategory,
+  };
+
+  if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid;
+  if (Array.isArray(data.imageUuids) && data.imageUuids.length) {
+    request.imageUuids = data.imageUuids;
+  }
+
+  fd.append("request", jsonPart(request));
+
+  const { main, others } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
+  if (main) fd.append("mainImage", main);
+  others.forEach((f) => fd.append("imageFiles", f));
+
+  const { data: res } = await axiosInstance.post("/api/articles", fd);
+  return res.result as CreatedArticleResult;
 };
 
 //게시글 수정
