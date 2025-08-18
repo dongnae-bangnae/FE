@@ -151,7 +151,7 @@ function RecordWritingPage() {
     setMain(selectedImages.length > 0 ? selectedImages[0] : null);
   }, [selectedImages, setMain]);
 
-  /** ====== uuid 추출 (article/photo, default-images 모두) ====== */
+  //uuid 추출
   const uuidRe = /^[0-9a-fA-F-]{36}$/;
   const isArticlePhotoUrl = (src: string) => {
     try { return new URL(src).pathname.includes("/article/photo/"); }
@@ -190,7 +190,6 @@ function RecordWritingPage() {
     return new File([u8arr], filename, { type: mime });
   };
 
-  /** ====== 제출: “선택 순서” 기반 메인/서브 결정 ====== */
   const handleSubmit = async () => {
     if (categoryId == null) return alert("카테고리를 먼저 선택해 주세요.");
     if (pinCategory == null) return alert("핀 카테고리를 선택해 주세요.");
@@ -202,30 +201,27 @@ function RecordWritingPage() {
     if (!content.trim()) missing.push("내용");
 
     // 전체 선택 목록에서 파일/uuid 분리
-    const firstSelected = selectedImages[0];                                // [FIX: MAIN ORDER]
-    const dataUrls = selectedImages.filter((s) => s.startsWith("data:"));   // [FIX: MAIN ORDER]
+    const firstSelected = selectedImages[0];                                
+    const dataUrls = selectedImages.filter((s) => s.startsWith("data:"));   
     const filesForUpload: File[] = dataUrls
       .map((u) => fileMapRef.current.get(u))
-      .filter((f): f is File => !!f);                                       // [FIX: MAIN ORDER]
+      .filter((f): f is File => !!f);                                      
 
-    const uuidsInOrder = selectedImages.map(asUuid).filter(Boolean);        // [FIX: MAIN ORDER]
+    const uuidsInOrder = selectedImages.map(asUuid).filter(Boolean);      
     const hasAnyImage = uuidsInOrder.length + filesForUpload.length > 0;
     if (!hasAnyImage) missing.push("사진(1장 이상)");
     if (missing.length) return alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
 
-    // --- 메인 결정 규칙 ---
-    // 1) 첫 번째가 URL(기본/서버) → mainImageUuid
-    // 2) 첫 번째가 파일(dataURL) → mainIndex (uuid는 비움)
-    let mainUuid = "";                                                      // [FIX: MAIN ORDER]
-    let mainIndex: number | undefined;                                      // [FIX: MAIN ORDER]
+    // main 결정
+    let mainUuid = "";                                                      
+    let mainIndex: number | undefined;                                    
     if (firstSelected?.startsWith("data:")) {
-      mainIndex = dataUrls.indexOf(firstSelected); // 보통 0                // [FIX: MAIN ORDER]
+      mainIndex = dataUrls.indexOf(firstSelected); // 보통 0                
     } else {
-      mainUuid = asUuid(firstSelected);                                     // [FIX: MAIN ORDER]
+      mainUuid = asUuid(firstSelected);                                     
     }
 
-    // 3) 나머지 uuid들은 순서대로 imageUuids (메인이 URL인 경우 첫 uuid 제외)
-    const imageUuids = mainUuid ? uuidsInOrder.slice(1) : uuidsInOrder;     // [FIX: MAIN ORDER]
+    const imageUuids = mainUuid ? uuidsInOrder.slice(1) : uuidsInOrder;     
 
     setIsLoading(true);
     try {
@@ -234,10 +230,10 @@ function RecordWritingPage() {
           title,
           content,
           date: selectedDate,
+          mainImageUuid: mainUuid || undefined,
+          imageUuids,
         };
-        if (mainUuid) payload.mainImageUuid = mainUuid;                     // [FIX: MAIN ORDER]
-        if (imageUuids.length) payload.imageUuids = imageUuids;             // [FIX: MAIN ORDER]
-
+        
         await editMutate(payload);
 
         // 로컬 뷰(표시는 article/photo/{uuid})
