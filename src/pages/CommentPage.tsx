@@ -193,11 +193,7 @@ function CommentPage() {
                 onReplyClick={() => {
                   setEditCommentId(null);
                   setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname });
-
-                  setNewComment((prev) => {
-                    const mention = `${parentComment.nickname}`;
-                    return prev.startsWith(mention) ? prev : (prev ? `${mention}${prev}` : mention);
-                  });
+                  setNewComment("");
                 }}
               >
               </CommentItem>
@@ -246,7 +242,7 @@ function CommentPage() {
               <div className="absolute -top-[42px] left-0 right-0 z-10
                               flex items-center justify-between px-3 py-2
                               rounded-xl shadow bg-[#F5F5F5]">
-                <span className="text-sm" style={{fontWeight: fonts.weight.regular}}>
+                <span style={{fontWeight: fonts.weight.regular, font: fonts.size.caption}}>
                   <b>댓글을 수정하는 중…</b>
                 </span>
                 <button

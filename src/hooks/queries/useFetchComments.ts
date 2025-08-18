@@ -6,10 +6,21 @@ export interface FlatComment {
   content: string;
   nickname: string;
   profileImage: string;
-  parentCommentId: number | null;
+  parentCommentId: number | null; 
 }
 
-const normalizeOne = (c: any): FlatComment => ({
+function pickList(res: any): any[] {
+  if (Array.isArray(res?.result?.comments)) return res.result.comments; // {result:{comments:[]}}
+  if (Array.isArray(res?.result)) return res.result;                    // {result:[]}
+  if (Array.isArray(res?.comments)) return res.comments;                // {comments:[]}
+  if (Array.isArray(res)) return res;                                   // []
+  if (Array.isArray(res?.data?.result?.comments)) return res.data.result.comments;
+  if (Array.isArray(res?.data?.result)) return res.data.result;
+  if (Array.isArray(res?.data?.comments)) return res.data.comments;
+  return [];
+}
+
+const normalizeParent = (c: any): FlatComment => ({
   id: c?.commentId ?? c?.id,
   content: c?.content ?? "",
   nickname: c?.nickname ?? c?.writerNickname ?? "",
@@ -25,24 +36,23 @@ const normalizeReply = (c: any, parentId: number): FlatComment => ({
   parentCommentId: parentId,
 });
 
-export function useFetchComments(articleId: number, opts?: { enabled?: boolean}) {
+export function useFetchComments(articleId: number, opts?: { enabled?: boolean }) {
   return useQuery<FlatComment[]>({
     queryKey: ["comments", articleId],
     enabled: opts?.enabled ?? true,
     queryFn: async () => {
-      // 부모댓글
+      // 부모 댓글
       const parentRes = await fetchParentComments(articleId);
-      const parentsRaw = Array.isArray(parentRes?.result) ? parentRes.result : parentRes;
-      const parents = (Array.isArray(parentsRaw) ? parentsRaw : []).map(normalizeOne);
+      const parentsRaw = pickList(parentRes);
+      const parents = parentsRaw.map(normalizeParent);
 
       // 답글
       const repliesArrays = await Promise.all(
         parents.map(async (p) => {
           try {
             const repRes = await fetchReplies(articleId, p.id);
-            const raw = Array.isArray(repRes?.result) ? repRes.result : repRes;
-            const list = Array.isArray(raw) ? raw : [];
-            return list.map((r: any) => normalizeReply(r, p.id));
+            const repsRaw = pickList(repRes);
+            return repsRaw.map((r: any) => normalizeReply(r, p.id));
           } catch {
             return [] as FlatComment[];
           }
