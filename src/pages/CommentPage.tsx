@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
@@ -16,6 +16,7 @@ import { useDeleteComment } from "../hooks/mutations/useDeleteComment";
 import SpamPopup from "../components/Record/SpamPopup";
 import CommentSpamModal from "../components/Record/CommentSpamModal";
 import { useFetchComments } from "../hooks/queries/useFetchComments";
+import { useArticleViewStore } from "../stores/articleView";
 
 interface LocationState {
   articleId: number;
@@ -33,7 +34,19 @@ function CommentPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const queryClient = useQueryClient();
-  const articleId = (state as LocationState)?.articleId ?? 1;
+
+  const { id: idParam, articleId: articleIdParam } = useParams<{ id?: string; articleId?: string }>();
+  const idFromUrl = (idParam ?? articleIdParam) && /^\d+$/.test((idParam ?? articleIdParam)!)
+    ? Number(idParam ?? articleIdParam)
+    : 0;
+
+  const idFromState = (state as LocationState)?.articleId || 0;
+
+  const storeArticleId = useArticleViewStore((s) => s.articleId) || 0;
+
+  // 최종
+  const articleId = idFromUrl || idFromState || storeArticleId;
+
   const deleteCommentMutation = useDeleteComment();
 
   const [newComment, setNewComment] = useState("");
@@ -46,20 +59,12 @@ function CommentPage() {
 
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
-  const { data: fetched, isLoading, isError } = useFetchComments(articleId);
+  const { data: fetchedComments = [], isLoading, isError } = useFetchComments(articleId, { enabled: articleId > 0});
   
   useEffect(() => {
-    const list = (fetched?.result ?? fetched) as any[];
-    if (!Array.isArray(list)) return;
-    const normalized: CommentData[] = list.map((c: any) => ({
-      id: c.commentId ?? c.id,
-      content: c.content ?? "",
-      nickname: c.nickname ?? c.writerNickname ?? "",
-      profileImage: c.profileImage ?? c.writerProfileImage ?? "",
-      parentCommentId: c.parentCommentId ?? null,
-    }));
-    setComments(normalized);
-  }, [fetched]);
+    setComments(fetchedComments);
+  }, [fetchedComments]);
+
 
   const { mutate: updateComment } = useUpdateComment(
     articleId,
