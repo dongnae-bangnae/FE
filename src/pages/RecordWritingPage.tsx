@@ -107,6 +107,8 @@ function RecordWritingPage() {
   const [showGallery, setShowGallery] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
+  const fileMapRef = useRef<Map<string, File>>(new Map());
+
   useEffect(() => {
     if (!isEditMode || !editArticleId) return;
 
@@ -145,10 +147,10 @@ function RecordWritingPage() {
   
   const uuidRe = /^[0-9a-fA-F-]{36}$/;
 
-const isDefaultImageUrl = (src: string) => {
-  try { return new URL(src).pathname.includes("/default-images/"); }
-  catch { return src.includes("/default-images/"); }
-};
+  const isDefaultImageUrl = (src: string) => {
+    try { return new URL(src).pathname.includes("/default-images/"); }
+    catch { return src.includes("/default-images/"); }
+  };
 
 const extractUuidFromDefaultUrl = (src: string) => {
   try {
@@ -166,7 +168,7 @@ const asUuid = (src?: string | null) => {
   if (!src) return "";
   if (uuidRe.test(src)) return src;
   if (isDefaultImageUrl(src)) return extractUuidFromDefaultUrl(src);
-  return ""; // data: 등은 여기선 무시(파일 업로드 미사용 플로우)
+  return ""; 
 };
 
   const dataUrlToFile = (dataUrl: string, filename: string) => {
@@ -179,27 +181,6 @@ const asUuid = (src?: string | null) => {
     for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
     return new File([u8arr], filename, { type: mime });
   };
-
-  // const collectFilesFromSelection = async (urls: string[], baseFiles: File[]) => {
-  //   if (baseFiles.length > 0) return baseFiles; 
-  //   const files: File[] = [];
-  //   for (let i = 0; i < urls.length; i++) {
-  //     const src = urls[i];
-  //     try {
-  //       if (src.startsWith("data:")) {
-  //         files.push(dataUrlToFile(src, `image_${i}.png`));
-  //       } else {
-  //         const res = await fetch(src, { mode: "cors" }); 
-  //         const blob = await res.blob();
-  //         const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
-  //         files.push(new File([blob], `image_${i}.${ext}`, { type: blob.type || "image/jpeg" }));
-  //       }
-  //     } catch (err) {
-  //       console.warn("이미지 변환 실패:", src, err);
-  //     }
-  //   }
-  //   return files;
-  // };
 
   const handleSubmit = async () => {
     if (categoryId== null) {
@@ -224,42 +205,36 @@ const asUuid = (src?: string | null) => {
     const missing: string[] = [];
     if (!title.trim()) missing.push("제목");
     if (!content.trim()) missing.push("내용");
-    if (!Array.isArray(selectedImages) || selectedImages.length < 1) {
-      missing.push("사진(1장 이상)");
-    }
+    
+    const normalizedUuids = selectedImages.map(asUuid).filter((s): s is string => !!s); // 기본/서버 이미지
+    const fileOnlyList = selectedImages.filter((s) => s.startsWith("data:"));           // 새로 고른 사진(data URL)
+    const filesForUpload: File[] = fileOnlyList
+      .map((u) => fileMapRef.current.get(u))
+      .filter((f): f is File => !!f);
+
+    const hasAnyImage = normalizedUuids.length + filesForUpload.length > 0;             // [FIX IMAGE UPLOAD]
+    if (!hasAnyImage) missing.push("사진(1장 이상)");
+
 
     if (isEditMode) {
-      // 최소 필드
       if (missing.length > 0) {
         alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
         return;
       }
     } else {
-      // 생성 시에만 추가 검증
-      if (categoryId == null) { alert("카테고리를 먼저 선택해 주세요."); return; }
-      if (pinCategory == null) { alert("핀 카테고리를 선택해 주세요."); return; }
-      if (detailAddress == null || detailAddress.trim() === "") { alert("상세 주소가 필요해요."); return; }
-
-      // 기본이미지(UUID) 기준 최소 1장 필요
-      const normalizedUuidsChk = selectedImages.map(asUuid).filter((s): s is string => !!s);
-      if (normalizedUuidsChk.length < 1) missing.push("사진(1장 이상)");
-
       if (missing.length > 0) {
         alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
         return;
       }
     }
 
-    const normalizedUuids = selectedImages.map(asUuid).filter((s): s is string => !!s);
-    if (normalizedUuids.length < 1) missing.push("사진(1장 이상)");
+    let mainUuid = asUuid(mainImageUuid ?? "");
+    const mainIndex =
+      mainImageUuid && mainImageUuid.startsWith("data:")
+        ? fileOnlyList.indexOf(mainImageUuid)
+        : undefined;
 
-      if (missing.length > 0) {
-        alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
-        return;
-      }
-
-      let mainUuid = asUuid(mainImageUuid ?? "");
-    if (!mainUuid) mainUuid = normalizedUuids[0];
+    if (!mainUuid && normalizedUuids.length > 0) mainUuid = normalizedUuids[0];
     const imageUuids = normalizedUuids.filter((u) => u !== mainUuid);
 
 
@@ -306,7 +281,6 @@ const asUuid = (src?: string | null) => {
       }
 
       //새로 등록
-      const addr = (detailAddress ?? "").trim();
       let result;
       if (typeof placeId === "number") {
         result = await createAtPlace({
@@ -321,6 +295,8 @@ const asUuid = (src?: string | null) => {
           pinCategory,
           mainImageUuid: mainUuid,
           imageUuids,
+          files: filesForUpload,         
+          mainIndex,          
         });
       } else if (typeof latitude === "number" && typeof longitude === "number") {
         result = await createWithLocation({
@@ -336,6 +312,8 @@ const asUuid = (src?: string | null) => {
           pinCategory,
           mainImageUuid: mainUuid,
           imageUuids,
+          files: filesForUpload,      
+          mainIndex,                    
         });
       } else {
         alert("위치 정보가 없습니다. 기존 핀을 선택하거나 지도로 위치를 지정해 주세요.");
@@ -383,8 +361,12 @@ const asUuid = (src?: string | null) => {
     const readers = fileArray.map((file) => {
       return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
+        reader.onloadend = () => {
+          const dataUrl = reader.result as string;
+          fileMapRef.current.set(dataUrl, file);
+          resolve(dataUrl);
+        };
+        reader.onerror = () => reject(reader.error);
         reader.readAsDataURL(file);
       });
     });
@@ -397,7 +379,11 @@ const asUuid = (src?: string | null) => {
   };
 
   const handleImageSelect = (src: string) => {
+    const wasSelected = selectedImages.includes(src);                  // [FIX IMAGE UPLOAD]
     toggleImage(src);
+    if (wasSelected && src.startsWith("data:")) {
+      fileMapRef.current.delete(src);                                  // [FIX IMAGE UPLOAD]
+    }
   };
 
   return (
