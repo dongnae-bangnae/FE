@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, useParams} from "react-router-dom";
 import { useEffect, useState } from "react";
 import MenuIcon from "../assets/record/icon-menubar.svg";
-import CheckIcon_g from "../assets/icon-check-green.svg";
+// import CheckIcon_g from "../assets/icon-check-green.svg";
 import fonts from "../styles/fonts";
 import RecordBottomNav from "../components/Record/RecordBottomNav";
 import MiniMap from "../components/Record/MiniMap";
@@ -11,9 +11,9 @@ import MypageModal from "../components/MypageModal";
 import { useToggleSpamReport } from "../hooks/mutations/useToggleSpamReport";
 import { useDeleteArticle } from "../hooks/mutations/useDeleteArticle";
 import EditModal from "../components/Record/EditModal";
+// import MessagePopup from "../components/MessagaePopup";
 import { useArticleViewStore } from "../stores/articleView";
 import { fetchArticleDetail } from "../apis/article";
-import MessagePopup from "../components/MessagePopup";
 
 const RecordDetailPage = () => {
   const { state } = useLocation();
@@ -337,8 +337,8 @@ const RecordDetailPage = () => {
             }
             deleteArticle(articleId, {
               onSuccess: () => {
+                alert("게시글이 삭제되었습니다.");
                 navigate("/home");
-                <MessagePopup icon={CheckIcon_g} message="게시물이 삭제되었어요" />
               },
               onError: () => {
                 alert("게시글 삭제에 실패했습니다.");
