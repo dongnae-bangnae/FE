@@ -99,7 +99,6 @@ function RecordWritingPage() {
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (selectedImages.length > 0) {
@@ -108,89 +107,16 @@ function RecordWritingPage() {
       setMain(null);
     }
   }, [selectedImages, setMain]);
-  
-  const dataUrlToFile = (dataUrl: string, filename: string) => {
-    const arr = dataUrl.split(",");
-    const mimeMatch = arr[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : "image/png";
-    const bstr = atob(arr[1]);
-    const n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
-    return new File([u8arr], filename, { type: mime });
-  };
-
-   const isSameOriginOrApi = (url: string) => {
-    try {
-      const u = new URL(url, window.location.origin);
-      const origin = u.origin;
-
-      if (origin === window.location.origin) return true;
-
-      const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL;
-      if (apiBase) {
-        const api = new URL(apiBase);
-        if (origin === api.origin) return true;
-      }
-    } catch {}
-    return false;
-  };
-
-  const collectFilesFromSelection = async (urls: string[], baseFiles: File[]) => {
-    if (baseFiles.length > 0) return baseFiles; 
-
-    const files: File[] = [];
-    const unfetchable: string[] = [];
-    
-    for (let i = 0; i < urls.length; i++) {
-      const src = urls[i];
-      try {
-        if (src.startsWith("data:")) {
-          files.push(dataUrlToFile(src, `image_${i}.png`));
-          continue;
-        }
-
-        if (isSameOriginOrApi(src)) {
-          const res = await fetch(src, {
-            credentials: "include", // 쿠키 포함
-          });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const blob = await res.blob();
-          const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
-          files.push(new File([blob], `image_${i}.${ext}`, { type: blob.type || "image/jpeg" }));
-        } else {
-          unfetchable.push(src);
-        }
-      } catch (err) {
-        console.warn("이미지 변환 실패:", src, err);
-        unfetchable.push(src);
-      }
-    }
-
-    if (files.length === 0 && unfetchable.length > 0) {
-      alert(
-        [
-          "선택한 이미지 중 교차 출처(S3 등) 주소는 보안상 브라우저에서 파일로 변환할 수 없어요.",
-          "- 해결 방법:",
-          "  1) 파일 선택(갤러리)으로 직접 이미지를 추가하거나,",
-          "  2) 백엔드에서 프록시 경로(동일 도메인)로 이미지를 내려주세요.",
-        ].join("\n")
-      );
-    }
-
-    return files;
-  };
 
   const handleSubmit = async () => {
     if (categoryId== null) {
       alert("카테고리를 먼저 선택해 주세요.");
       return;
     }
-    // if (latitude == null || longitude == null) {
-    //   alert("위치 정보가 필요합니다.");
-    //   return;
-    // }
-
+    if (latitude == null || longitude == null) {
+      alert("위치 정보가 필요합니다.");
+      return;
+    }
     if (pinCategory == null) {
       alert("핀 카테고리를 선택해 주세요.");
       return;
@@ -216,60 +142,43 @@ function RecordWritingPage() {
     // 등록
     setIsLoading(true);
     try {
-      let files = await collectFilesFromSelection(selectedImages, selectedFiles); 
-      const safeFiles = files.filter((f): f is File => f instanceof File);     
-
-      if (safeFiles.length === 0) {
-        alert("사진을 불러오지 못했어요. 갤러리 이미지에 CORS가 막혀 있다면, 파일로 직접 선택해 주세요.");
-        setIsLoading(false);
-        return;
-      }
-
-      let mainIdx = selectedImages.findIndex((u) => u === mainImageUuid);
-      if (mainIdx < 0 || mainIdx >= safeFiles.length) mainIdx = 0;
-
-      const filesReordered =
-        mainIdx > 0
-          ? [safeFiles[mainIdx], ...safeFiles.filter((_, i) => i !== mainIdx)]
-          : safeFiles; 
+      const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
 
       let articleId: number;
 
       if (typeof placeId === "number") {
         // 기존 핀
-        const payload = {
-          categoryId, placeId,
-          detailAddress: addr, 
+        const articleData = {
+          categoryId,
+          placeId,
+          detailAddress: addr,
           regionId: 1,
-          title, content, 
+          title,
+          content,
           date: selectedDate,
-          mainImageUuid: "",           
-          imageUuids: [],              
-          placeName, 
+          mainImageUuid: mainImageUuid ?? "",
+          imageUuids,
+          placeName,
           pinCategory,
-          files: filesReordered,       
-          mainIndex: 0,                
         };
-        articleId = await createAtPlace(payload);
+        articleId = await createAtPlace(articleData);
       } else if (typeof latitude === "number" && typeof longitude === "number") {
         // 미등록 장소
-        const payload = {
-          categoryId, 
-          latitude, 
-          longitude, 
-          detailAddress: addr, 
+        const articleData = {
+          categoryId,          
+          latitude,
+          longitude,
+          detailAddress: addr,
           regionId: 1,
-          title, 
-          content, 
+          title,
+          content,
           date: selectedDate,
-          mainImageUuid: "", 
-          imageUuids: [], 
-          placeName, 
+          mainImageUuid: mainImageUuid ?? "",
+          imageUuids,
+          placeName,
           pinCategory,
-          files: filesReordered,       
-          mainIndex: 0,                
         };
-        articleId = await createWithLocation(payload);
+        articleId = await createWithLocation(articleData);
       } else {
         alert("위치 정보가 없습니다. 기존 핀을 선택하거나 지도로 위치를 지정해 주세요.");
         setIsLoading(false);
@@ -284,10 +193,10 @@ function RecordWritingPage() {
         title,
         content,
         date: selectedDate,
-        mainImageUuid: null,
-        imageUuids: [],
-        latitude: typeof latitude === "number" ? latitude : null, 
-        longitude: typeof longitude === "number" ? longitude : null,
+        mainImageUuid: mainImageUuid ?? null,
+        imageUuids,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
         likeCount: 0,
         spamCount: 0,
         commentCount: 0,
@@ -313,7 +222,6 @@ function RecordWritingPage() {
     if (!files) return;
 
     const fileArray = Array.from(files);
-
     const readers = fileArray.map((file) => {
       return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -326,8 +234,6 @@ function RecordWritingPage() {
     Promise.all(readers).then((imageUrls) => {
      addImages(imageUrls);
     });
-
-    setSelectedFiles((prev) => [...prev, ...fileArray].slice(0, 10));
   };
 
   const handleImageSelect = (src: string) => {
