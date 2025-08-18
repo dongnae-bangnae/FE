@@ -24,6 +24,16 @@ import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticl
 import { useEditArticle } from "../hooks/mutations/useEditArticle"; 
 import { fetchArticleDetail } from "../apis/article";
 
+const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com"; 
+const ARTICLE_PHOTO_BASE = `${S3_BASE}/article/photo`;                  
+
+// [S3 PATH] uuid 또는 절대 URL을 화면 표시용 URL로 변환
+const buildImageUrl = (v?: string | null) => {                    
+  if (!v) return "";
+  if (/^https?:\/\//i.test(v)) return v;
+  return `${ARTICLE_PHOTO_BASE}/${v}`;
+};
+
 function RecordWritingPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -121,10 +131,11 @@ function RecordWritingPage() {
         setDate(d.date ?? "");
 
         // 이미지(미리보기용)
-        const imgs = [
-          ...(d.mainImageUuid ? [d.mainImageUuid] : []),
-          ...(Array.isArray(d.imageUuids) ? d.imageUuids : []),
-        ];
+        const imgs: string[] = [];                                        // [S3 PATH]
+        if (d.mainImageUuid) imgs.push(buildImageUrl(d.mainImageUuid));   // [S3 PATH]
+        if (Array.isArray(d.imageUuids)) {
+          imgs.push(...d.imageUuids.map((u) => buildImageUrl(u)));        // [S3 PATH]
+        }
         if (imgs.length) {
           addImages(imgs);
           setMain(imgs[0]);
@@ -147,40 +158,46 @@ function RecordWritingPage() {
   
   const uuidRe = /^[0-9a-fA-F-]{36}$/;
 
+  const isArticlePhotoUrl = (src: string) => {                            // [S3 PATH]
+    try { return new URL(src).pathname.includes("/article/photo/"); }
+    catch { return src.includes("/article/photo/"); }
+  };
+
   const isDefaultImageUrl = (src: string) => {
     try { return new URL(src).pathname.includes("/default-images/"); }
     catch { return src.includes("/default-images/"); }
   };
 
-const extractUuidFromDefaultUrl = (src: string) => {
-  try {
-    const u = new URL(src);
-    const last = u.pathname.split("/").filter(Boolean).pop() || "";
-    return last.split("?")[0];
-  } catch {
-    const last = src.split("/").filter(Boolean).pop() || "";
-    return last.split("?")[0];
-  }
-};
-
-// src(=uuid|S3 URL|data:) → uuid 또는 "" 로 표준화
-const asUuid = (src?: string | null) => {
-  if (!src) return "";
-  if (uuidRe.test(src)) return src;
-  if (isDefaultImageUrl(src)) return extractUuidFromDefaultUrl(src);
-  return ""; 
-};
-
-  const dataUrlToFile = (dataUrl: string, filename: string) => {
-    const arr = dataUrl.split(",");
-    const mimeMatch = arr[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : "image/png";
-    const bstr = atob(arr[1]);
-    const n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
-    return new File([u8arr], filename, { type: mime });
+  const extractUuidFromS3Url = (src: string) => {                         // [S3 PATH]
+    try {
+      const u = new URL(src);
+      const last = u.pathname.split("/").filter(Boolean).pop() || "";
+      return last.split("?")[0];
+    } catch {
+      const last = src.split("/").filter(Boolean).pop() || "";
+      return last.split("?")[0];
+    }
   };
+
+  // src(=uuid|S3 URL|data:) → uuid 또는 "" 로 표준화
+  const asUuid = (src?: string | null) => {
+    if (!src) return "";
+    if (uuidRe.test(src)) return src;
+    if (isArticlePhotoUrl(src)) return extractUuidFromS3Url(src);
+    if (isDefaultImageUrl(src)) return extractUuidFromS3Url(src);
+    return ""; 
+  };
+
+    const dataUrlToFile = (dataUrl: string, filename: string) => {
+      const arr = dataUrl.split(",");
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : "image/png";
+      const bstr = atob(arr[1]);
+      const n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
+      return new File([u8arr], filename, { type: mime });
+    };
 
   const handleSubmit = async () => {
     if (categoryId== null) {
@@ -229,10 +246,14 @@ const asUuid = (src?: string | null) => {
     }
 
     let mainUuid = asUuid(mainImageUuid ?? "");
-    const mainIndex =
+    let mainIndex: number | undefined =
       mainImageUuid && mainImageUuid.startsWith("data:")
         ? fileOnlyList.indexOf(mainImageUuid)
         : undefined;
+
+    if (mainIndex === undefined && !mainUuid && filesForUpload.length > 0) { // [UPLOAD]
+      mainIndex = 0;                                                         // [UPLOAD]
+    }
 
     if (!mainUuid && normalizedUuids.length > 0) mainUuid = normalizedUuids[0];
     const imageUuids = normalizedUuids.filter((u) => u !== mainUuid);
@@ -262,8 +283,8 @@ const asUuid = (src?: string | null) => {
           title,
           content,
           date: selectedDate,
-          mainImageUuid: mainUuid || null,
-          imageUuids: imageUuids || [],
+          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) :null,
+          imageUuids: imageUuids.map(buildImageUrl),
           latitude: typeof latitude === "number" ? latitude : null,
           longitude: typeof longitude === "number" ? longitude : null,
           likeCount: 0,
@@ -326,8 +347,8 @@ const asUuid = (src?: string | null) => {
         title: result.title,
         content: result.content,
         date: result.date,
-        mainImageUuid: result.mainImageUuid ?? null,
-        imageUuids: result.imageUuids ?? [],
+        mainImageUuid: result.mainImageUuid ? buildImageUrl(result.mainImageUuid) : null,
+        imageUuids: Array.isArray(result.imageUuids) ? result.imageUuids.map(buildImageUrl) : [],
         latitude: typeof latitude === "number" ? latitude : null,
         longitude: typeof longitude === "number" ? longitude : null,
         likeCount: result.likeCount ?? 0,

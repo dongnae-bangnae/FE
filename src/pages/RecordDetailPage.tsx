@@ -15,6 +15,13 @@ import EditModal from "../components/Record/EditModal";
 import { useArticleViewStore } from "../stores/articleView";
 import { fetchArticleDetail } from "../apis/article";
 
+const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
+const buildImageUrl = (v?: string | null) => {              
+  if (!v) return "";
+  if (/^https?:\/\//i.test(v)) return v;                    
+  return `${S3_BASE}/article/photo/${v}`;                    
+};
+
 const RecordDetailPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -41,7 +48,7 @@ const RecordDetailPage = () => {
   const idFromState =
     state && typeof state === "object" && (state as any).articleId
       ? Number((state as any).articleId)
-      : 0; // [FIX]
+      : 0; 
   const stableId = articleId || idFromUrl || idFromState || 0;          
 
   const { mutate: toggleSpam } = useToggleSpamReport(stableId);       
