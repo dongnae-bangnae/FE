@@ -32,13 +32,18 @@ const RecordDetailPage = () => {
     setCommentCount,
   } = useArticleViewStore((s) => s);
 
+  const idFromUrl   = Number(articleIdParam);
+  const idFromState = (state && typeof state === "object" && (state as any).articleId)
+    ? Number((state as any).articleId) : 0;
+  const stableId    = articleId || idFromUrl || idFromState || 0;
+
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const { mutate: toggleSpam } = useToggleSpamReport(articleId);
+  const { mutate: toggleSpam } = useToggleSpamReport(stableId);
   const { mutate: deleteArticle } = useDeleteArticle();
 
   useEffect(() => {
@@ -48,14 +53,9 @@ const RecordDetailPage = () => {
   }, [state]);
 
   useEffect(() => {
-    const idFromUrl = Number(articleIdParam);                     // 경로 /record/:articleId 가정
-    const idFromState = (state && typeof state === "object" && (state as any).articleId) ? Number((state as any).articleId) : 0;
-    const targetId = articleId || idFromUrl || idFromState;
-
-    if (!targetId) {
-      return;
-    }
-
+    const targetId = stableId;
+  
+    if (!targetId) return;
     if (articleId) return;
 
     (async () => {
@@ -303,7 +303,7 @@ const RecordDetailPage = () => {
             navigate("/record/write", {
               state: {
                 mode: "edit",
-                articleId,
+                articleId: stableId,
               },
             });
           }}
@@ -311,17 +311,6 @@ const RecordDetailPage = () => {
             setShowMenu(false);
             setShowDeleteModal(true);
           }}
-        />
-      )}
-
-      {showConfirm && (
-        <MypageModal
-          title="정말 광고 의심 신고를 하시겠어요?"
-          description="허위 신고는 제재 대상이 될 수 있습니다."
-          cancelText="취소"
-          confirmText="신고"
-          onCancel={() => setShowConfirm(false)}
-          onConfirm={handleConfirmReport}
         />
       )}
 
@@ -333,20 +322,32 @@ const RecordDetailPage = () => {
           confirmText="삭제"
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={() => {
-            if (articleId <= 0) {
+            if (stableId <= 0) {
               alert("잘못된 접근, 게시글 ID가 없습니다");
               return;
             }
-            deleteArticle(articleId, {
+            deleteArticle(stableId, {
               onSuccess: () => {
                 navigate("/home");
-                <MessagePopup icon={CheckIcon_g} message="댓글이 등록되었어요" />
+                <MessagePopup icon={CheckIcon_g} message="게시물이 삭제되었어요." />
               },
               onError: () => {
                 alert("게시글 삭제에 실패했습니다.");
               },
             });
           }}
+        />
+      )}
+
+
+      {showConfirm && (
+        <MypageModal
+          title="정말 광고 의심 신고를 하시겠어요?"
+          description="허위 신고는 제재 대상이 될 수 있습니다."
+          cancelText="취소"
+          confirmText="신고"
+          onCancel={() => setShowConfirm(false)}
+          onConfirm={handleConfirmReport}
         />
       )}
 
