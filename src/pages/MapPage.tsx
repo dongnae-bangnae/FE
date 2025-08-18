@@ -12,11 +12,11 @@ declare global {
 }
 
 function MapPage() {
-	// References
+	// Refs
 	const mapContainerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<any>(null);
 	const markerRefList = useRef<any[]>([]); // 주변 장소 핀
-	const meMarkerRef = useRef<any>(null); // 내 위치 핀 (고정)
+	const meMarkerRef = useRef<any>(null);   // 내 위치 핀(고정, 중심과 분리)
 
 	// Store
 	const { center, setCenter } = useMapViewStore();
@@ -31,64 +31,91 @@ function MapPage() {
 	const { data: places = [] } = useFetchPlacesWithinBounds(
 		shouldFetch
 			? {
-				latMin: Number((currentLat! - 0.009).toFixed(5)),
-				latMax: Number((currentLat! + 0.009).toFixed(5)),
-				lngMin: Number((currentLng! - 0.0114).toFixed(5)),
-				lngMax: Number((currentLng! + 0.0114).toFixed(5)),
-			}
+					latMin: Number((currentLat! - 0.009).toFixed(5)),
+					latMax: Number((currentLat! + 0.009).toFixed(5)),
+					lngMin: Number((currentLng! - 0.0114).toFixed(5)),
+					lngMax: Number((currentLng! + 0.0114).toFixed(5)),
+			  }
 			: { latMin: 0, latMax: 0, lngMin: 0, lngMax: 0 },
 		shouldFetch
 	);
 
-	// 1. 카카오맵 스크립트 로드 및 지도 초기화 (최초 1회 실행)
+	// --- 유틸: 맵 생성, 내 위치 마커 생성 분리 ---
+	function createMap(container: HTMLDivElement, lat: number, lng: number) {
+		const center = new window.kakao.maps.LatLng(lat, lng);
+		return new window.kakao.maps.Map(container, { center, level: 3 });
+	}
+
+	function placeMyLocationMarker(map: any, lat: number, lng: number) {
+		const pos = new window.kakao.maps.LatLng(lat, lng);
+		// 기존 내 위치 마커 제거
+		if (meMarkerRef.current) meMarkerRef.current.setMap(null);
+
+		meMarkerRef.current = new window.kakao.maps.Marker({
+			position: pos,
+			map,
+			title: "현재 위치",
+			image: new window.kakao.maps.MarkerImage(
+				pinMe,
+				new window.kakao.maps.Size(36, 36),
+				{ offset: new window.kakao.maps.Point(18, 36) }
+			),
+			zIndex: 10000,
+			clickable: false
+		});
+	}
+
+	// 1) 지도 로더 + 초기화 (최초 마운트 시 1회)
 	useEffect(() => {
 		const existing = document.querySelector('script[src*="dapi.kakao.com"]') as HTMLScriptElement | null;
-		
-		const initMap = (initLat: number, initLng: number) => {
-			const locPosition = new window.kakao.maps.LatLng(initLat, initLng);
-			const options = { center: locPosition, level: 3 };
-			if (!mapContainerRef.current) return;
-			mapRef.current = new window.kakao.maps.Map(mapContainerRef.current, options);
-			setCurrentLat(initLat);
-			setCurrentLng(initLng);
-			setIsMapLoaded(true);
-		};
 
 		const bootstrap = () => {
 			window.kakao.maps.load(() => {
-				// 1) 스토어에 center가 있으면 그걸로 초기화 (페이지 이동 후 복귀)
+				const tryPlaceMyLocationMarker = () => {
+					if (!navigator.geolocation || !mapRef.current) return;
+					navigator.geolocation.getCurrentPosition(
+						(pos) => {
+							const myLat = pos.coords.latitude;
+							const myLng = pos.coords.longitude;
+							placeMyLocationMarker(mapRef.current, myLat, myLng);
+						},
+						(err) => {
+							console.warn("내 위치 마커를 표시할 수 없습니다:", err);
+						},
+						{ enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+					);
+				};
+
+				const initWith = (lat: number, lng: number) => {
+					if (!mapContainerRef.current) return;
+					mapRef.current = createMap(mapContainerRef.current, lat, lng);
+					setIsMapLoaded(true);
+					setCurrentLat(lat);
+					setCurrentLng(lng);
+					// 맵이 준비된 후에는 '항상' 실제 내 위치 마커를 별도로 시도
+					tryPlaceMyLocationMarker();
+				};
+
+				// A) 저장된 center(복귀 시 시야 유지)가 있으면 그걸로 맵 생성
 				if (center.lat !== null && center.lng !== null) {
-					initMap(center.lat, center.lng);
+					initWith(center.lat, center.lng);
 					return;
 				}
 
-				// 2) 없으면 현재 위치 기반으로 초기화 (최초 진입 또는 새로고침)
+				// B) 아니면 지오로케이션으로 초기 맵 중심
 				if (navigator.geolocation) {
 					navigator.geolocation.getCurrentPosition(
 						(pos) => {
-							const lat = pos.coords.latitude;
-							const lng = pos.coords.longitude;
-							initMap(lat, lng);
-							setCenter(lat, lng); // 스토어에 현재 위치 기록
-
-							// 내 위치 핀은 이 시점에 한 번만 생성
-							meMarkerRef.current = new window.kakao.maps.Marker({
-								position: new window.kakao.maps.LatLng(lat, lng),
-								map: mapRef.current,
-								title: "현재 위치",
-								image: new window.kakao.maps.MarkerImage(
-									pinMe,
-									new window.kakao.maps.Size(36, 36),
-									{ offset: new window.kakao.maps.Point(18, 36) }
-								),
-							});
+							const { latitude: lat, longitude: lng } = pos.coords;
+							initWith(lat, lng);
+							setCenter(lat, lng); // 첫 진입 기록
 						},
 						(err) => {
 							alert("위치 정보를 불러올 수 없어요. 기본 위치로 설정합니다.");
 							console.error(err);
 							const defaultLat = 37.566826;
 							const defaultLng = 126.9786567;
-							initMap(defaultLat, defaultLng);
+							initWith(defaultLat, defaultLng);
 							setCenter(defaultLat, defaultLng);
 						}
 					);
@@ -96,12 +123,13 @@ function MapPage() {
 					alert("위치 정보를 지원하지 않습니다. 기본 위치로 설정합니다.");
 					const defaultLat = 37.566826;
 					const defaultLng = 126.9786567;
-					initMap(defaultLat, defaultLng);
+					initWith(defaultLat, defaultLng);
 					setCenter(defaultLat, defaultLng);
 				}
 			});
 		};
 
+		// 스크립트 중복 로드 방지
 		if (existing) {
 			if ((window as any).kakao && window.kakao.maps) {
 				bootstrap();
@@ -116,13 +144,13 @@ function MapPage() {
 		script.async = true;
 		script.onload = bootstrap;
 		document.head.appendChild(script);
-	}, [center.lat, center.lng, setCenter]);
+	}, []); // 최초 1회
 
-	// 2. 주변 장소 마커 렌더링 (데이터 변경 시마다 실행)
+	// 2) 주변 장소 마커 렌더링 (데이터 변경 시마다)
 	useEffect(() => {
 		if (!mapRef.current || currentLat === null || currentLng === null) return;
 
-		// 기존 주변 장소 마커만 제거
+		// 기존 주변 장소 마커만 제거 (내 위치 마커는 건드리지 않음)
 		markerRefList.current.forEach((m) => m.setMap(null));
 		markerRefList.current = [];
 
@@ -160,7 +188,8 @@ function MapPage() {
 					onChangeCenter={(lat, lng) => {
 						setCurrentLat(lat);
 						setCurrentLng(lng);
-						setCenter(lat, lng);
+						setCenter(lat, lng); // 시야 복원용(스토어)
+						// 내 위치 마커는 건드리지 않음
 					}}
 				/>
 			)}
