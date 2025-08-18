@@ -213,10 +213,7 @@ function CommentPage() {
                       onReplyClick={() => {
                         setEditCommentId(null);
                         setReplyTarget({ id: parentComment.id, nickname: childComment.nickname });
-                        setNewComment((prev) => {
-                          const mention = `@${childComment.nickname} `;
-                          return prev.startsWith(mention) ? prev : (prev ? `${mention}${prev}` : mention);
-                        });
+                        setNewComment("");
                       }}
                     />
                   </div>
@@ -244,7 +241,7 @@ function CommentPage() {
               <div className="absolute -top-[42px] left-0 right-0 z-10
                               flex items-center justify-between px-3 py-2
                               rounded-xl shadow bg-[#F5F5F5]">
-                <span className="text-sm truncate">
+                <span className="text-sm" style={{fontWeight: fonts.weight.regular}}>
                   <b>댓글을 수정하는 중…</b>
                 </span>
                 <button
@@ -283,7 +280,7 @@ function CommentPage() {
               placeholder={
                 editCommentId !== null
                   ? "" 
-                  : replyTarget && newComment.trim() === ""
+                  : replyTarget
                   ? `@${replyTarget.nickname}님에게 답글을 남기는 중... `
                   : "여러분의 동네 이야기도 궁금해요 💭"
               }
