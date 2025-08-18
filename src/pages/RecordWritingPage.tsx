@@ -120,24 +120,64 @@ function RecordWritingPage() {
     return new File([u8arr], filename, { type: mime });
   };
 
+   const isSameOriginOrApi = (url: string) => {
+    try {
+      const u = new URL(url, window.location.origin);
+      const origin = u.origin;
+
+      if (origin === window.location.origin) return true;
+
+      const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL;
+      if (apiBase) {
+        const api = new URL(apiBase);
+        if (origin === api.origin) return true;
+      }
+    } catch {}
+    return false;
+  };
+
   const collectFilesFromSelection = async (urls: string[], baseFiles: File[]) => {
     if (baseFiles.length > 0) return baseFiles; 
+
     const files: File[] = [];
+    const unfetchable: string[] = [];
+    
     for (let i = 0; i < urls.length; i++) {
       const src = urls[i];
       try {
         if (src.startsWith("data:")) {
           files.push(dataUrlToFile(src, `image_${i}.png`));
-        } else {
-          const res = await fetch(src, { mode: "cors" }); 
+          continue;
+        }
+
+        if (isSameOriginOrApi(src)) {
+          const res = await fetch(src, {
+            credentials: "include", // 쿠키 포함
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const blob = await res.blob();
           const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
           files.push(new File([blob], `image_${i}.${ext}`, { type: blob.type || "image/jpeg" }));
+        } else {
+          unfetchable.push(src);
         }
       } catch (err) {
         console.warn("이미지 변환 실패:", src, err);
+        unfetchable.push(src);
       }
     }
+
+    if (files.length === 0 && unfetchable.length > 0) {
+      alert(
+        [
+          "선택한 이미지 중 교차 출처(S3 등) 주소는 보안상 브라우저에서 파일로 변환할 수 없어요.",
+          "- 해결 방법:",
+          "  1) 파일 선택(갤러리)으로 직접 이미지를 추가하거나,",
+          "  2) 백엔드에서 프록시 경로(동일 도메인)로 이미지를 내려주세요.",
+        ].join("\n")
+      );
+    }
+
     return files;
   };
 
@@ -176,8 +216,8 @@ function RecordWritingPage() {
     // 등록
     setIsLoading(true);
     try {
-      let files = await collectFilesFromSelection(selectedImages, selectedFiles); // [ADD]
-      const safeFiles = files.filter((f): f is File => f instanceof File);       // [ADD]
+      let files = await collectFilesFromSelection(selectedImages, selectedFiles); 
+      const safeFiles = files.filter((f): f is File => f instanceof File);     
 
       if (safeFiles.length === 0) {
         alert("사진을 불러오지 못했어요. 갤러리 이미지에 CORS가 막혀 있다면, 파일로 직접 선택해 주세요.");
