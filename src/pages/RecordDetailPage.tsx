@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useParams} from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MenuIcon from "../assets/record/icon-menubar.svg";
 // import CheckIcon_g from "../assets/icon-check-green.svg";
 import fonts from "../styles/fonts";
@@ -36,7 +36,14 @@ const RecordDetailPage = () => {
   const [showMessage, setShowMessage] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const { mutate: toggleSpam } = useToggleSpamReport(articleId);
+  const idFromUrl = Number(articleIdParam);
+  const idFromState =
+    (state && typeof state === "object" && (state as any).articleId)
+      ? Number((state as any).articleId)
+      : 0;
+  const stableId = articleId || idFromUrl || idFromState || 0;          // [FIX ID]
+
+  const { mutate: toggleSpam } = useToggleSpamReport(stableId);          // [FIX ID]
   const { mutate: deleteArticle } = useDeleteArticle();
 
   useEffect(() => {
@@ -45,27 +52,33 @@ const RecordDetailPage = () => {
     }
   }, [state]);
 
-  useEffect(() => {
-    const idFromUrl = Number(articleIdParam);                     // 경로 /record/:articleId 가정
-    const idFromState = (state && typeof state === "object" && (state as any).articleId) ? Number((state as any).articleId) : 0;
-    const targetId = articleId || idFromUrl || idFromState;
+  const toNum = (v: unknown): number | null => {
+    const n = typeof v === "string" ? parseFloat(v) : (typeof v === "number" ? v : NaN);
+    return Number.isFinite(n) ? n : null;
+  };
 
+  useEffect(() => {
+    const targetId = stableId;
     if (!targetId) {
       return;
     }
 
-    if (articleId) return;
+    if (articleId === targetId && title) return;
 
     (async () => {
       try {
         setIsLoading(true); // 서버에서 상세 조회
         const d = await fetchArticleDetail(targetId);  
+
         const toImgSrc = (s?: string | null) => {
           if (!s) return "";
           if (/^https?:\/\//i.test(s)) return s;
           // 기본 이미지(또는 서버에서 uuid만 내려줄 때)
           return `https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com/default-images/${s}`;
         };
+
+        const lat = toNum((d as any).latitude);
+        const lng = toNum((d as any).longitude);
 
         hydrate({
           articleId: d.articleId ?? targetId,
@@ -74,8 +87,8 @@ const RecordDetailPage = () => {
           date: d.date ?? "",
           mainImageUuid: d.mainImageUuid ? toImgSrc(d.mainImageUuid) : null,      // [FIX IMG SRC]
           imageUuids: Array.isArray(d.imageUuids) ? d.imageUuids.map(toImgSrc).filter(Boolean) : [], // [FIX IMG SRC]
-          latitude: (d as any).latitude ?? latitude ?? null,
-          longitude: (d as any).longitude ?? longitude ?? null,
+          latitude: lat,
+          longitude: lng,
           likeCount: d.likeCount ?? 0,
           spamCount: d.spamCount ?? 0,
           commentCount: (d as any).commentCount ?? commentCount ?? 0,
@@ -90,7 +103,7 @@ const RecordDetailPage = () => {
         setIsLoading(false);
       }
     })();
-  }, [articleIdParam, articleId]);
+  }, [stableId]);
 
   const toImgSrc = (s?: string | null) => {
     if (!s) return "";
@@ -100,6 +113,10 @@ const RecordDetailPage = () => {
   
   const allImages = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : (imageUuids ?? []))
     .map((s) => toImgSrc(s));
+
+  const mapLat = useMemo(() => (typeof latitude === "number" && Number.isFinite(latitude) ? latitude : null), [latitude]);
+  const mapLng = useMemo(() => (typeof longitude === "number" && Number.isFinite(longitude) ? longitude : null), [longitude]);
+  const canShowMap = mapLat !== null && mapLng !== null; 
 
   const handleOpenReportModal = () => {
     setShowConfirm(true);
@@ -231,7 +248,7 @@ const RecordDetailPage = () => {
             )}
 
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-              <MiniMap latitude={latitude} longitude={longitude} />
+              {canShowMap && <MiniMap latitude={mapLat!} longitude={mapLng!} />}
             </div>
           </div>
         </div>
@@ -246,7 +263,6 @@ const RecordDetailPage = () => {
         isReported={isReported}
         onShowReportModal={handleOpenReportModal}
         onCancelReport={handleCancelReport}
-
       />
 
       {showMenu && (
