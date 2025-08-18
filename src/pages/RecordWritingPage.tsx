@@ -389,7 +389,7 @@ function RecordWritingPage() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="새 게시물"
-          className="w-full h-[34px] resize-none focus:outline-none"
+          className="w-full h-[30px] resize-none focus:outline-none"
           style={{ fontFamily: fonts.family, fontSize: "23px", lineHeight: fonts.lineHeight.subtitle, fontWeight: fonts.weight.regular, border: "none", borderBottom: `1px solid ${colors.gray300}`, marginBottom: "10px", height: "56px" }}
         />
         <textarea
