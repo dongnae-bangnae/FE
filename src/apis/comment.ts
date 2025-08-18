@@ -16,8 +16,14 @@ export const deleteComment = (articleId: number, commentId: number) => {
   return axiosInstance.delete(`/api/articles/${articleId}/comments/${commentId}`);
 };
 
-//댓글 조회
-export const fetchComment = async (articleId: number) => {
+//부모 댓글 조회
+export const fetchParentComments = async (articleId: number) => {
   const res = await axiosInstance.get(`/api/articles/${articleId}/comments`);
   return res.data;
 }
+
+//답글 조회
+export const fetchReplies = async (articleId: number, parentCommentId: number) => {
+  const res = await axiosInstance.get(`/api/articles/${articleId}/comments/${parentCommentId}/replies`);
+  return res.data; 
+};
