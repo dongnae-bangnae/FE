@@ -36,14 +36,15 @@ const RecordDetailPage = () => {
   const [showMessage, setShowMessage] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const idFromUrl = Number(articleIdParam);
+  const idFromUrl =
+    articleIdParam && /^\d+$/.test(articleIdParam) ? Number(articleIdParam) : 0; 
   const idFromState =
-    (state && typeof state === "object" && (state as any).articleId)
+    state && typeof state === "object" && (state as any).articleId
       ? Number((state as any).articleId)
-      : 0;
-  const stableId = articleId || idFromUrl || idFromState || 0;          // [FIX ID]
+      : 0; // [FIX]
+  const stableId = articleId || idFromUrl || idFromState || 0;          
 
-  const { mutate: toggleSpam } = useToggleSpamReport(stableId);          // [FIX ID]
+  const { mutate: toggleSpam } = useToggleSpamReport(stableId);       
   const { mutate: deleteArticle } = useDeleteArticle();
 
   useEffect(() => {
@@ -53,22 +54,20 @@ const RecordDetailPage = () => {
   }, [state]);
 
   const toNum = (v: unknown): number | null => {
-    const n = typeof v === "string" ? parseFloat(v) : (typeof v === "number" ? v : NaN);
+    const n = 
+      typeof v === "string" ? parseFloat(v) : typeof v === "number" ? v : NaN;
     return Number.isFinite(n) ? n : null;
   };
 
   useEffect(() => {
-    const targetId = stableId;
-    if (!targetId) {
-      return;
-    }
+    if(!stableId) return;
 
-    if (articleId === targetId && title) return;
+    if (articleId === stableId && title) return;
 
     (async () => {
       try {
         setIsLoading(true); // 서버에서 상세 조회
-        const d = await fetchArticleDetail(targetId);  
+        const d = await fetchArticleDetail(stableId);  
 
         const toImgSrc = (s?: string | null) => {
           if (!s) return "";
@@ -81,19 +80,19 @@ const RecordDetailPage = () => {
         const lng = toNum((d as any).longitude);
 
         hydrate({
-          articleId: d.articleId ?? targetId,
+          articleId: d.articleId ?? stableId,
           title: d.title ?? "",
           content: d.content ?? "",
           date: d.date ?? "",
-          mainImageUuid: d.mainImageUuid ? toImgSrc(d.mainImageUuid) : null,      // [FIX IMG SRC]
-          imageUuids: Array.isArray(d.imageUuids) ? d.imageUuids.map(toImgSrc).filter(Boolean) : [], // [FIX IMG SRC]
+          mainImageUuid: d.mainImageUuid ? toImgSrc(d.mainImageUuid) : null,    
+          imageUuids: Array.isArray(d.imageUuids) ? d.imageUuids.map(toImgSrc).filter(Boolean) : [], 
           latitude: lat,
           longitude: lng,
           likeCount: d.likeCount ?? 0,
           spamCount: d.spamCount ?? 0,
           commentCount: (d as any).commentCount ?? commentCount ?? 0,
           liked: (d as any).liked ?? false,
-          isReported: (d as any).isReported ?? ((d.spamCount ?? 0) > 0),
+          isReported: (d as any).isReported ?? (d.spamCount ?? 0) > 0,
         });
       } catch (err) {
         console.error("상세 불러오기 실패:", err);
@@ -116,6 +115,7 @@ const RecordDetailPage = () => {
 
   const mapLat = useMemo(() => (typeof latitude === "number" && Number.isFinite(latitude) ? latitude : null), [latitude]);
   const mapLng = useMemo(() => (typeof longitude === "number" && Number.isFinite(longitude) ? longitude : null), [longitude]);
+  
   const canShowMap = mapLat !== null && mapLng !== null; 
 
   const handleOpenReportModal = () => {
