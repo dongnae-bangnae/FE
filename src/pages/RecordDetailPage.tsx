@@ -32,10 +32,10 @@ const RecordDetailPage = () => {
     setCommentCount,
   } = useArticleViewStore((s) => s);
 
-  const idFromUrl   = Number(articleIdParam);
-  const idFromState = (state && typeof state === "object" && (state as any).articleId)
-    ? Number((state as any).articleId) : 0;
-  const stableId    = articleId || idFromUrl || idFromState || 0;
+  // const idFromUrl   = Number(articleIdParam);
+  // const idFromState = (state && typeof state === "object" && (state as any).articleId)
+  //   ? Number((state as any).articleId) : 0;
+  // const stableId    = articleId || idFromUrl || idFromState || 0;
 
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +43,7 @@ const RecordDetailPage = () => {
   const [showMessage, setShowMessage] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const { mutate: toggleSpam } = useToggleSpamReport(stableId);
+  const { mutate: toggleSpam } = useToggleSpamReport(articleId);
   const { mutate: deleteArticle } = useDeleteArticle();
 
   useEffect(() => {
@@ -53,7 +53,14 @@ const RecordDetailPage = () => {
   }, [state]);
 
   useEffect(() => {
-    const targetId = stableId;
+    const idFromUrl = Number(articleIdParam);                     // 경로 /record/:articleId 가정
+    const idFromState = (state && typeof state === "object" && (state as any).articleId) ? Number((state as any).articleId) : 0;
+    const targetId = articleId || idFromUrl || idFromState;
+
+    if (!targetId) {
+      return;
+    }
+
   
     if (!targetId) return;
     if (articleId) return;
@@ -303,7 +310,7 @@ const RecordDetailPage = () => {
             navigate("/record/write", {
               state: {
                 mode: "edit",
-                articleId: stableId,
+                articleId,
               },
             });
           }}
@@ -322,11 +329,11 @@ const RecordDetailPage = () => {
           confirmText="삭제"
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={() => {
-            if (stableId <= 0) {
+            if (articleId <= 0) {
               alert("잘못된 접근, 게시글 ID가 없습니다");
               return;
             }
-            deleteArticle(stableId, {
+            deleteArticle(articleId, {
               onSuccess: () => {
                 navigate("/home");
                 <MessagePopup icon={CheckIcon_g} message="게시물이 삭제되었어요." />
