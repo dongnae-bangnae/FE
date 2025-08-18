@@ -249,49 +249,6 @@ const RecordDetailPage = () => {
 
       />
 
-      {/* 메뉴 모달 */}
-      {/* {showMenu && (
-        <div
-          className="fixed z-50 bg-white border border-gray-300 rounded-[10px] shadow-md"
-          style={{
-            top: "56px",  
-            right: "35px",         
-            width: "100px",
-          }}
-        >
-          <button
-            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100"
-            style={{borderBottom: "1px solid #999999"}}
-            onClick={() => {
-              setShowMenu(false);
-              alert("수정 기능 연동 예정");
-              // 수정 기능
-            }}
-          >
-            수정
-          </button>
-          <button
-            className="w-full px-4 py-2 border-b text-sm text-left hover:bg-gray-100"
-            style={{borderBottom: "1px solid #999999"}}
-            onClick={() => {
-              setShowMenu(false);
-              setShowDeleteModal(true);
-              // 삭제 기능
-            }}
-          >
-            삭제
-          </button>
-          <button
-            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100"
-            onClick={() => {
-              setShowMenu(false);
-            }}
-          >
-            취소
-          </button>
-        </div>
-      )} */}
-
       {showMenu && (
         <EditModal
           onClose={() => setShowMenu(false)}
