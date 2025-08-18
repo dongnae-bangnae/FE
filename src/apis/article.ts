@@ -158,6 +158,8 @@ export const createArticle = async (
     detailAddress: data.detailAddress,
     placeName: data.placeName,
     pinCategory: data.pinCategory,
+    mainImageUuid: data.mainImageUuid ?? null,                 
+    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
   };
 
   if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // UUID만
@@ -171,7 +173,9 @@ export const createArticle = async (
   if (main) fd.append("mainImage", main);
   others.forEach((f) => fd.append("imageFiles", f));
 
-  const { data: res } = await axiosInstance.post("/api/articles/with-location", fd);
+  const { data: res } = await axiosInstance.post("/api/articles/with-location", fd, {
+    withCredentials: true,
+  });
   return res.result as CreatedArticleResult;
 };
 
@@ -192,12 +196,9 @@ export const createArticleAtPlace = async (
     detailAddress: data.detailAddress,
     placeName: data.placeName,
     pinCategory: data.pinCategory,
+     mainImageUuid: data.mainImageUuid ?? null,                
+    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
   };
-
-  if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid;
-  if (Array.isArray(data.imageUuids) && data.imageUuids.length) {
-    request.imageUuids = data.imageUuids;
-  }
 
   fd.append("request", jsonPart(request));
 
@@ -205,7 +206,9 @@ export const createArticleAtPlace = async (
   if (main) fd.append("mainImage", main);
   others.forEach((f) => fd.append("imageFiles", f));
 
-  const { data: res } = await axiosInstance.post("/api/articles", fd);
+  const { data: res } = await axiosInstance.post("/api/articles", fd, {
+    withCredentials: true,
+  });
   return res.result as CreatedArticleResult;
 };
 
