@@ -171,6 +171,13 @@ export type PlaceArticleRow = {
   updatedAt: string;
 };
 
+//  V2 복합 커서 타입
+export type PlaceCursor = {
+  cursorCreatedAt: string | null;
+  cursorArticleId: number | null;
+};
+
+// GET /api/articles/
 export async function fetchArticlesByPlace(
   placeId: number,
   cursor?: number | null, // null/-1 => 첫 페이지로 간주
@@ -200,4 +207,42 @@ export async function fetchArticlesByPlace(
   const hasNext = items.length === limit;
 
   return { items, nextCursor, hasNext, limit };
+}
+
+// GET /api/articles/v2
+export async function fetchArticlesByPlaceV2(
+  placeId: number,
+  cursor?: PlaceCursor | null, // 첫 페이지면 null/undefined
+  limit: number = 10
+): Promise<{
+  items: PlaceArticleRow[];
+  nextCursor: PlaceCursor | null;
+  hasNext: boolean;
+  limit: number;
+}> {
+  const params: Record<string, any> = { placeId, limit };
+
+  // 첫 페이지가 아니면 커서 2개를 함께 전송
+  if (cursor?.cursorCreatedAt) params.cursorCreatedAt = cursor.cursorCreatedAt;
+  if (cursor?.cursorArticleId != null)
+    params.cursorArticleId = cursor.cursorArticleId;
+
+  const { data } = await axiosInstance.get("/api/articles/v2", { params });
+
+  // 응답: result가 배열(리스트) — 스웨거 예시와 동일
+  const items: PlaceArticleRow[] = Array.isArray(data?.result)
+    ? data.result
+    : [];
+
+  // 다음 페이지용 복합 커서 생성 (마지막 아이템 기준)
+  const last = items[items.length - 1];
+
+  return {
+    items,
+    nextCursor: last
+      ? { cursorCreatedAt: last.createdAt, cursorArticleId: last.articleId }
+      : null,
+    hasNext: items.length === limit,
+    limit
+  };
 }
