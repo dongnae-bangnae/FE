@@ -390,14 +390,14 @@ function RecordWritingPage() {
           onChange={(e) => setTitle(e.target.value)}
           placeholder="새 게시물"
           className="w-full h-[34px] resize-none focus:outline-none"
-          style={{ fontFamily: fonts.family, fontSize: "30px", lineHeight: fonts.lineHeight.subtitle, fontWeight: fonts.weight.regular, border: "none", borderBottom: `1px solid ${colors.gray300}`, marginBottom: "10px", height: "56px" }}
+          style={{ fontFamily: fonts.family, fontSize: "23px", lineHeight: fonts.lineHeight.subtitle, fontWeight: fonts.weight.regular, border: "none", borderBottom: `1px solid ${colors.gray300}`, marginBottom: "10px", height: "56px" }}
         />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="나의 동네 풍경, 순간을 기록하고 함께 나눠보세요."
           className="w-full resize-none box-border focus:outline-none"
-          style={{ fontFamily: fonts.family, fontSize: fonts.size.body, lineHeight: fonts.lineHeight.body, fontWeight: fonts.weight.regular, border: "none", height: "150px" }}
+          style={{ fontFamily: fonts.family, fontSize: "15px", lineHeight: fonts.lineHeight.body, fontWeight: fonts.weight.regular, border: "none", height: "150px" }}
         />
 
         {/* 미리보기 */}
