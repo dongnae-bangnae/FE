@@ -262,7 +262,7 @@ function CommentPage() {
                               flex items-center justify-between px-3 py-2
                               rounded-xl shadow bg-[#F5F5F5]">
                 <span className="text-sm truncate">
-                  <b><span className="text-yellow-400">@{replyTarget.nickname}</span></b>
+                  <b><span style={{color: colors.primaryDark}}>{replyTarget.nickname}</span></b>
                   <span className="ml-1">님에게 답글을 남기는 중…</span>
                 </span>
                 <button
@@ -279,7 +279,6 @@ function CommentPage() {
             {editCommentId === null && replyTarget && newComment.trim() === "" && (
               <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
                 <span style={{ color: "#FFAC33" }}>@{replyTarget.nickname}</span>
-                <span className="ml-1">님에게 답글을 남기는 중…</span>
               </span>
             )}
 
