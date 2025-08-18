@@ -21,14 +21,15 @@ import { usePinDraftStore } from "../stores/pinDraftStore";
 import { useArticleDraftStore } from "../stores/articleDraft";
 import { useArticleViewStore } from "../stores/articleView";
 import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticleWithLocation";
-import { useEditArticle } from "../hooks/mutations/useEditArticle"; 
+import { useEditArticle } from "../hooks/mutations/useEditArticle";
 import { fetchArticleDetail } from "../apis/article";
 
-const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com"; 
-const ARTICLE_PHOTO_BASE = `${S3_BASE}/article/photo`;                  
+/** ================= S3 경로/변환 유틸 ================== */
+const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
+const ARTICLE_PHOTO_BASE = `${S3_BASE}/article/photo`;
 
-// [S3 PATH] uuid 또는 절대 URL을 화면 표시용 URL로 변환
-const buildImageUrl = (v?: string | null) => {                    
+// [FIX: uuid → article/photo/{uuid} 로 화면 표시]
+const buildImageUrl = (v?: string | null) => {
   if (!v) return "";
   if (/^https?:\/\//i.test(v)) return v;
   return `${ARTICLE_PHOTO_BASE}/${v}`;
@@ -38,7 +39,7 @@ function RecordWritingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const isEditMode = location.state?.mode === "edit";
-  const editArticleId = isEditMode ? Number(location.state?.articleId): null;
+  const editArticleId = isEditMode ? Number(location.state?.articleId) : null;
 
   const {
     title, content, selectedImages, mainImageUuid, selectedDate,
@@ -60,16 +61,15 @@ function RecordWritingPage() {
   })));
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [ isLoading, setIsLoading ] = useState(false);
-
-  const { categoryId, categoryName, reset } =  useCategorySelectionStore(
+  const { categoryId, categoryName, reset } = useCategorySelectionStore(
     useShallow((s) => ({
       categoryId: s.categoryId,
       categoryName: s.categoryName,
-      reset: s.reset,  
+      reset: s.reset,
     }))
-  ); 
+  );
 
   const { mode, placeName, pinCategory, detailAddress, placeId, latitude, longitude } = usePinDraftStore(
     useShallow((s) => {
@@ -108,33 +108,32 @@ function RecordWritingPage() {
   );
   const resetPin = usePinDraftStore((s) => s.reset);
 
-  
-  const { mutateAsync: createAtPlace } = useCreateArticle();  //기존핀
-  const { mutateAsync: createWithLocation } = useCreateArticleWithLocation(); //미등록장소
+  const { mutateAsync: createAtPlace } = useCreateArticle(); // 기존핀
+  const { mutateAsync: createWithLocation } = useCreateArticleWithLocation(); // 미등록장소
   const { mutateAsync: editMutate } = useEditArticle(editArticleId ?? 0);
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
+  // dataURL ↔ File 매핑
   const fileMapRef = useRef<Map<string, File>>(new Map());
 
+  /** 수정 진입: 서버 uuid를 article/photo URL로 매핑해 미리보기 표시 */
   useEffect(() => {
     if (!isEditMode || !editArticleId) return;
 
     (async () => {
       try {
         const d = await fetchArticleDetail(editArticleId);
-        // 제목/내용/날짜
         setTitle(d.title ?? "");
         setContent(d.content ?? "");
         setDate(d.date ?? "");
 
-        // 이미지(미리보기용)
-        const imgs: string[] = [];                                        // [S3 PATH]
-        if (d.mainImageUuid) imgs.push(buildImageUrl(d.mainImageUuid));   // [S3 PATH]
+        const imgs: string[] = [];
+        if (d.mainImageUuid) imgs.push(buildImageUrl(d.mainImageUuid)); // [FIX: S3 PATH]
         if (Array.isArray(d.imageUuids)) {
-          imgs.push(...d.imageUuids.map((u) => buildImageUrl(u)));        // [S3 PATH]
+          imgs.push(...d.imageUuids.map((u) => buildImageUrl(u))); // [FIX: S3 PATH]
         }
         if (imgs.length) {
           addImages(imgs);
@@ -148,27 +147,22 @@ function RecordWritingPage() {
     })();
   }, [isEditMode, editArticleId]);
 
+  // 선택 첫 번째를 메인으로 유지
   useEffect(() => {
-    if (selectedImages.length > 0) {
-      setMain(selectedImages[0]);
-    } else {
-      setMain(null);
-    }
+    setMain(selectedImages.length > 0 ? selectedImages[0] : null);
   }, [selectedImages, setMain]);
-  
-  const uuidRe = /^[0-9a-fA-F-]{36}$/;
 
-  const isArticlePhotoUrl = (src: string) => {                            // [S3 PATH]
+  /** ====== uuid 추출 (article/photo, default-images 모두) ====== */
+  const uuidRe = /^[0-9a-fA-F-]{36}$/;
+  const isArticlePhotoUrl = (src: string) => {
     try { return new URL(src).pathname.includes("/article/photo/"); }
     catch { return src.includes("/article/photo/"); }
   };
-
   const isDefaultImageUrl = (src: string) => {
     try { return new URL(src).pathname.includes("/default-images/"); }
     catch { return src.includes("/default-images/"); }
   };
-
-  const extractUuidFromS3Url = (src: string) => {                         // [S3 PATH]
+  const extractUuidFromS3Url = (src: string) => {
     try {
       const u = new URL(src);
       const last = u.pathname.split("/").filter(Boolean).pop() || "";
@@ -178,113 +172,83 @@ function RecordWritingPage() {
       return last.split("?")[0];
     }
   };
-
-  // src(=uuid|S3 URL|data:) → uuid 또는 "" 로 표준화
   const asUuid = (src?: string | null) => {
     if (!src) return "";
     if (uuidRe.test(src)) return src;
     if (isArticlePhotoUrl(src)) return extractUuidFromS3Url(src);
     if (isDefaultImageUrl(src)) return extractUuidFromS3Url(src);
-    return ""; 
+    return "";
   };
 
-    const dataUrlToFile = (dataUrl: string, filename: string) => {
-      const arr = dataUrl.split(",");
-      const mimeMatch = arr[0].match(/:(.*?);/);
-      const mime = mimeMatch ? mimeMatch[1] : "image/png";
-      const bstr = atob(arr[1]);
-      const n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
-      return new File([u8arr], filename, { type: mime });
-    };
+  const dataUrlToFile = (dataUrl: string, filename: string) => {
+    const arr = dataUrl.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "image/png";
+    const bstr = atob(arr[1]);
+    const n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
+    return new File([u8arr], filename, { type: mime });
+  };
 
+  /** ====== 제출: “선택 순서” 기반 메인/서브 결정 ====== */
   const handleSubmit = async () => {
-    if (categoryId== null) {
-      alert("카테고리를 먼저 선택해 주세요.");
-      return;
-    }
-    // if (latitude == null || longitude == null) {
-    //   alert("위치 정보가 필요합니다.");
-    //   return;
-    // }
-
-    if (pinCategory == null) {
-      alert("핀 카테고리를 선택해 주세요.");
-      return;
-    }
-    if (detailAddress == null || detailAddress.trim() === "") {
-      alert("상세 주소가 필요해요.");
-      return;
-    }
+    if (categoryId == null) return alert("카테고리를 먼저 선택해 주세요.");
+    if (pinCategory == null) return alert("핀 카테고리를 선택해 주세요.");
+    if (!detailAddress?.trim()) return alert("상세 주소가 필요해요.");
     const addr = detailAddress.trim();
 
     const missing: string[] = [];
     if (!title.trim()) missing.push("제목");
     if (!content.trim()) missing.push("내용");
-    
-    const normalizedUuids = selectedImages.map(asUuid).filter((s): s is string => !!s); // 기본/서버 이미지
-    const fileOnlyList = selectedImages.filter((s) => s.startsWith("data:"));           // 새로 고른 사진(data URL)
-    const filesForUpload: File[] = fileOnlyList
+
+    // 전체 선택 목록에서 파일/uuid 분리
+    const firstSelected = selectedImages[0];                                // [FIX: MAIN ORDER]
+    const dataUrls = selectedImages.filter((s) => s.startsWith("data:"));   // [FIX: MAIN ORDER]
+    const filesForUpload: File[] = dataUrls
       .map((u) => fileMapRef.current.get(u))
-      .filter((f): f is File => !!f);
+      .filter((f): f is File => !!f);                                       // [FIX: MAIN ORDER]
 
-    const hasAnyImage = normalizedUuids.length + filesForUpload.length > 0;             // [FIX IMAGE UPLOAD]
+    const uuidsInOrder = selectedImages.map(asUuid).filter(Boolean);        // [FIX: MAIN ORDER]
+    const hasAnyImage = uuidsInOrder.length + filesForUpload.length > 0;
     if (!hasAnyImage) missing.push("사진(1장 이상)");
+    if (missing.length) return alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
 
-
-    if (isEditMode) {
-      if (missing.length > 0) {
-        alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
-        return;
-      }
+    // --- 메인 결정 규칙 ---
+    // 1) 첫 번째가 URL(기본/서버) → mainImageUuid
+    // 2) 첫 번째가 파일(dataURL) → mainIndex (uuid는 비움)
+    let mainUuid = "";                                                      // [FIX: MAIN ORDER]
+    let mainIndex: number | undefined;                                      // [FIX: MAIN ORDER]
+    if (firstSelected?.startsWith("data:")) {
+      mainIndex = dataUrls.indexOf(firstSelected); // 보통 0                // [FIX: MAIN ORDER]
     } else {
-      if (missing.length > 0) {
-        alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
-        return;
-      }
+      mainUuid = asUuid(firstSelected);                                     // [FIX: MAIN ORDER]
     }
 
-    let mainUuid = asUuid(mainImageUuid ?? "");
-    let mainIndex: number | undefined =
-      mainImageUuid && mainImageUuid.startsWith("data:")
-        ? fileOnlyList.indexOf(mainImageUuid)
-        : undefined;
+    // 3) 나머지 uuid들은 순서대로 imageUuids (메인이 URL인 경우 첫 uuid 제외)
+    const imageUuids = mainUuid ? uuidsInOrder.slice(1) : uuidsInOrder;     // [FIX: MAIN ORDER]
 
-    if (mainIndex === undefined && !mainUuid && filesForUpload.length > 0) { // [UPLOAD]
-      mainIndex = 0;                                                         // [UPLOAD]
-    }
-
-    if (!mainUuid && normalizedUuids.length > 0) mainUuid = normalizedUuids[0];
-    const imageUuids = normalizedUuids.filter((u) => u !== mainUuid);
-
-
-    // 등록
     setIsLoading(true);
     try {
-      //편집
       if (isEditMode && editArticleId) {
         const payload: any = {
           title,
           content,
           date: selectedDate,
         };
-        // 이미지를 수정한 경우에만
-        if (mainUuid) payload.mainImageUuid = mainUuid;
-        if (imageUuids.length >= 0 && normalizedUuids.length > 0) {
-          payload.imageUuids = imageUuids;
-        }
+        if (mainUuid) payload.mainImageUuid = mainUuid;                     // [FIX: MAIN ORDER]
+        if (imageUuids.length) payload.imageUuids = imageUuids;             // [FIX: MAIN ORDER]
 
         await editMutate(payload);
 
-        // 로컬 뷰 
+        // 로컬 뷰(표시는 article/photo/{uuid})
         useArticleViewStore.getState().hydrate({
           articleId: editArticleId,
           title,
           content,
           date: selectedDate,
-          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) :null,
-          imageUuids: imageUuids.map(buildImageUrl),
+          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) : null,         // [FIX: S3 PATH]
+          imageUuids: imageUuids.map(buildImageUrl),                        // [FIX: S3 PATH]
           latitude: typeof latitude === "number" ? latitude : null,
           longitude: typeof longitude === "number" ? longitude : null,
           likeCount: 0,
@@ -294,14 +258,12 @@ function RecordWritingPage() {
           isReported: false,
         });
 
-        reset();
-        resetPin();
-        resetDraft();
+        reset(); resetPin(); resetDraft();
         navigate(`/record/${editArticleId}`, { state: { from: "writing" } });
         return;
       }
 
-      //새로 등록
+      // 새로 등록
       let result;
       if (typeof placeId === "number") {
         result = await createAtPlace({
@@ -314,10 +276,10 @@ function RecordWritingPage() {
           detailAddress: addr,
           placeName,
           pinCategory,
-          mainImageUuid: mainUuid,
+          mainImageUuid: mainUuid || undefined,                              // [FIX: MAIN ORDER]
           imageUuids,
-          files: filesForUpload,         
-          mainIndex,          
+          files: filesForUpload,                                             // [FIX: MAIN ORDER]
+          mainIndex,                                                         // [FIX: MAIN ORDER]
         });
       } else if (typeof latitude === "number" && typeof longitude === "number") {
         result = await createWithLocation({
@@ -331,10 +293,10 @@ function RecordWritingPage() {
           detailAddress: addr,
           placeName,
           pinCategory,
-          mainImageUuid: mainUuid,
+          mainImageUuid: mainUuid || undefined,                              // [FIX: MAIN ORDER]
           imageUuids,
-          files: filesForUpload,      
-          mainIndex,                    
+          files: filesForUpload,                                             // [FIX: MAIN ORDER]
+          mainIndex,                                                         // [FIX: MAIN ORDER]
         });
       } else {
         alert("위치 정보가 없습니다. 기존 핀을 선택하거나 지도로 위치를 지정해 주세요.");
@@ -342,13 +304,14 @@ function RecordWritingPage() {
         return;
       }
 
+      // 응답 uuid → 표시 URL 매핑
       useArticleViewStore.getState().hydrate({
         articleId: result.articleId,
         title: result.title,
         content: result.content,
         date: result.date,
-        mainImageUuid: result.mainImageUuid ? buildImageUrl(result.mainImageUuid) : null,
-        imageUuids: Array.isArray(result.imageUuids) ? result.imageUuids.map(buildImageUrl) : [],
+        mainImageUuid: result.mainImageUuid ? buildImageUrl(result.mainImageUuid) : null, // [FIX: S3 PATH]
+        imageUuids: Array.isArray(result.imageUuids) ? result.imageUuids.map(buildImageUrl) : [], // [FIX: S3 PATH]
         latitude: typeof latitude === "number" ? latitude : null,
         longitude: typeof longitude === "number" ? longitude : null,
         likeCount: result.likeCount ?? 0,
@@ -358,9 +321,7 @@ function RecordWritingPage() {
         isReported: false,
       });
 
-      reset();
-      resetPin();
-      resetDraft();
+      reset(); resetPin(); resetDraft();
       navigate(`/record/${result.articleId}`, { state: { from: "writing" } });
     } catch (e) {
       console.error("게시글 저장 실패:", e);
@@ -369,18 +330,15 @@ function RecordWritingPage() {
     }
   };
 
-  const handleGalleryClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleGalleryClick = () => fileInputRef.current?.click();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const fileArray = Array.from(files);
-
-    const readers = fileArray.map((file) => {
-      return new Promise<string>((resolve, reject) => {
+    const readers = fileArray.map((file) =>
+      new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const dataUrl = reader.result as string;
@@ -389,21 +347,18 @@ function RecordWritingPage() {
         };
         reader.onerror = () => reject(reader.error);
         reader.readAsDataURL(file);
-      });
-    });
+      })
+    );
 
-    Promise.all(readers).then((imageUrls) => {
-     addImages(imageUrls);
-    });
-
+    Promise.all(readers).then((imageUrls) => addImages(imageUrls));
     setSelectedFiles((prev) => [...prev, ...fileArray].slice(0, 10));
   };
 
   const handleImageSelect = (src: string) => {
-    const wasSelected = selectedImages.includes(src);                  // [FIX IMAGE UPLOAD]
+    const wasSelected = selectedImages.includes(src);
     toggleImage(src);
     if (wasSelected && src.startsWith("data:")) {
-      fileMapRef.current.delete(src);                                  // [FIX IMAGE UPLOAD]
+      fileMapRef.current.delete(src);
     }
   };
 
@@ -412,169 +367,80 @@ function RecordWritingPage() {
       {/* 상단 바 */}
       <div className="w-full h-[56px] flex items-center border-b border-[#000] justify-between">
         <div className="w-[60px] flex items-center justify-start pl-2">
-          <button onClick={() => {
-              reset();
-              resetPin();
-              resetDraft();
-              navigate('/home');}}>
-            <img
-              src={BackIcon}
-              alt="뒤로가기"
-              style={{
-                width: "25px",
-                height: "22px",
-                objectFit: "contain",
-                display: "block"
-              }}
-            />
+          <button onClick={() => { reset(); resetPin(); resetDraft(); navigate('/home'); }}>
+            <img src={BackIcon} alt="뒤로가기" style={{ width: "25px", height: "22px", objectFit: "contain", display: "block" }} />
           </button>
         </div>
 
         <div>
           <div className="flex items-center gap-[10px]">
             <span className="text-base font-semibold text-center flex-1 truncate">{categoryName}</span>
-            <button onClick={() => navigate("/category", { state: {mode: 
-              "write",
-            }})} style={{ all: "unset", cursor: "pointer" }}>
+            <button onClick={() => navigate("/category", { state: { mode: "write" } })} style={{ all: "unset", cursor: "pointer" }}>
               <img src={SelectIcon} alt="select" width={15} height={15} style={{ marginTop: "2px" }} />
             </button>
           </div>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading}
-          className="submit-button"
-        >
+        <button onClick={handleSubmit} disabled={isLoading} className="submit-button">
           {isLoading ? (
-            <div className="submit-loading-dots">
-              <span className="submit-dot" />
-              <span className="submit-dot" />
-              <span className="submit-dot" />
-            </div>
-          ) : (
-            "등록"
-          )}
+            <div className="submit-loading-dots"><span className="submit-dot" /><span className="submit-dot" /><span className="submit-dot" /></div>
+          ) : ("등록")}
         </button>
       </div>
 
       {/* 본문 */}
-      <div className="flex-1" style={{ padding: "29px 20px 14px 20px",}}>
+      <div className="flex-1" style={{ padding: "29px 20px 14px 20px" }}>
         <textarea
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="새 게시물"
           className="w-full h-[34px] resize-none focus:outline-none"
-          style={{
-            fontFamily: fonts.family,
-            fontSize: "30px",
-            lineHeight: fonts.lineHeight.subtitle,
-            fontWeight: fonts.weight.regular,
-            border: "none", 
-            borderBottom: `1px solid ${colors.gray300}`,
-            marginBottom: "10px", 
-            height: "56px"
-          }}
+          style={{ fontFamily: fonts.family, fontSize: "30px", lineHeight: fonts.lineHeight.subtitle, fontWeight: fonts.weight.regular, border: "none", borderBottom: `1px solid ${colors.gray300}`, marginBottom: "10px", height: "56px" }}
         />
-
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="나의 동네 풍경, 순간을 기록하고 함께 나눠보세요."
           className="w-full resize-none box-border focus:outline-none"
-          style={{
-            fontFamily: fonts.family,
-            fontSize: fonts.size.body,
-            lineHeight: fonts.lineHeight.body,
-            fontWeight: fonts.weight.regular,
-            border: "none",
-            height: "150px", 
-          }}
+          style={{ fontFamily: fonts.family, fontSize: fonts.size.body, lineHeight: fonts.lineHeight.body, fontWeight: fonts.weight.regular, border: "none", height: "150px" }}
         />
 
         {/* 미리보기 */}
-        <div
-          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px]"
-          style={{
-            bottom: "15px"
-          }}
-        >
+        <div className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px]" style={{ bottom: "15px" }}>
           <ImagePreview selectedImages={selectedImages} />
         </div>
 
         {/* 지도 미리보기 */}
-        <div
-          className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[240px]"
-          style={{
-            bottom: "15px"
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              overflow: "hidden",
-            }}
-          >
-            {typeof latitude === "number" && typeof longitude === "number" && (
-              <>
-                <MiniMap latitude={latitude} longitude={longitude} />
-              </>
-            )}
+        <div className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px] h-[240px]" style={{ bottom: "15px" }}>
+          <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+            {typeof latitude === "number" && typeof longitude === "number" && (<MiniMap latitude={latitude} longitude={longitude} />)}
           </div>
         </div>
-
       </div>
 
       {/* 갤러리 모달 열렸을 때 가로 툴바 */}
       {!showCalendar && showGallery && (
-        <div
-          className="fixed left-1/2 -translate-x-1/2 z-50 rounded-[15px]"
-          style={{
-            bottom: "265px",
-            width: "365px",
-            height: "58px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "white",
-            padding: "0 53px",
-            boxShadow: "0px 4px 12px #D4D4D4",
-          }}
-        >
-          <div style={{ display: "flex", gap: "55px", alignItems: "center"}}>
+        <div className="fixed left-1/2 -translate-x-1/2 z-50 rounded-[15px]"
+             style={{ bottom: "265px", width: "365px", height: "58px", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "white", padding: "0 53px", boxShadow: "0px 4px 12px #D4D4D4" }}>
+          <div style={{ display: "flex", gap: "55px", alignItems: "center" }}>
             <button style={{ all: "unset" }} onClick={() => setShowCalendar(true)}>
-              <img src={CalendarIcon} alt="달력" className="w-[25px] h-[25px]" 
-                   style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
-              />
+              <img src={CalendarIcon} alt="달력" className="w-[25px] h-[25px]" style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }} />
             </button>
-
             <button style={{ all: "unset" }} onClick={() => setShowGallery(false)}>
-              <img src={GalleryIcon} alt="갤러리 닫기" className="w-[28px] h-[28px]" 
-                   style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
-              />
+              <img src={GalleryIcon} alt="갤러리 닫기" className="w-[28px] h-[28px]" style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }} />
             </button>
-
-            <button style={{ all: "unset" }} onClick={handleGalleryClick}>
-              <img src={FileIcon} alt="카메라" className="w-[27px] h-[27px]" 
-                   style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
-              />
+            <button style={{ all: "unset" }} onClick={() => fileInputRef.current?.click()}>
+              <img src={FileIcon} alt="카메라" className="w-[27px] h-[27px]" style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }} />
             </button>
-
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-
-
-            <button style={{ all: "unset" }} 
-                    onClick={() => navigate("/map/new")}>
-              <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" 
-                   style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }}
-              />
+            <button style={{ all: "unset" }} onClick={() => navigate("/map/new")}>
+              <img src={PinIcon} alt="지도" className="w-[26px] h-[27px]" style={{ filter: "drop-shadow(0px 4px 12px rgba(30,30,30,0.25))" }} />
             </button>
           </div>
         </div>
       )}
 
-      {/* 세로형 툴바*/}
+      {/* 세로형 툴바 */}
       <VerticalToolbar
         show={!showCalendar && !showGallery}
         onCalendarClick={() => setShowCalendar(true)}
@@ -582,37 +448,24 @@ function RecordWritingPage() {
         onFileChange={handleFileChange}
       />
 
-
       {/* 갤러리 팝업 */}
       {showGallery && (
-        <div
-          className="fixed left-1/2 -translate-x-1/2 bottom-[0] z-40"
-          style={{ width: "375px", height: "265px", padding: "7px", overflowY: "auto", backgroundColor: "white"}}
-        >
-          <GalleryPreview
-            selectedImages={selectedImages}
-            onSelect={handleImageSelect}
-          />
+        <div className="fixed left-1/2 -translate-x-1/2 bottom-[0] z-40"
+             style={{ width: "375px", height: "265px", padding: "7px", overflowY: "auto", backgroundColor: "white" }}>
+          <GalleryPreview selectedImages={selectedImages} onSelect={handleImageSelect} />
         </div>
       )}
-
 
       {/* CalendarModal */}
       {showCalendar && (
         <CalendarModal
           onClose={() => setShowCalendar(false)}
           selectedDate={selectedDate}
-          onDateSelect={(date) => {
-            setDate(date);
-            setShowCalendar(false);
-          }}
+          onDateSelect={(date) => { setDate(date); setShowCalendar(false); }}
         />
       )}
-
-      
-</div>
-
-);
+    </div>
+  );
 }
 
 export default RecordWritingPage;
