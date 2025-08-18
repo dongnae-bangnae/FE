@@ -133,6 +133,7 @@ function CommentPage() {
         onSuccess: () => {
           setComments((prev) => prev.filter((c) => c.id !== commentId));
           queryClient.invalidateQueries({ queryKey: ["comments", articleId]});
+          <MessagePopup icon={CheckIcon_g} message="댓글이 삭제되었어요" />
         },
         onError: () => alert("댓글 삭제 실패"),
       }
