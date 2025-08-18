@@ -12,11 +12,11 @@ declare global {
 }
 
 function MapPage() {
-	// Refs
+	// References
 	const mapContainerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<any>(null);
 	const markerRefList = useRef<any[]>([]); // 주변 장소 핀
-	const meMarkerRef = useRef<any>(null); // 내 위치 핀
+	const meMarkerRef = useRef<any>(null); // 내 위치 핀 (고정)
 
 	// Store
 	const { center, setCenter } = useMapViewStore();
@@ -40,8 +40,10 @@ function MapPage() {
 		shouldFetch
 	);
 
+	// 1. 카카오맵 스크립트 로드 및 지도 초기화 (최초 1회 실행)
 	useEffect(() => {
 		const existing = document.querySelector('script[src*="dapi.kakao.com"]') as HTMLScriptElement | null;
+		
 		const initMap = (initLat: number, initLng: number) => {
 			const locPosition = new window.kakao.maps.LatLng(initLat, initLng);
 			const options = { center: locPosition, level: 3 };
@@ -54,17 +56,22 @@ function MapPage() {
 
 		const bootstrap = () => {
 			window.kakao.maps.load(() => {
+				// 1) 스토어에 center가 있으면 그걸로 초기화 (페이지 이동 후 복귀)
 				if (center.lat !== null && center.lng !== null) {
 					initMap(center.lat, center.lng);
 					return;
 				}
+
+				// 2) 없으면 현재 위치 기반으로 초기화 (최초 진입 또는 새로고침)
 				if (navigator.geolocation) {
 					navigator.geolocation.getCurrentPosition(
 						(pos) => {
 							const lat = pos.coords.latitude;
 							const lng = pos.coords.longitude;
 							initMap(lat, lng);
-							setCenter(lat, lng);
+							setCenter(lat, lng); // 스토어에 현재 위치 기록
+
+							// 내 위치 핀은 이 시점에 한 번만 생성
 							meMarkerRef.current = new window.kakao.maps.Marker({
 								position: new window.kakao.maps.LatLng(lat, lng),
 								map: mapRef.current,
@@ -111,15 +118,15 @@ function MapPage() {
 		document.head.appendChild(script);
 	}, [center.lat, center.lng, setCenter]);
 
-	// 마커 렌더링
+	// 2. 주변 장소 마커 렌더링 (데이터 변경 시마다 실행)
 	useEffect(() => {
 		if (!mapRef.current || currentLat === null || currentLng === null) return;
 
-		// 기존 마커 (장소 핀)만 제거
+		// 기존 주변 장소 마커만 제거
 		markerRefList.current.forEach((m) => m.setMap(null));
 		markerRefList.current = [];
 
-		// 새 마커 (장소 핀) 생성
+		// 새 주변 장소 마커 생성
 		const newMarkers = places.map((place: Place) => {
 			const imageSrc = getPinImageSrc(place.pinCategory);
 			const image = new window.kakao.maps.MarkerImage(
@@ -154,7 +161,6 @@ function MapPage() {
 						setCurrentLat(lat);
 						setCurrentLng(lng);
 						setCenter(lat, lng);
-
 					}}
 				/>
 			)}
