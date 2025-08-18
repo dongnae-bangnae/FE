@@ -99,6 +99,7 @@ function RecordWritingPage() {
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (selectedImages.length > 0) {
@@ -107,16 +108,75 @@ function RecordWritingPage() {
       setMain(null);
     }
   }, [selectedImages, setMain]);
+  
+  const uuidRe = /^[0-9a-fA-F-]{36}$/;
+
+const isDefaultImageUrl = (src: string) => {
+  try { return new URL(src).pathname.includes("/default-images/"); }
+  catch { return src.includes("/default-images/"); }
+};
+
+const extractUuidFromDefaultUrl = (src: string) => {
+  try {
+    const u = new URL(src);
+    const last = u.pathname.split("/").filter(Boolean).pop() || "";
+    return last.split("?")[0];
+  } catch {
+    const last = src.split("/").filter(Boolean).pop() || "";
+    return last.split("?")[0];
+  }
+};
+
+// src(=uuid|S3 URL|data:) → uuid 또는 "" 로 표준화
+const asUuid = (src?: string | null) => {
+  if (!src) return "";
+  if (uuidRe.test(src)) return src;
+  if (isDefaultImageUrl(src)) return extractUuidFromDefaultUrl(src);
+  return ""; // data: 등은 여기선 무시(파일 업로드 미사용 플로우)
+};
+
+  const dataUrlToFile = (dataUrl: string, filename: string) => {
+    const arr = dataUrl.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "image/png";
+    const bstr = atob(arr[1]);
+    const n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const collectFilesFromSelection = async (urls: string[], baseFiles: File[]) => {
+    if (baseFiles.length > 0) return baseFiles; 
+    const files: File[] = [];
+    for (let i = 0; i < urls.length; i++) {
+      const src = urls[i];
+      try {
+        if (src.startsWith("data:")) {
+          files.push(dataUrlToFile(src, `image_${i}.png`));
+        } else {
+          const res = await fetch(src, { mode: "cors" }); 
+          const blob = await res.blob();
+          const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
+          files.push(new File([blob], `image_${i}.${ext}`, { type: blob.type || "image/jpeg" }));
+        }
+      } catch (err) {
+        console.warn("이미지 변환 실패:", src, err);
+      }
+    }
+    return files;
+  };
 
   const handleSubmit = async () => {
     if (categoryId== null) {
       alert("카테고리를 먼저 선택해 주세요.");
       return;
     }
-    if (latitude == null || longitude == null) {
-      alert("위치 정보가 필요합니다.");
-      return;
-    }
+    // if (latitude == null || longitude == null) {
+    //   alert("위치 정보가 필요합니다.");
+    //   return;
+    // }
+
     if (pinCategory == null) {
       alert("핀 카테고리를 선택해 주세요.");
       return;
@@ -134,84 +194,85 @@ function RecordWritingPage() {
       missing.push("사진(1장 이상)");
     }
 
-    if (missing.length > 0) {
-      alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
-      return;
-    }
+    const normalizedUuids = selectedImages.map(asUuid).filter((s): s is string => !!s);
+    if (normalizedUuids.length < 1) missing.push("사진(1장 이상)");
+
+      if (missing.length > 0) {
+        alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
+        return;
+      }
+
+      let mainUuid = asUuid(mainImageUuid ?? "");
+    if (!mainUuid) mainUuid = normalizedUuids[0];
+    const imageUuids = normalizedUuids.filter((u) => u !== mainUuid);
+
 
     // 등록
     setIsLoading(true);
     try {
-      const imageUuids = selectedImages.filter((uuid) => uuid !== mainImageUuid); // 대표 이미지 제외
-
-      let articleId: number;
-
+      // 기존 핀 & 미등록 장소 분기
+      let result;
       if (typeof placeId === "number") {
-        // 기존 핀
-        const articleData = {
+        result = await createAtPlace({
           categoryId,
           placeId,
-          detailAddress: addr,
           regionId: 1,
           title,
           content,
           date: selectedDate,
-          mainImageUuid: mainImageUuid ?? "",
-          imageUuids,
+          detailAddress: addr,
           placeName,
           pinCategory,
-        };
-        articleId = await createAtPlace(articleData);
+          mainImageUuid: mainUuid,
+          imageUuids,
+        });
       } else if (typeof latitude === "number" && typeof longitude === "number") {
-        // 미등록 장소
-        const articleData = {
-          categoryId,          
+        result = await createWithLocation({
+          categoryId,
+          regionId: 1,
+          title,
+          content,
+          date: selectedDate,
           latitude,
           longitude,
           detailAddress: addr,
-          regionId: 1,
-          title,
-          content,
-          date: selectedDate,
-          mainImageUuid: mainImageUuid ?? "",
-          imageUuids,
           placeName,
           pinCategory,
-        };
-        articleId = await createWithLocation(articleData);
+          mainImageUuid: mainUuid,
+          imageUuids,
+        });
       } else {
         alert("위치 정보가 없습니다. 기존 핀을 선택하거나 지도로 위치를 지정해 주세요.");
         setIsLoading(false);
         return;
       }
 
-      reset();
-      resetPin(); 
-
       useArticleViewStore.getState().hydrate({
-        articleId,
-        title,
-        content,
-        date: selectedDate,
-        mainImageUuid: mainImageUuid ?? null,
-        imageUuids,
-        latitude: latitude ?? null,
-        longitude: longitude ?? null,
-        likeCount: 0,
-        spamCount: 0,
+        articleId: result.articleId,
+        title: result.title,
+        content: result.content,
+        date: result.date,
+        mainImageUuid: result.mainImageUuid ?? null,
+        imageUuids: result.imageUuids ?? [],
+        latitude: typeof latitude === "number" ? latitude : null,
+        longitude: typeof longitude === "number" ? longitude : null,
+        likeCount: result.likeCount ?? 0,
+        spamCount: result.spamCount ?? 0,
         commentCount: 0,
         liked: false,
         isReported: false,
       });
 
-      navigate(`/record/${articleId}`, { state: { from: "writing" } });
-      } catch (e) {
-        console.error("게시글 등록 실패:", e);
-      } finally {
-        setIsLoading(false);
-      }
+      reset();
+      resetPin();
+      resetDraft();
+      navigate(`/record/${result.articleId}`, { state: { from: "writing" } });
+    } catch (e) {
+      console.error("게시글 등록 실패:", e);
+    } finally {
+      setIsLoading(false);
+    }
   };
-
 
   const handleGalleryClick = () => {
     fileInputRef.current?.click();
@@ -222,6 +283,7 @@ function RecordWritingPage() {
     if (!files) return;
 
     const fileArray = Array.from(files);
+
     const readers = fileArray.map((file) => {
       return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -234,6 +296,8 @@ function RecordWritingPage() {
     Promise.all(readers).then((imageUrls) => {
      addImages(imageUrls);
     });
+
+    setSelectedFiles((prev) => [...prev, ...fileArray].slice(0, 10));
   };
 
   const handleImageSelect = (src: string) => {
@@ -241,7 +305,6 @@ function RecordWritingPage() {
   };
 
   return (
-    
     <div className="flex flex-col h-full relative" style={{ fontFamily: fonts.family }}>
       {/* 상단 바 */}
       <div className="w-full h-[56px] flex items-center border-b border-[#000] justify-between">

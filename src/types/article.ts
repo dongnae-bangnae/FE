@@ -1,3 +1,23 @@
+export interface CreatedArticleResult { 
+  articleId: number;
+  memberId: number;
+  categoryId: number;
+  placeId: number;
+  regionId: number;
+  placeName: string;
+  pinCategory: string;
+  detailAddress: string;
+  title: string; 
+  date: string;      
+  content: string;
+  mainImageUuid: string;
+  imageUuids: string[];
+  likeCount: number;
+  spamCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // 작성용 타입
 export interface ArticleForm {
   articleId?: number;
@@ -8,13 +28,13 @@ export interface ArticleForm {
   title: string;
   date: string;
   content: string;
-  mainImageUuid: string;
-  latitude: number;
-  longitude: number;
+  mainImageUuid?: string;
+  imageUuids?: string[];
+  latitude?: number;
+  longitude?: number;
   placeName: string;
   pinCategory: string;
   detailAddress: string;
-  imageUuids: string[];
 }
 
 // 상세 페이지
