@@ -1,7 +1,8 @@
+// src/apis/defaultImages.ts
 import { axiosInstance } from "./axiosInstance";
 
-const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com"; 
-const ARTICLE_PHOTO_BASE = `${S3_BASE}/article/photo`;                 
+const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
+const DEFAULT_IMAGES_BASE = `${S3_BASE}/default-images`;
 
 function extractUuid(input: string): string {
   try {
@@ -14,6 +15,7 @@ function extractUuid(input: string): string {
   }
 }
 
+//기본이미지목록
 export const fetchDefaultImages = async (): Promise<string[]> => {
   const res = await axiosInstance.get("/api/default-images");
   const data = res.data;
@@ -24,5 +26,6 @@ export const fetchDefaultImages = async (): Promise<string[]> => {
     ? data.result
     : [];
 
-  return rawList.map((s) => `${ARTICLE_PHOTO_BASE}/${extractUuid(s)}`);
+  // [DEFAULT-IMAGES] => default-images/{uuid}로 통일해 반환(작성 화면에서 바로 표시용)
+  return rawList.map((s) => `${DEFAULT_IMAGES_BASE}/${extractUuid(s)}`);
 };

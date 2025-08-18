@@ -24,11 +24,10 @@ import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticl
 import { useEditArticle } from "../hooks/mutations/useEditArticle";
 import { fetchArticleDetail } from "../apis/article";
 
-/** ================= S3 경로/변환 유틸 ================== */
+//S3 경로 변환
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
 const ARTICLE_PHOTO_BASE = `${S3_BASE}/article/photo`;
 
-// [FIX: uuid → article/photo/{uuid} 로 화면 표시]
 const buildImageUrl = (v?: string | null) => {
   if (!v) return "";
   if (/^https?:\/\//i.test(v)) return v;
