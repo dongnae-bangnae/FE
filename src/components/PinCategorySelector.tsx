@@ -5,7 +5,7 @@ import iconCAFE from "../assets/place/place-cafe.svg?react";
 import iconFOOD from "../assets/place/place-food.svg?react";
 import iconETC from "../assets/place/place-others.svg?react";
 import iconEXERCISE from "../assets/place/place-sports.svg?react";
-import iconWALK from "../assets/place/place-walk2.svg?react";
+import iconWALK from "../assets/place/place-walk.svg?react";
 
 export type PinCategoryType = "FOOD" | "CAFE" | "PUB" | "WALK" | "EXERCISE" | "BOOKSTORE" | "CULTURE_ART" | "ETC" | null;
 
@@ -37,7 +37,7 @@ export default function PinCategorySelector({ selected, onSelect }: Props) {
 		<div className="flex justify-center flex-wrap  py-2">
 			{pinCategories.map(({ id, Icon, color, border }) => {
 				const isSelected = selected === id;
-
+				const isWalk = id === "WALK";
 
 				return (
 					<button
@@ -50,8 +50,10 @@ export default function PinCategorySelector({ selected, onSelect }: Props) {
 						}}
 					>
 						<Icon
-							className="w-5 h-5"
+                            className="w-5 h-5"
 							style={{
+								width: isWalk ? "25px" : "20px",
+								height: isWalk ? "25px" : "20px",
 								color: isSelected ? color : "#FFC064"
 							}}
 						/>
