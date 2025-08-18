@@ -50,8 +50,8 @@ function MyPage() {
             src={SettingIcon}
             alt="설정"
             style={{
-              width: "20px",
-              height: "20px",
+              width: "24px",
+              height: "24px",
               cursor: "pointer",
               marginRight: "10px"
             }}
