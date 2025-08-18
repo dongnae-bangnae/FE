@@ -200,7 +200,7 @@ function CommentPage() {
               {comments
                 .filter((c) => c.parentCommentId === parentComment.id)
                 .map((childComment) => (
-                  <div key={childComment.id} className="bg-[#FFF5E7] w-[375px]">
+                  <div key={childComment.id} className="-mx-4 bg-[#FFF5E7]">
                     <CommentItem
                       nickname={childComment.nickname}
                       content={childComment.content}
@@ -262,7 +262,7 @@ function CommentPage() {
                               flex items-center justify-between px-3 py-2
                               rounded-xl shadow bg-[#F5F5F5]">
                 <span className="text-sm truncate">
-                  <b><span className="text-yellow-400">@{replyTarget.nickname}</span></b>
+                  <b><span style={{color: colors.primaryDark}}>{replyTarget.nickname}</span></b>
                   <span className="ml-1">님에게 답글을 남기는 중…</span>
                 </span>
                 <button
@@ -275,14 +275,6 @@ function CommentPage() {
               </div>
             )}
 
-            {/* placeholder 덮어씌우기 */}
-            {editCommentId === null && replyTarget && newComment.trim() === "" && (
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                <span style={{ color: "#FFAC33" }}>@{replyTarget.nickname}</span>
-                <span className="ml-1">님에게 답글을 남기는 중…</span>
-              </span>
-            )}
-
             <input
               type="text"
               value={newComment}
@@ -290,10 +282,12 @@ function CommentPage() {
               placeholder={
                 editCommentId !== null
                   ? "" 
-                  : (replyTarget ? "" : "여러분의 동네 이야기도 궁금해요 💭")
+                  : replyTarget && newComment.trim() === ""
+                  ? `@${replyTarget.nickname}님에게 답글을 남기는 중... `
+                  : "여러분의 동네 이야기도 궁금해요 💭"
               }
               className="w-full h-full px-4 text-sm border rounded-full"
-              style={{ borderColor: "#B3B3B3" }}
+              style={{borderColor: "#B3B3B3"}}
             />
 
             {newComment.trim().length > 0 && (
@@ -320,7 +314,6 @@ function CommentPage() {
       )}
 
       {/* api 연동 후 팝업 */}
-      
       {/*<SpamModal 
         title="신고사유를 알려주세요" 
         cancelText="취소"
