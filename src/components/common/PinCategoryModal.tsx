@@ -75,7 +75,6 @@ const PinCategoryModal = ({ onClose }: PinCategoryModalProps) => {
 					/>
         </div>
         <button 
-          disabled={!isValid}
           className={`h-[45px] px-35 rounded-xl my-2 transition-all duration-200 ${isValid ? "bg-[#FFB54D] cursor-pointer" : "border-3 border-[#FFB54D]  cursor-not-allowed"}`}
           onClick={handleSubmit}
           style={{boxShadow: `3px 3px 4px -1px  #FFB54D60`}}>등록</button>
