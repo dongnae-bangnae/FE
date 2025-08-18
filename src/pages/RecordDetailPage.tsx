@@ -267,15 +267,6 @@ const RecordDetailPage = () => {
               state: {
                 mode: "edit",
                 articleId,
-                form: {
-                  title,
-                  content,
-                  date,
-                  mainImageUuid,
-                  imageUuids,
-                  latitude,
-                  longitude,
-                },
               },
             });
           }}

@@ -21,9 +21,14 @@ import { usePinDraftStore } from "../stores/pinDraftStore";
 import { useArticleDraftStore } from "../stores/articleDraft";
 import { useArticleViewStore } from "../stores/articleView";
 import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticleWithLocation";
+import { useEditArticle } from "../hooks/mutations/useEditArticle"; 
+import { fetchArticleDetail } from "../apis/article";
 
 function RecordWritingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEditMode = location.state?.mode === "edit";
+  const editArticleId = isEditMode ? Number(location.state?.articleId): null;
 
   const {
     title, content, selectedImages, mainImageUuid, selectedDate,
@@ -96,10 +101,39 @@ function RecordWritingPage() {
   
   const { mutateAsync: createAtPlace } = useCreateArticle();  //기존핀
   const { mutateAsync: createWithLocation } = useCreateArticleWithLocation(); //미등록장소
+  const { mutateAsync: editMutate } = useEditArticle(editArticleId ?? 0);
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    if (!isEditMode || !editArticleId) return;
+
+    (async () => {
+      try {
+        const d = await fetchArticleDetail(editArticleId);
+        // 제목/내용/날짜
+        setTitle(d.title ?? "");
+        setContent(d.content ?? "");
+        setDate(d.date ?? "");
+
+        // 이미지(미리보기용)
+        const imgs = [
+          ...(d.mainImageUuid ? [d.mainImageUuid] : []),
+          ...(Array.isArray(d.imageUuids) ? d.imageUuids : []),
+        ];
+        if (imgs.length) {
+          addImages(imgs);
+          setMain(imgs[0]);
+        }
+      } catch (e) {
+        console.error("수정 로딩 실패:", e);
+        alert("게시글 정보를 불러오지 못했습니다.");
+        navigate(-1);
+      }
+    })();
+  }, [isEditMode, editArticleId]);
 
   useEffect(() => {
     if (selectedImages.length > 0) {
@@ -146,26 +180,26 @@ const asUuid = (src?: string | null) => {
     return new File([u8arr], filename, { type: mime });
   };
 
-  const collectFilesFromSelection = async (urls: string[], baseFiles: File[]) => {
-    if (baseFiles.length > 0) return baseFiles; 
-    const files: File[] = [];
-    for (let i = 0; i < urls.length; i++) {
-      const src = urls[i];
-      try {
-        if (src.startsWith("data:")) {
-          files.push(dataUrlToFile(src, `image_${i}.png`));
-        } else {
-          const res = await fetch(src, { mode: "cors" }); 
-          const blob = await res.blob();
-          const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
-          files.push(new File([blob], `image_${i}.${ext}`, { type: blob.type || "image/jpeg" }));
-        }
-      } catch (err) {
-        console.warn("이미지 변환 실패:", src, err);
-      }
-    }
-    return files;
-  };
+  // const collectFilesFromSelection = async (urls: string[], baseFiles: File[]) => {
+  //   if (baseFiles.length > 0) return baseFiles; 
+  //   const files: File[] = [];
+  //   for (let i = 0; i < urls.length; i++) {
+  //     const src = urls[i];
+  //     try {
+  //       if (src.startsWith("data:")) {
+  //         files.push(dataUrlToFile(src, `image_${i}.png`));
+  //       } else {
+  //         const res = await fetch(src, { mode: "cors" }); 
+  //         const blob = await res.blob();
+  //         const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
+  //         files.push(new File([blob], `image_${i}.${ext}`, { type: blob.type || "image/jpeg" }));
+  //       }
+  //     } catch (err) {
+  //       console.warn("이미지 변환 실패:", src, err);
+  //     }
+  //   }
+  //   return files;
+  // };
 
   const handleSubmit = async () => {
     if (categoryId== null) {
@@ -194,6 +228,28 @@ const asUuid = (src?: string | null) => {
       missing.push("사진(1장 이상)");
     }
 
+    if (isEditMode) {
+      // 최소 필드
+      if (missing.length > 0) {
+        alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
+        return;
+      }
+    } else {
+      // 생성 시에만 추가 검증
+      if (categoryId == null) { alert("카테고리를 먼저 선택해 주세요."); return; }
+      if (pinCategory == null) { alert("핀 카테고리를 선택해 주세요."); return; }
+      if (detailAddress == null || detailAddress.trim() === "") { alert("상세 주소가 필요해요."); return; }
+
+      // 기본이미지(UUID) 기준 최소 1장 필요
+      const normalizedUuidsChk = selectedImages.map(asUuid).filter((s): s is string => !!s);
+      if (normalizedUuidsChk.length < 1) missing.push("사진(1장 이상)");
+
+      if (missing.length > 0) {
+        alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
+        return;
+      }
+    }
+
     const normalizedUuids = selectedImages.map(asUuid).filter((s): s is string => !!s);
     if (normalizedUuids.length < 1) missing.push("사진(1장 이상)");
 
@@ -210,7 +266,47 @@ const asUuid = (src?: string | null) => {
     // 등록
     setIsLoading(true);
     try {
-      // 기존 핀 & 미등록 장소 분기
+      //편집
+      if (isEditMode && editArticleId) {
+        const payload: any = {
+          title,
+          content,
+          date: selectedDate,
+        };
+        // 이미지를 수정한 경우에만
+        if (mainUuid) payload.mainImageUuid = mainUuid;
+        if (imageUuids.length >= 0 && normalizedUuids.length > 0) {
+          payload.imageUuids = imageUuids;
+        }
+
+        await editMutate(payload);
+
+        // 로컬 뷰 
+        useArticleViewStore.getState().hydrate({
+          articleId: editArticleId,
+          title,
+          content,
+          date: selectedDate,
+          mainImageUuid: mainUuid || null,
+          imageUuids: imageUuids || [],
+          latitude: typeof latitude === "number" ? latitude : null,
+          longitude: typeof longitude === "number" ? longitude : null,
+          likeCount: 0,
+          spamCount: 0,
+          commentCount: 0,
+          liked: false,
+          isReported: false,
+        });
+
+        reset();
+        resetPin();
+        resetDraft();
+        navigate(`/record/${editArticleId}`, { state: { from: "writing" } });
+        return;
+      }
+
+      //새로 등록
+      const addr = (detailAddress ?? "").trim();
       let result;
       if (typeof placeId === "number") {
         result = await createAtPlace({
@@ -268,7 +364,7 @@ const asUuid = (src?: string | null) => {
       resetDraft();
       navigate(`/record/${result.articleId}`, { state: { from: "writing" } });
     } catch (e) {
-      console.error("게시글 등록 실패:", e);
+      console.error("게시글 저장 실패:", e);
     } finally {
       setIsLoading(false);
     }
