@@ -22,6 +22,8 @@ const buildImageUrl = (v?: string | null) => {
   return `${S3_BASE}/article/photo/${v}`;                    
 };
 
+const cacheKey = (id: number) => `articleView:${id}`;
+
 const RecordDetailPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -67,39 +69,71 @@ const RecordDetailPage = () => {
   };
 
   useEffect(() => {
-    if(!stableId) return;
+    if (!stableId) return;
+    try {
+      const raw = localStorage.getItem(cacheKey(stableId));
+      if (!raw) return;
+      const cached = JSON.parse(raw);
+      // 캐시된 값으로 먼저 화면 채우기
+      hydrate({
+        articleId: cached.articleId ?? stableId,
+        title: cached.title ?? "",
+        content: cached.content ?? "",
+        date: cached.date ?? "",
+        mainImageUuid: cached.mainImageUuid ?? null, 
+        imageUuids: Array.isArray(cached.imageUuids) ? cached.imageUuids : [],
+        latitude: typeof cached.latitude === "number" ? cached.latitude : null,
+        longitude: typeof cached.longitude === "number" ? cached.longitude : null,
+        likeCount: typeof cached.likeCount === "number" ? cached.likeCount : 0,
+        spamCount: typeof cached.spamCount === "number" ? cached.spamCount : 0,
+        commentCount: typeof cached.commentCount === "number" ? cached.commentCount : 0,
+        liked: !!cached.liked,
+        isReported: !!cached.isReported,
+      });
+    } catch {
+    }
+  }, [stableId]);
 
-    if (articleId === stableId && title) return;
+  useEffect(() => {
+    if (!stableId) return;
 
     (async () => {
       try {
-        setIsLoading(true); // 서버에서 상세 조회
-        const d = await fetchArticleDetail(stableId);  
+        setIsLoading(true);
+        const d = await fetchArticleDetail(stableId);
 
-        const toImgSrc = (s?: string | null) => {
-          if (!s) return "";
-          if (/^https?:\/\//i.test(s)) return s;
-          // 기본 이미지(또는 서버에서 uuid만 내려줄 때)
-          return `https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com/default-images/${s}`;
-        };
+        // 현재 화면의 값(캐시/작성 하이드레이트 포함)을 유지
+        const prev = useArticleViewStore.getState();
 
         const lat = toNum((d as any).latitude);
         const lng = toNum((d as any).longitude);
 
+        // [IMG MAP] 서버가 uuid만 준 경우 article/photo로 매핑하여 절대 URL 저장
+        const srvMainUrl = d.mainImageUuid ? toArticlePhotoUrl(d.mainImageUuid) : null;
+        const srvSubUrls: string[] = Array.isArray(d.imageUuids)
+        ? d.imageUuids
+            .map((u: string) => toArticlePhotoUrl(u))
+            .filter((u): u is string => typeof u === "string" && u.length > 0)
+        : [];
+
+        // 빈 문자열로 기존 값을 덮어쓰지 않도록 방어
+        const safeText = (next: unknown, prevText: string | undefined) =>
+          typeof next === "string" && next.trim() !== "" ? next : (prevText ?? "");
+
         hydrate({
           articleId: d.articleId ?? stableId,
-          title: d.title ?? "",
-          content: d.content ?? "",
-          date: d.date ?? "",
-          mainImageUuid: d.mainImageUuid ? toImgSrc(d.mainImageUuid) : null,    
-          imageUuids: Array.isArray(d.imageUuids) ? d.imageUuids.map(toImgSrc).filter(Boolean) : [], 
-          latitude: lat,
-          longitude: lng,
-          likeCount: d.likeCount ?? 0,
-          spamCount: d.spamCount ?? 0,
-          commentCount: (d as any).commentCount ?? commentCount ?? 0,
-          liked: (d as any).liked ?? false,
-          isReported: (d as any).isReported ?? (d.spamCount ?? 0) > 0,
+          title: safeText(d.title, prev.title),
+          content: safeText(d.content, prev.content),
+          date: safeText(d.date, prev.date),
+          mainImageUuid: srvMainUrl || prev.mainImageUuid || null, // 서버에 없으면 기존 표시 유지
+          imageUuids: srvSubUrls.length ? srvSubUrls : (prev.imageUuids ?? []),
+          latitude: lat ?? prev.latitude ?? null,    // 서버 값 없으면 기존 좌표 유지
+          longitude: lng ?? prev.longitude ?? null,  // 서버 값 없으면 기존 좌표 유지
+          likeCount: d.likeCount ?? prev.likeCount ?? 0,
+          spamCount: d.spamCount ?? prev.spamCount ?? 0,
+          commentCount: (d as any).commentCount ?? prev.commentCount ?? 0,
+          liked: (d as any).liked ?? prev.liked ?? false,
+          isReported: (d as any).isReported ?? prev.isReported ?? ((d.spamCount ?? 0) > 0),
         });
       } catch (err) {
         console.error("상세 불러오기 실패:", err);
@@ -109,12 +143,52 @@ const RecordDetailPage = () => {
         setIsLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stableId]);
 
-  const toImgSrc = (s?: string | null) => {
-    if (!s) return "";
-    if (/^https?:\/\//i.test(s)) return s;
-    return `https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com/default-images/${s}`;
+  useEffect(() => {
+    if (!stableId) return;
+    const snap = {
+      articleId: stableId,
+      title,
+      content,
+      date,
+      mainImageUuid,    // 절대 URL
+      imageUuids,       // 절대 URL 배열
+      latitude,
+      longitude,
+      likeCount,
+      spamCount,
+      commentCount,
+      isReported,
+      liked: false,
+    };
+    try {
+      localStorage.setItem(cacheKey(stableId), JSON.stringify(snap));
+    } catch {
+      // 저장 실패시 무시
+    }
+  }, [
+    stableId,
+    title,
+    content,
+    date,
+    mainImageUuid,
+    imageUuids,
+    latitude,
+    longitude,
+    likeCount,
+    spamCount,
+    commentCount,
+    isReported,
+  ]);
+
+  const toArticlePhotoUrl = (uuid?: string | null) =>
+  uuid ? `${S3_BASE}/article/photo/${uuid}` : null;
+
+  const toImgSrc = (v?: string | null) => {
+    if (!v) return "";
+    return /^https?:\/\//i.test(v) ? v : `${S3_BASE}/article/photo/${v}`;
   };
   
   const allImages = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : (imageUuids ?? []))
