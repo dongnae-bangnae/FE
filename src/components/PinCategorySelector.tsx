@@ -5,7 +5,7 @@ import iconCAFE from "../assets/place/place-cafe.svg?react";
 import iconFOOD from "../assets/place/place-food.svg?react";
 import iconETC from "../assets/place/place-others.svg?react";
 import iconEXERCISE from "../assets/place/place-sports.svg?react";
-import iconWALK from "../assets/place/place-walk.svg?react";
+import iconWALK from "../assets/place/place-walk2.svg?react";
 
 export type PinCategoryType = "FOOD" | "CAFE" | "PUB" | "WALK" | "EXERCISE" | "BOOKSTORE" | "CULTURE_ART" | "ETC" | null;
 
