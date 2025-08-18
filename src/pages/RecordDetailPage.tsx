@@ -2,7 +2,6 @@ import { useLocation, useNavigate, useParams} from "react-router-dom";
 import { useEffect, useState } from "react";
 import MenuIcon from "../assets/record/icon-menubar.svg";
 import CheckIcon_g from "../assets/icon-check-green.svg";
-// import CheckIcon_g from "../assets/icon-check-green.svg";
 import fonts from "../styles/fonts";
 import RecordBottomNav from "../components/Record/RecordBottomNav";
 import MiniMap from "../components/Record/MiniMap";
@@ -12,7 +11,6 @@ import MypageModal from "../components/MypageModal";
 import { useToggleSpamReport } from "../hooks/mutations/useToggleSpamReport";
 import { useDeleteArticle } from "../hooks/mutations/useDeleteArticle";
 import EditModal from "../components/Record/EditModal";
-// import MessagePopup from "../components/MessagaePopup";
 import { useArticleViewStore } from "../stores/articleView";
 import { fetchArticleDetail } from "../apis/article";
 import MessagePopup from "../components/MessagePopup";
@@ -31,11 +29,6 @@ const RecordDetailPage = () => {
     hydrate, setReported, incSpam, decSpam,
     setCommentCount,
   } = useArticleViewStore((s) => s);
-
-  // const idFromUrl   = Number(articleIdParam);
-  // const idFromState = (state && typeof state === "object" && (state as any).articleId)
-  //   ? Number((state as any).articleId) : 0;
-  // const stableId    = articleId || idFromUrl || idFromState || 0;
 
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,8 +54,6 @@ const RecordDetailPage = () => {
       return;
     }
 
-  
-    if (!targetId) return;
     if (articleId) return;
 
     (async () => {
@@ -321,6 +312,17 @@ const RecordDetailPage = () => {
         />
       )}
 
+      {showConfirm && (
+        <MypageModal
+          title="정말 광고 의심 신고를 하시겠어요?"
+          description="허위 신고는 제재 대상이 될 수 있습니다."
+          cancelText="취소"
+          confirmText="신고"
+          onCancel={() => setShowConfirm(false)}
+          onConfirm={handleConfirmReport}
+        />
+      )}
+
       {showDeleteModal && (
         <MypageModal
           title="정말 게시글을 삭제하시겠어요?"
@@ -336,25 +338,13 @@ const RecordDetailPage = () => {
             deleteArticle(articleId, {
               onSuccess: () => {
                 navigate("/home");
-                <MessagePopup icon={CheckIcon_g} message="게시물이 삭제되었어요." />
+                <MessagePopup icon={CheckIcon_g} message="게시물이 삭제되었어요" />
               },
               onError: () => {
                 alert("게시글 삭제에 실패했습니다.");
               },
             });
           }}
-        />
-      )}
-
-
-      {showConfirm && (
-        <MypageModal
-          title="정말 광고 의심 신고를 하시겠어요?"
-          description="허위 신고는 제재 대상이 될 수 있습니다."
-          cancelText="취소"
-          confirmText="신고"
-          onCancel={() => setShowConfirm(false)}
-          onConfirm={handleConfirmReport}
         />
       )}
 
