@@ -44,7 +44,7 @@ function RecordWritingPage() {
 
   const { reset: resetSaveMode } = useSaveModeStore();
   useEffect(() => {
-    // 글쓰기 페이지에 들어올 때마다 save 모드 상태를 리셋
+
     resetSaveMode();
   }, [resetSaveMode]);
 
