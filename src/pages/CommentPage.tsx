@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BackIcon from "../assets/top/icon-top-backArrow.svg";
 import UpperIcon from "../assets/record/icon-upper.svg";
@@ -45,6 +45,31 @@ const firstNonEmpty = (...cands: (string | undefined)[]) => {
   return undefined;
 };
 
+type ReplyTarget = { id: number; nickname: string; parentId: number | null };
+
+// 작성자 정보 저장
+type AuthorInfo = { nickname?: string; profileImage?: string };
+const cacheKey = (articleId: number) => `comment-author-cache:v1:article:${articleId}`;
+const loadCache = (articleId: number): Map<number, AuthorInfo> => {
+  try {
+    const raw = sessionStorage.getItem(cacheKey(articleId));
+    if (!raw) return new Map();
+    const obj = JSON.parse(raw) as Record<string, AuthorInfo>;
+    return new Map<number, AuthorInfo>(Object.entries(obj).map(([k, v]) => [Number(k), v]));
+  } catch {
+    return new Map();
+  }
+};
+const saveCache = (articleId: number, map: Map<number, AuthorInfo>) => {
+  const obj: Record<number, AuthorInfo> = {};
+  map.forEach((v, k) => (obj[k] = v));
+  try {
+    sessionStorage.setItem(cacheKey(articleId), JSON.stringify(obj));
+  } catch {
+    /* ignore quota errors */
+  }
+};
+
 function CommentPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -69,22 +94,35 @@ function CommentPage() {
   const [editCommentId, setEditCommentId] = useState<number | null>(null);
   const [showSubmit, setShowSubmit] = useState(false);
   const [showSpamPopup, setShowSpamPopup] = useState(false);
-  const [replyTarget, setReplyTarget] = useState<{id: number; nickname: string;} | null>(null);
+   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
 
   const { mutate: createComment } = useCreateComment(articleId);
   const { data: myInfo } = useMyInfo();
   const { data: fetchedComments = [], isLoading, isError } = useFetchComments(articleId, { enabled: articleId > 0});
   
+  const authorCacheRef = useRef<Map<number, AuthorInfo>>(new Map());
+  const cacheReadyRef = useRef(false);
   useEffect(() => {
+    // 기사 변경 시 캐시 로드
+    authorCacheRef.current = loadCache(articleId);
+    cacheReadyRef.current = true;
+  }, [articleId]);
+  
+  useEffect(() => {
+    if (!cacheReadyRef.current) return;
+
     setComments((prev) => {
-      const prevMap = new Map(prev.map(p => [p.id, p]));               
+      const prevMap = new Map(prev.map(p => [p.id, p]));    
+      const cache = authorCacheRef.current;
+      
       const normalized = (fetchedComments as any[]).map((c) => {
         const id = toNum(c.id ?? c.commentId ?? c.comment_id)!;        
         const memberId = toNum(c.memberId ?? c.writerId ?? c.userId);
         const parentId = toNum(c.parentCommentId ?? c.parent_id);
 
-        const prevItem = prevMap.get(id);                             
+        const prevItem = prevMap.get(id);    
+        const cached = cache.get(id);                         
         const isMineServer = typeof c.isMine === "boolean" ? c.isMine : undefined;                                               
 
         const nickname =
@@ -93,6 +131,7 @@ function CommentPage() {
             c.nickname,
             c.memberNickname,
             c.writerNickname,
+            cached?.nickname,
             c.userNickname,
             (isMineServer || (myInfo?.memberId != null && memberId != null && memberId === myInfo.memberId))
               ? myInfo?.nickname
@@ -107,11 +146,23 @@ function CommentPage() {
             c.memberProfileImage,
             c.writerProfileImage,
             c.userProfileImage,
+            cached?.nickname,
             (isMineServer || (myInfo?.memberId != null && memberId != null && memberId === myInfo.memberId))
               ? myInfo?.profileImage
               : undefined,
             "" 
           ) || "";
+
+           if (nickname && nickname !== "익명") {
+            const e = cache.get(id) ?? {};
+            if (!e.nickname || e.nickname !== nickname) e.nickname = nickname;
+            cache.set(id, e);
+          }
+          if (profileImage && profileImage.trim() !== "") {
+            const e = cache.get(id) ?? {};
+            if (!e.profileImage || e.profileImage !== profileImage) e.profileImage = profileImage;
+            cache.set(id, e);
+          }
 
         return {
           id,
@@ -123,6 +174,8 @@ function CommentPage() {
           isMine: isMineServer,
         } as CommentData;
       });
+
+      saveCache(articleId, cache);
 
       const incomingIds = new Set(normalized.map(n => n.id));          
       const keepLocal = prev.filter(p => !incomingIds.has(p.id));     
@@ -177,6 +230,10 @@ function CommentPage() {
     };
     setComments((prev) => [...prev, optimistic]);  
 
+    const cache = authorCacheRef.current;
+    cache.set(optimisticId, { nickname: myInfo.nickname, profileImage: myInfo.profileImage });
+    saveCache(articleId, cache);
+
     createComment(
       {
         content,
@@ -188,6 +245,13 @@ function CommentPage() {
           setComments((prev) =>
             prev.map((c) => (c.id === optimistic.id ? { ...c, id: realId } : c))
           );
+          const info = cache.get(optimisticId);
+          if (info) {
+            cache.delete(optimisticId);
+            cache.set(realId, info);
+            saveCache(articleId, cache);
+          }
+
           queryClient.invalidateQueries({ queryKey: ["comments", articleId] });
 
           setNewComment("");
@@ -196,6 +260,10 @@ function CommentPage() {
         },
         onError: () => {
           setComments((prev) => prev.filter((c) => c.id !== optimistic.id));
+          //캐시롤백
+          const cache2 = authorCacheRef.current;
+          cache2.delete(optimisticId);
+          saveCache(articleId, cache2);
           alert("댓글 등록에 실패했습니다.");
         },
       }
@@ -215,6 +283,12 @@ function CommentPage() {
       {
         onSuccess: () => {
           setComments((prev) => prev.filter((c) => c.id !== commentId));
+          
+          //캐시에서도 제거
+          const cache = authorCacheRef.current;
+          cache.delete(commentId);
+          saveCache(articleId, cache);
+
           queryClient.invalidateQueries({ queryKey: ["comments", articleId]});
           <MessagePopup icon={CheckIcon_g} message="댓글이 삭제되었어요" />
         },
@@ -223,6 +297,7 @@ function CommentPage() {
     );
   };
 
+  const activeBg = "bg-[#F3FBFF]";
 
   return (
     <div className="flex flex-col h-screen" style={{ fontFamily: fonts.family }}>
@@ -256,9 +331,12 @@ function CommentPage() {
           .filter((comment) => comment.parentCommentId === null)
           .map((parentComment) => {
             const children = comments.filter((c) => c.parentCommentId === parentComment.id); 
+            const isParentActive = replyTarget?.id === parentComment.id;
             return (
               <div key={parentComment.id}>
-                <CommentItem
+                {/* 부모댓글에 답글 달 때 배경 변화 */}
+                <div className={`${isParentActive ? `${activeBg}} -mx-4 px-4 py-2`: ""}`}> 
+                  <CommentItem
                   nickname={parentComment.nickname ?? "익명"}          
                   content={parentComment.content}
                   profileImage={parentComment.profileImage ?? ""}       
@@ -267,10 +345,11 @@ function CommentPage() {
                   onDelete={() => handleDeleteComment(parentComment.id)}
                   onReplyClick={() => {
                     setEditCommentId(null);
-                    setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname ?? "익명" });
+                    setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname ?? "익명", parentId: parentComment.id });
                     setNewComment("");
                   }}
                 />
+                </div>
 
                 {/* 답글 */}
                 {children.length > 0 && (
@@ -287,7 +366,7 @@ function CommentPage() {
                         onDelete={() => handleDeleteComment(childComment.id)}
                         onReplyClick={() => {
                           setEditCommentId(null);
-                          setReplyTarget({ id: parentComment.id, nickname: childComment.nickname ?? "익명" });
+                          setReplyTarget({ id: parentComment.id, nickname: childComment.nickname ?? "익명", parentId: parentComment.id, });
                           setNewComment("");
                         }}
                       />
