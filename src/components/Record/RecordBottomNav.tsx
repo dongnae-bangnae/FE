@@ -6,6 +6,7 @@ import { useState } from "react";
 import fonts from "../../styles/fonts";
 
 import { useToggleLikeArticle } from "../../hooks/mutations/useToggleLikeArticle";
+import { useFetchComments } from "../../hooks/queries/useFetchComments"; 
 
 interface Props {
   articleId: number;
@@ -24,6 +25,9 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, isReported, onShowR
 
   const [likeCount, setLikeCount] = useState(likes);
   const [liked, setLiked] = useState(false);
+
+  const { data: allComments =[] } = useFetchComments(articleId,  {enabled: articleId > 0});
+  const totalCommentCount = allComments.length || comments;
 
   const handleLike = () => {
     if (liked) {
@@ -88,7 +92,7 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, isReported, onShowR
           className="flex gap-[15px]"
         >
           <img src={CommentIcon} width={23} height={23} />
-          <span>{comments}</span>
+          <span>{totalCommentCount}</span>
         </button>
       </div>
     </div>
