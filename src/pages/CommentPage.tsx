@@ -203,7 +203,7 @@ function CommentPage() {
               {comments
                 .filter((c) => c.parentCommentId === parentComment.id)
                 .map((childComment) => (
-                  <div key={childComment.id} className="-mx-4 bg-[#FFF5E7]">
+                  <div key={childComment.id} className="-mx-4 bg-[#FFF5E7] space-y-0">
                     <CommentItem
                       nickname={childComment.nickname}
                       content={childComment.content}
