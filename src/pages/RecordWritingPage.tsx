@@ -209,6 +209,38 @@ function RecordWritingPage() {
     return new File([u8arr], filename, { type: mime });
   };
 
+  const [dragIndex, setDragIndex] = useState<number | null>(null);                                    // [CHANGED]
+
+  const commitReorder = (from: number | null, to: number | null) => {                                 // [CHANGED]
+    if (from == null || to == null || from === to) return;
+    const newOrder = [...selectedImages];
+    const [moved] = newOrder.splice(from, 1);
+    newOrder.splice(to, 0, moved);
+
+    hydrateFromEdit({
+        title,
+        content,
+        selectedDate,
+        selectedImages: newOrder,
+        mainImageUuid: newOrder[0] ?? null,
+      } as any);
+      setMain(newOrder[0] ?? null);
+    };
+
+  const onThumbDragStart = (idx: number) => (e: React.DragEvent) => {                                 // [CHANGED]
+    e.dataTransfer.effectAllowed = "move";
+    setDragIndex(idx);
+  };
+  const onThumbDragOver = (idx: number) => (e: React.DragEvent) => {                                  // [CHANGED]
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+  const onThumbDrop = (idx: number) => (e: React.DragEvent) => {                                      // [CHANGED]
+    e.preventDefault();
+    commitReorder(dragIndex, idx);
+    setDragIndex(null);
+  };
+
   const handleSubmit = async () => {
     if (categoryId == null) return alert("카테고리를 먼저 선택해 주세요.");
     if (pinCategory == null) return alert("핀 카테고리를 선택해 주세요.");
@@ -229,7 +261,6 @@ function RecordWritingPage() {
     const uuidsInOrder = selectedImages.map(asUuid).filter(Boolean);      
     const hasAnyImage = uuidsInOrder.length + filesForUpload.length > 0;
     if (!hasAnyImage) missing.push("사진(1장 이상)");
-    if (missing.length) return alert(`${missing.join(", ")} ${missing.length > 1 ? "이" : "가"} 필요해요.`);
 
     // main 결정
     let mainUuid = "";                                                      
