@@ -59,7 +59,6 @@ export default function PinInfoModal({ place, onClose }: PinInfoModalProps) {
         <button
           onClick={() => {
             if (isSaved) return;
-            console.log("저장 모드 설정 시도 - placeId:", place.placeId);
             setSaveMode(place.placeId);
             navigate("/category");
           }}
