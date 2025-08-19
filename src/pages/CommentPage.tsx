@@ -25,10 +25,11 @@ interface LocationState {
 interface CommentData {
   id: number;
   content: string;
-  nickname: string;
-  profileImage: string;
+  nickname?: string;
+  profileImage?: string;
   parentCommentId: number | null;
-  memberId: number;
+  memberId?: number;
+  isMine?: boolean;
 }
 
 function CommentPage() {
@@ -63,14 +64,29 @@ function CommentPage() {
   const { data: fetchedComments = [], isLoading, isError } = useFetchComments(articleId, { enabled: articleId > 0});
   
   useEffect(() => {
-    setComments(fetchedComments as CommentData[]);
+    const normalized = (fetchedComments as any[]).map((c) => ({
+      id: c.id ?? c.commentId ?? c.comment_id,
+      content: c.content ?? "",
+      nickname: c.nickname ?? c.memberNickname ?? c.writerNickname ?? c.userNickname ?? "익명",   // [CHANGED]
+      profileImage: c.profileImage ?? c.memberProfileImage ?? c.writerProfileImage ?? c.userProfileImage ?? "", // [CHANGED]
+      parentCommentId: c.parentCommentId ?? c.parent_id ?? null,
+      memberId: c.memberId ?? c.writerId ?? c.userId, 
+      isMine: c.isMine,                            
+    })) as CommentData[];
+    setComments(normalized);
   }, [fetchedComments]);
-
 
   const { mutate: updateComment } = useUpdateComment(
     articleId,
     editCommentId ?? -1
   );
+
+  const isMine = (c: CommentData) => {
+    if (typeof c.isMine === "boolean") return c.isMine;
+    if (myInfo?.memberId != null && c.memberId != null) return myInfo.memberId === c.memberId;
+    if (myInfo?.nickname && c.nickname) return myInfo.nickname === c.nickname;
+    return false;
+  };
 
   const handleSubmitComment = (
     content: string,
@@ -177,51 +193,49 @@ function CommentPage() {
       <div className="flex-1 px-4 py-3 overflow-y-auto space-y-4">
         {comments
           .filter((comment) => comment.parentCommentId === null)
-          .map((parentComment) => (
-            <div key={parentComment.id}>
-              <CommentItem
-                nickname={parentComment.nickname}
-                content={parentComment.content}
-                profileImage={parentComment.profileImage}
-                isMine={myInfo?.memberId === parentComment.memberId}
-    
-                onEdit={() =>
-                  handleEditComment(parentComment.id, parentComment.content)
-                }
+          .map((parentComment) => {
+            const children = comments.filter((c) => c.parentCommentId === parentComment.id); 
+            return (
+              <div key={parentComment.id}>
+                <CommentItem
+                  nickname={parentComment.nickname ?? "익명"}          
+                  content={parentComment.content}
+                  profileImage={parentComment.profileImage ?? ""}       
+                  isMine={isMine(parentComment)}                      
+                  onEdit={() => handleEditComment(parentComment.id, parentComment.content)}
+                  onDelete={() => handleDeleteComment(parentComment.id)}
+                  onReplyClick={() => {
+                    setEditCommentId(null);
+                    setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname ?? "익명" });
+                    setNewComment("");
+                  }}
+                />
 
-                onDelete={() => handleDeleteComment(parentComment.id)}
-
-                onReplyClick={() => {
-                  setEditCommentId(null);
-                  setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname });
-                  setNewComment("");
-                }}
-              >
-              </CommentItem>
-
-              {/* 답글 */}
-              {comments
-                .filter((c) => c.parentCommentId === parentComment.id)
-                .map((childComment) => (
-                  <div key={childComment.id} className="-mx-4 bg-[#FFF5E7] space-y-0">
-                    <CommentItem
-                      nickname={childComment.nickname}
-                      content={childComment.content}
-                      isReply
-                      profileImage={childComment.profileImage}
-                      isMine={myInfo?.memberId === childComment.memberId}
-                      onEdit={() => handleEditComment(childComment.id, childComment.content)}
-                      onDelete={() => handleDeleteComment(childComment.id)}
-                      onReplyClick={() => {
-                        setEditCommentId(null);
-                        setReplyTarget({ id: parentComment.id, nickname: childComment.nickname });
-                        setNewComment("");
-                      }}
-                    />
+                {/* 답글 */}
+                {children.length > 0 && (
+                  <div className="-mx-4 bg-[#FFF5E7] py-2">              
+                    {children.map((childComment) => (
+                      <CommentItem
+                        key={childComment.id}
+                        nickname={childComment.nickname ?? "익명"}    
+                        content={childComment.content}
+                        isReply
+                        profileImage={childComment.profileImage ?? ""}  
+                        isMine={isMine(childComment)}                  
+                        onEdit={() => handleEditComment(childComment.id, childComment.content)}
+                        onDelete={() => handleDeleteComment(childComment.id)}
+                        onReplyClick={() => {
+                          setEditCommentId(null);
+                          setReplyTarget({ id: parentComment.id, nickname: childComment.nickname ?? "익명" });
+                          setNewComment("");
+                        }}
+                      />
+                    ))}
                   </div>
-                ))}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
       </div>
 
       {/* 새 댓글 입력창 */}

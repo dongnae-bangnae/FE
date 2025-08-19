@@ -35,7 +35,7 @@ const CommentItem = ({
     <div
       className="w-full max-w-[355px]"
       style={{
-        marginTop: isReply ? "10px" : 0,
+        marginTop: 0,
       }}
     >
       {/* 프로필 + 닉네임 + 댓*/}
