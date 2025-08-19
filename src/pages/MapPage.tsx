@@ -35,7 +35,7 @@ function MapPage() {
 					latMax: Number((currentLat! + 0.009).toFixed(5)),
 					lngMin: Number((currentLng! - 0.0114).toFixed(5)),
 					lngMax: Number((currentLng! + 0.0114).toFixed(5)),
-			  }
+				}
 			: { latMin: 0, latMax: 0, lngMin: 0, lngMax: 0 },
 		shouldFetch
 	);
