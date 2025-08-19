@@ -45,6 +45,8 @@ const firstNonEmpty = (...cands: (string | undefined)[]) => {
   return undefined;
 };
 
+type ReplyTarget = { id: number; nickname: string; parentId: number | null };
+
 function CommentPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -69,7 +71,7 @@ function CommentPage() {
   const [editCommentId, setEditCommentId] = useState<number | null>(null);
   const [showSubmit, setShowSubmit] = useState(false);
   const [showSpamPopup, setShowSpamPopup] = useState(false);
-  const [replyTarget, setReplyTarget] = useState<{id: number; nickname: string;} | null>(null);
+   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
 
   const { mutate: createComment } = useCreateComment(articleId);
@@ -223,6 +225,7 @@ function CommentPage() {
     );
   };
 
+  const activeBg = "bg-[#F3FBFF]";
 
   return (
     <div className="flex flex-col h-screen" style={{ fontFamily: fonts.family }}>
@@ -256,9 +259,12 @@ function CommentPage() {
           .filter((comment) => comment.parentCommentId === null)
           .map((parentComment) => {
             const children = comments.filter((c) => c.parentCommentId === parentComment.id); 
+            const isParentActive = replyTarget?.id === parentComment.id;
             return (
               <div key={parentComment.id}>
-                <CommentItem
+                {/* 부모댓글에 답글 달 때 배경 변화 */}
+                <div className={`${isParentActive ? `${activeBg}} -mx-4 px-4 py-2`: ""}`}> 
+                  <CommentItem
                   nickname={parentComment.nickname ?? "익명"}          
                   content={parentComment.content}
                   profileImage={parentComment.profileImage ?? ""}       
@@ -267,10 +273,11 @@ function CommentPage() {
                   onDelete={() => handleDeleteComment(parentComment.id)}
                   onReplyClick={() => {
                     setEditCommentId(null);
-                    setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname ?? "익명" });
+                    setReplyTarget({ id: parentComment.id, nickname: parentComment.nickname ?? "익명", parentId: parentComment.id });
                     setNewComment("");
                   }}
                 />
+                </div>
 
                 {/* 답글 */}
                 {children.length > 0 && (
@@ -287,7 +294,7 @@ function CommentPage() {
                         onDelete={() => handleDeleteComment(childComment.id)}
                         onReplyClick={() => {
                           setEditCommentId(null);
-                          setReplyTarget({ id: parentComment.id, nickname: childComment.nickname ?? "익명" });
+                          setReplyTarget({ id: parentComment.id, nickname: childComment.nickname ?? "익명", parentId: parentComment.id, });
                           setNewComment("");
                         }}
                       />
