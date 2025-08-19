@@ -29,6 +29,7 @@ import { useMapViewStore } from "../stores/mapViewStore";
 //S3 경로 변환
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
 const ARTICLE_PHOTO_BASE = `${S3_BASE}/article/photo`;
+const DEFAULT_IMAGES_BASE = `${S3_BASE}/default-images`;
 
 const buildImageUrl = (v?: string | null) => {
   if (!v) return "";
@@ -253,25 +254,50 @@ function RecordWritingPage() {
 
     // 전체 선택 목록에서 파일/uuid 분리
     const firstSelected = selectedImages[0];                                
-    const dataUrls = selectedImages.filter((s) => s.startsWith("data:"));   
-    const filesForUpload: File[] = dataUrls
-      .map((u) => fileMapRef.current.get(u))
-      .filter((f): f is File => !!f);                                      
+    const fileCandidates = selectedImages
+      .map((src, idx) => ({ src, idx }))
+      .filter(({ src }) => asUuid(src) === "");
+    const filesForUpload: File[] = []; // [CHANGED]
+    for (const { src, idx } of fileCandidates) {
+      let file = fileMapRef.current.get(src);
+      if (!file) {
+        if (src.startsWith("data:")) {
+          file = dataUrlToFile(src, `image-${idx + 1}.png`);
+        } else if (src.startsWith("blob:")) {
+          const res = await fetch(src);
+          const blob = await res.blob();
+          const ext = (blob.type && blob.type.split("/")[1]) || "png";
+          file = new File([blob], `image-${idx + 1}.${ext}`, { type: blob.type || "image/png" });
+        } else {
+          // http(s) 기본 이미지/기타 → 업로드 대상이지만 uuid가 있다면 위 filter에서 걸러짐
+          // 혹 uuid 판단 실패 대비
+          const res = await fetch(src);
+          const blob = await res.blob();
+          const ext = (blob.type && blob.type.split("/")[1]) || "png";
+          file = new File([blob], `image-${idx + 1}.${ext}`, { type: blob.type || "image/png" });
+        }
+      }
+      filesForUpload.push(file);
+    }                                      
 
-    const uuidsInOrder = selectedImages.map(asUuid).filter(Boolean);      
-    const hasAnyImage = uuidsInOrder.length + filesForUpload.length > 0;
-    if (!hasAnyImage) missing.push("사진(1장 이상)");
+    const orderedUuids = selectedImages.map(asUuid).filter(Boolean);     
+    const hasAnyImage = orderedUuids.length + filesForUpload.length > 0;
+    if (!hasAnyImage) return alert("사진(1장 이상)이 필요해요.");
 
     // main 결정
     let mainUuid = "";                                                      
-    let mainIndex: number | undefined;                                    
-    if (firstSelected?.startsWith("data:")) {
-      mainIndex = dataUrls.indexOf(firstSelected); // 보통 0                
+    let mainIndex: number | undefined;    
+    const firstUuid = asUuid(firstSelected);                                
+    if (firstUuid) {
+      mainUuid = firstUuid; 
     } else {
-      mainUuid = asUuid(firstSelected);                                     
+      const idxInFiles = fileCandidates.findIndex(fc => fc.src === firstSelected);
+      mainIndex = idxInFiles >= 0 ? idxInFiles : 0;
     }
 
-    const imageUuids = mainUuid ? uuidsInOrder.slice(1) : uuidsInOrder;     
+    const imageUuids = mainUuid
+      ? orderedUuids.filter((u) => u !== mainUuid)
+      : orderedUuids;
 
     setIsLoading(true);
     try {
