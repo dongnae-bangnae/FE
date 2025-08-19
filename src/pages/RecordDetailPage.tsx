@@ -260,7 +260,7 @@ const RecordDetailPage = () => {
               lineHeight: fonts.lineHeight.subtitle,
               marginBottom: "20px",
               paddingTop: "20px",
-              paddingBottom: "70px",
+              paddingBottom: "40px",
               paddingLeft: "20px",
             }}
           >
