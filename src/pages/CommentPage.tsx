@@ -32,6 +32,19 @@ interface CommentData {
   isMine?: boolean;
 }
 
+const toNum = (v: any): number | null => {
+  if (v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+const firstNonEmpty = (...cands: (string | undefined)[]) => {
+  for (const c of cands) {
+    if (typeof c === "string" && c.trim() !== "") return c;
+  }
+  return undefined;
+};
+
 function CommentPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -67,31 +80,46 @@ function CommentPage() {
     setComments((prev) => {
       const prevMap = new Map(prev.map(p => [p.id, p]));               
       const normalized = (fetchedComments as any[]).map((c) => {
-        const id = c.id ?? c.commentId ?? c.comment_id;
-        const prevItem = prevMap.get(id);
+        const id = toNum(c.id ?? c.commentId ?? c.comment_id)!;        
+        const memberId = toNum(c.memberId ?? c.writerId ?? c.userId);
+        const parentId = toNum(c.parentCommentId ?? c.parent_id);
 
-        const memberId = c.memberId ?? c.writerId ?? c.userId;
-        const isMineServer = typeof c.isMine === "boolean" ? c.isMine : undefined;
+        const prevItem = prevMap.get(id);                             
+        const isMineServer = typeof c.isMine === "boolean" ? c.isMine : undefined;                                               
 
         const nickname =
-          c.nickname ?? c.memberNickname ?? c.writerNickname ?? c.userNickname ??
-          prevItem?.nickname ??                                 
-          ((isMineServer || (myInfo?.memberId != null && memberId === myInfo.memberId)) ? myInfo?.nickname : undefined) ??
-          "익명";                                                
+          firstNonEmpty(
+            prevItem?.nickname,
+            c.nickname,
+            c.memberNickname,
+            c.writerNickname,
+            c.userNickname,
+            (isMineServer || (myInfo?.memberId != null && memberId != null && memberId === myInfo.memberId))
+              ? myInfo?.nickname
+              : undefined,
+            "익명"
+          ) || "익명"; // 안전장치
 
         const profileImage =
-          c.profileImage ?? c.memberProfileImage ?? c.writerProfileImage ?? c.userProfileImage ??
-          prevItem?.profileImage ??                              
-          ((isMineServer || (myInfo?.memberId != null && memberId === myInfo.memberId)) ? myInfo?.profileImage : undefined) ??
-          "";                                                     
+          firstNonEmpty(
+            prevItem?.profileImage,
+            c.profileImage,
+            c.memberProfileImage,
+            c.writerProfileImage,
+            c.userProfileImage,
+            (isMineServer || (myInfo?.memberId != null && memberId != null && memberId === myInfo.memberId))
+              ? myInfo?.profileImage
+              : undefined,
+            "" 
+          ) || "";
 
         return {
           id,
           content: c.content ?? "",
           nickname,
           profileImage,
-          parentCommentId: c.parentCommentId ?? c.parent_id ?? null,
-          memberId,
+          parentCommentId: parentId ?? null,
+          memberId: memberId ?? undefined,
           isMine: isMineServer,
         } as CommentData;
       });
@@ -137,8 +165,9 @@ function CommentPage() {
       return;
     }
 
+    const optimisticId = Date.now();
     const optimistic: CommentData = {
-      id: Date.now(),               
+      id: optimisticId,
       content,
       nickname: myInfo.nickname,
       profileImage: myInfo.profileImage,
@@ -155,7 +184,7 @@ function CommentPage() {
       },
       {
         onSuccess: (res) => {
-          const realId = res.result.commentId;
+          const realId = toNum(res?.result?.commentId) ?? optimisticId;
           setComments((prev) =>
             prev.map((c) => (c.id === optimistic.id ? { ...c, id: realId } : c))
           );
