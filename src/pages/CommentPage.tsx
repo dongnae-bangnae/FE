@@ -28,6 +28,7 @@ interface CommentData {
   nickname: string;
   profileImage: string;
   parentCommentId: number | null;
+  memberId: number;
 }
 
 function CommentPage() {
@@ -62,7 +63,7 @@ function CommentPage() {
   const { data: fetchedComments = [], isLoading, isError } = useFetchComments(articleId, { enabled: articleId > 0});
   
   useEffect(() => {
-    setComments(fetchedComments);
+    setComments(fetchedComments as CommentData[]);
   }, [fetchedComments]);
 
 
@@ -107,6 +108,7 @@ function CommentPage() {
             nickname: myInfo.nickname,
             profileImage: myInfo.profileImage,
             parentCommentId,
+            memberId: myInfo.memberId,
           };
 
           setComments((prev) => [...prev, newCommentObj]);
@@ -124,7 +126,6 @@ function CommentPage() {
   };
 
   const handleEditComment = (id: number, content: string) => {
-    setEditCommentId(id);
     setEditCommentId(id);
     setNewComment(content);
   };
@@ -182,7 +183,7 @@ function CommentPage() {
                 nickname={parentComment.nickname}
                 content={parentComment.content}
                 profileImage={parentComment.profileImage}
-                isMine={myInfo?.nickname === parentComment.nickname}
+                isMine={myInfo?.memberId === parentComment.memberId}
     
                 onEdit={() =>
                   handleEditComment(parentComment.id, parentComment.content)
@@ -208,7 +209,7 @@ function CommentPage() {
                       content={childComment.content}
                       isReply
                       profileImage={childComment.profileImage}
-                      isMine={myInfo?.nickname === childComment.nickname}
+                      isMine={myInfo?.memberId === childComment.memberId}
                       onEdit={() => handleEditComment(childComment.id, childComment.content)}
                       onDelete={() => handleDeleteComment(childComment.id)}
                       onReplyClick={() => {
