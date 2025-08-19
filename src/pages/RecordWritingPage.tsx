@@ -23,6 +23,7 @@ import { useArticleViewStore } from "../stores/articleView";
 import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticleWithLocation";
 import { useEditArticle } from "../hooks/mutations/useEditArticle";
 import { fetchArticleDetail } from "../apis/article";
+import { useSaveModeStore } from "../stores/saveModeStore";
 
 //S3 경로 변환
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
@@ -39,6 +40,19 @@ function RecordWritingPage() {
   const location = useLocation();
   const isEditMode = location.state?.mode === "edit";
   const editArticleId = isEditMode ? Number(location.state?.articleId) : null;
+
+  const { reset: resetSaveMode } = useSaveModeStore();
+  useEffect(() => {
+    // 글쓰기 페이지에 들어올 때마다 save 모드 상태를 리셋
+    resetSaveMode();
+  }, [resetSaveMode]);
+
+  const { reset: resetMapSearch } = useSaveModeStore();
+  useEffect(() => {
+    resetMapSearch();
+  }, [resetMapSearch]); 
+
+
 
   const {
     title, content, selectedImages, mainImageUuid, selectedDate,
