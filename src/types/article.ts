@@ -24,7 +24,7 @@ export interface ArticleForm {
   memberId?: number;
   categoryId: number;
   // placeId: number;
-  regionId: number;
+  regionId?: number;
   title: string;
   date: string;
   content: string;

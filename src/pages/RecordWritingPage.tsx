@@ -318,8 +318,8 @@ function RecordWritingPage() {
           title,
           content,
           date: selectedDate,
-          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) : null,         // [FIX: S3 PATH]
-          imageUuids: imageUuids.map(buildImageUrl),                        // [FIX: S3 PATH]
+          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) : null,         
+          imageUuids: imageUuids.map(buildImageUrl),                      
           latitude: typeof latitude === "number" ? latitude : null,
           longitude: typeof longitude === "number" ? longitude : null,
           likeCount: 0,
@@ -340,22 +340,20 @@ function RecordWritingPage() {
         result = await createAtPlace({
           categoryId,
           placeId,
-          regionId: 1,
           title,
           content,
           date: selectedDate,
           detailAddress: addr,
           placeName,
           pinCategory,
-          mainImageUuid: mainUuid || undefined,                              // [FIX: MAIN ORDER]
+          mainImageUuid: mainUuid || undefined,                              
           imageUuids,
-          files: filesForUpload,                                             // [FIX: MAIN ORDER]
-          mainIndex,                                                         // [FIX: MAIN ORDER]
+          files: filesForUpload,                                             
+          mainIndex,                                                       
         });
       } else if (typeof latitude === "number" && typeof longitude === "number") {
         result = await createWithLocation({
           categoryId,
-          regionId: 1,
           title,
           content,
           date: selectedDate,

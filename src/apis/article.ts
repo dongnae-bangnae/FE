@@ -12,6 +12,7 @@ export interface Article {
   likes: number;
   spam: number;
   comments: number;
+  regionId: number,
 }
 
 export interface ArticleListResponse {
