@@ -378,7 +378,6 @@ const RecordDetailPage = () => {
             }
             deleteArticle(articleId, {
               onSuccess: () => {
-                alert("게시글이 삭제되었습니다.");
                 navigate("/home");
                 <MessagePopup icon={CheckIcon_g} message="게시물이 삭제되었어요" />
               },
