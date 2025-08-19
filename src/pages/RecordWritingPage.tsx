@@ -39,8 +39,12 @@ const buildImageUrl = (v?: string | null) => {
 function RecordWritingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const isEditMode = location.state?.mode === "edit";
-  const editArticleId = isEditMode ? Number(location.state?.articleId) : null;
+
+  const articleIdFromStore = useArticleViewStore((s) => s.articleId) || 0;                
+  const stateMode = (location.state as any)?.mode;                                          
+  const stateArticleId = Number((location.state as any)?.articleId) || 0;                   
+  const editArticleId = stateMode === "edit" ? (stateArticleId || articleIdFromStore) : 0;  
+  const isEditMode = stateMode === "edit" && editArticleId > 0; 
 
   const { reset: resetSaveMode } = useSaveModeStore();
   useEffect(() => {
@@ -124,7 +128,7 @@ function RecordWritingPage() {
 
   const { mutateAsync: createAtPlace } = useCreateArticle(); // 기존핀
   const { mutateAsync: createWithLocation } = useCreateArticleWithLocation(); // 미등록장소
-  const { mutateAsync: editMutate } = useEditArticle(editArticleId ?? 0);
+  const { mutateAsync: editMutate } = useEditArticle(editArticleId);
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
