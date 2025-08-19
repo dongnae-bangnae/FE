@@ -24,6 +24,7 @@ import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticl
 import { useEditArticle } from "../hooks/mutations/useEditArticle";
 import { fetchArticleDetail } from "../apis/article";
 import { useSaveModeStore } from "../stores/saveModeStore";
+import { useMapViewStore } from "../stores/mapViewStore";
 
 //S3 경로 변환
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
@@ -47,7 +48,7 @@ function RecordWritingPage() {
     resetSaveMode();
   }, [resetSaveMode]);
 
-  const { reset: resetMapSearch } = useSaveModeStore();
+  const { reset: resetMapSearch } = useMapViewStore();
   useEffect(() => {
     resetMapSearch();
   }, [resetMapSearch]); 
