@@ -130,15 +130,15 @@ const toPartialFormData = (form: Partial<ArticleForm>) => {
   return fd;
 };
 
-function getCookie(name: string): string | null {
-  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return m ? decodeURIComponent(m[1]) : null;
-}
+// function getCookie(name: string): string | null {
+//   const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+//   return m ? decodeURIComponent(m[1]) : null;
+// }
 
-function authHeader() {
-  const token = getCookie("accessToken");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+// function authHeader() {
+//   const token = getCookie("accessToken");
+//   return token ? { Authorization: `Bearer ${token}` } : {};
+// }
 
 //게시글 작성(미등록장소)
 export const createArticle = async (
@@ -240,11 +240,11 @@ export const fetchArticleDetail = async (
 export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
   const { data } = await axiosInstance.post<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
-    null,
-    {
-      withCredentials: true,           
-      headers: authHeader(),       
-    }
+    // null,
+    // {
+    //   withCredentials: true,           
+    //   headers: authHeader(),       
+    // }
   );
   return data.result;
 };
@@ -255,10 +255,10 @@ export const unlikeArticle = async (
 ): Promise<LikeResponse> => {
   const { data } = await axiosInstance.delete<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
-    {
-      withCredentials: true,          
-      headers: authHeader(),        
-    }
+    // {
+    //   withCredentials: true,          
+    //   headers: authHeader(),        
+    // }
   );
   return data.result;
 };
