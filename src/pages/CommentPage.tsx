@@ -64,17 +64,43 @@ function CommentPage() {
   const { data: fetchedComments = [], isLoading, isError } = useFetchComments(articleId, { enabled: articleId > 0});
   
   useEffect(() => {
-    const normalized = (fetchedComments as any[]).map((c) => ({
-      id: c.id ?? c.commentId ?? c.comment_id,
-      content: c.content ?? "",
-      nickname: c.nickname ?? c.memberNickname ?? c.writerNickname ?? c.userNickname ?? "익명",   // [CHANGED]
-      profileImage: c.profileImage ?? c.memberProfileImage ?? c.writerProfileImage ?? c.userProfileImage ?? "", // [CHANGED]
-      parentCommentId: c.parentCommentId ?? c.parent_id ?? null,
-      memberId: c.memberId ?? c.writerId ?? c.userId, 
-      isMine: c.isMine,                            
-    })) as CommentData[];
-    setComments(normalized);
-  }, [fetchedComments]);
+    setComments((prev) => {
+      const prevMap = new Map(prev.map(p => [p.id, p]));               
+      const normalized = (fetchedComments as any[]).map((c) => {
+        const id = c.id ?? c.commentId ?? c.comment_id;
+        const prevItem = prevMap.get(id);
+
+        const memberId = c.memberId ?? c.writerId ?? c.userId;
+        const isMineServer = typeof c.isMine === "boolean" ? c.isMine : undefined;
+
+        const nickname =
+          c.nickname ?? c.memberNickname ?? c.writerNickname ?? c.userNickname ??
+          prevItem?.nickname ??                                 
+          ((isMineServer || (myInfo?.memberId != null && memberId === myInfo.memberId)) ? myInfo?.nickname : undefined) ??
+          "익명";                                                
+
+        const profileImage =
+          c.profileImage ?? c.memberProfileImage ?? c.writerProfileImage ?? c.userProfileImage ??
+          prevItem?.profileImage ??                              
+          ((isMineServer || (myInfo?.memberId != null && memberId === myInfo.memberId)) ? myInfo?.profileImage : undefined) ??
+          "";                                                     
+
+        return {
+          id,
+          content: c.content ?? "",
+          nickname,
+          profileImage,
+          parentCommentId: c.parentCommentId ?? c.parent_id ?? null,
+          memberId,
+          isMine: isMineServer,
+        } as CommentData;
+      });
+
+      const incomingIds = new Set(normalized.map(n => n.id));          
+      const keepLocal = prev.filter(p => !incomingIds.has(p.id));     
+      return [...normalized, ...keepLocal];                         
+    });
+  }, [fetchedComments, myInfo]); 
 
   const { mutate: updateComment } = useUpdateComment(
     articleId,
@@ -111,6 +137,17 @@ function CommentPage() {
       return;
     }
 
+    const optimistic: CommentData = {
+      id: Date.now(),               
+      content,
+      nickname: myInfo.nickname,
+      profileImage: myInfo.profileImage,
+      parentCommentId,
+      memberId: myInfo.memberId,
+      isMine: true,
+    };
+    setComments((prev) => [...prev, optimistic]);  
+
     createComment(
       {
         content,
@@ -118,23 +155,18 @@ function CommentPage() {
       },
       {
         onSuccess: (res) => {
-          const newCommentObj: CommentData = {
-            id: res.result.commentId,
-            content,
-            nickname: myInfo.nickname,
-            profileImage: myInfo.profileImage,
-            parentCommentId,
-            memberId: myInfo.memberId,
-          };
-
-          setComments((prev) => [...prev, newCommentObj]);
-          queryClient.invalidateQueries({ queryKey: ["comments", articleId]});
+          const realId = res.result.commentId;
+          setComments((prev) =>
+            prev.map((c) => (c.id === optimistic.id ? { ...c, id: realId } : c))
+          );
+          queryClient.invalidateQueries({ queryKey: ["comments", articleId] });
 
           setNewComment("");
           setReplyTarget(null);
           setShowPopup(true);
         },
         onError: () => {
+          setComments((prev) => prev.filter((c) => c.id !== optimistic.id));
           alert("댓글 등록에 실패했습니다.");
         },
       }
