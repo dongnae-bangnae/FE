@@ -153,10 +153,8 @@ const RecordDetailPage = () => {
         setIsLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stableId]);
 
-  // --- 3) 스냅샷을 로컬 캐시에 저장 ---
   useEffect(() => {
     if (!stableId) return;
     const snap = {
@@ -177,7 +175,6 @@ const RecordDetailPage = () => {
     try {
       localStorage.setItem(cacheKey(stableId), JSON.stringify(snap));
     } catch {
-      // 무시
     }
   }, [
     stableId,
@@ -194,7 +191,7 @@ const RecordDetailPage = () => {
     isReported,
   ]);
 
-  // --- 이미지/지도 렌더 준비 ---
+  // 이미지/지도
   const allImages = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : imageUuids ?? [])
     .map((s) => toImgSrc(s));
 
@@ -208,7 +205,7 @@ const RecordDetailPage = () => {
   );
   const canShowMap = mapLat !== null && mapLng !== null;
 
-  // --- 신고 핸들러 ---
+  // 신고
   const handleOpenReportModal = () => setShowConfirm(true);
 
   const handleConfirmReport = () => {
@@ -343,7 +340,7 @@ const RecordDetailPage = () => {
           onClose={() => setShowMenu(false)}
           onEdit={() => {
             setShowMenu(false);
-            navigate("/record/write", {
+            navigate("/record/new/write", {
               state: { mode: "edit", articleId },
             });
           }}
