@@ -17,6 +17,7 @@ function CategoryPage() {
 	const navigate = useNavigate();
 
 	const { mode, placeId: savePlaceId, reset: resetSaveMode } = useSaveModeStore();
+	console.log("CategoryPage 렌더링 - 현재 모드:", mode, "현재 placeId:", savePlaceId);
 
 	// 상태 관리 변수 
 	const [selectedCategory, setSelectedCategory] = useState<{categoryId: number; name: string; color: CategoryColorName;} | null>(null);
@@ -24,6 +25,7 @@ function CategoryPage() {
 	const [popup, setPopup] = useState<{ message: string; icon?: string } | null>(null);
 
 	const {data: categories = [], isLoading, isError} = useFetchCategories(); 
+
 	const { mutate: saveMutate } = useSavePlaceToCategory({
 		onSuccess: () => {
 			setPopup({ message: "장소가 카테고리에 저장되었습니다." });
