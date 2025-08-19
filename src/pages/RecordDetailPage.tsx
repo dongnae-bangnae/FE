@@ -255,10 +255,9 @@ const RecordDetailPage = () => {
           <div
             className="border-b border-[#999999] text-left mx-auto"
             style={{
-              fontSize: fonts.size.title,
+              fontSize: "23px",
               fontWeight: fonts.weight.medium,
-              height: "46px",
-              lineHeight: "48px",
+              lineHeight: fonts.lineHeight.subtitle,
               marginBottom: "20px",
               paddingTop: "20px",
               paddingBottom: "70px",
@@ -272,8 +271,9 @@ const RecordDetailPage = () => {
           <div
             className="text-left"
             style={{
-              fontSize: fonts.size.body,
+              fontSize: "15px",
               fontWeight: fonts.weight.regular,
+              lineHeight: fonts.lineHeight.body,
               paddingBottom: "70px",
               paddingTop: "10px",
               marginLeft: "20px",

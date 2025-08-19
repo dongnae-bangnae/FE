@@ -195,7 +195,6 @@ function RecordWritingPage() {
     if (!src) return "";
     if (uuidRe.test(src)) return src;
     if (isArticlePhotoUrl(src)) return extractUuidFromS3Url(src);
-    if (isDefaultImageUrl(src)) return extractUuidFromS3Url(src);
     return "";
   };
 
@@ -253,24 +252,19 @@ function RecordWritingPage() {
     if (!content.trim()) missing.push("내용");
 
     // 전체 선택 목록에서 파일/uuid 분리
-    const firstSelected = selectedImages[0];                                
+    const firstSelected = selectedImages[0];  
+
     const fileCandidates = selectedImages
       .map((src, idx) => ({ src, idx }))
       .filter(({ src }) => asUuid(src) === "");
-    const filesForUpload: File[] = []; // [CHANGED]
+
+    const filesForUpload: File[] = []; 
     for (const { src, idx } of fileCandidates) {
       let file = fileMapRef.current.get(src);
       if (!file) {
         if (src.startsWith("data:")) {
           file = dataUrlToFile(src, `image-${idx + 1}.png`);
-        } else if (src.startsWith("blob:")) {
-          const res = await fetch(src);
-          const blob = await res.blob();
-          const ext = (blob.type && blob.type.split("/")[1]) || "png";
-          file = new File([blob], `image-${idx + 1}.${ext}`, { type: blob.type || "image/png" });
         } else {
-          // http(s) 기본 이미지/기타 → 업로드 대상이지만 uuid가 있다면 위 filter에서 걸러짐
-          // 혹 uuid 판단 실패 대비
           const res = await fetch(src);
           const blob = await res.blob();
           const ext = (blob.type && blob.type.split("/")[1]) || "png";
@@ -287,12 +281,13 @@ function RecordWritingPage() {
     // main 결정
     let mainUuid = "";                                                      
     let mainIndex: number | undefined;    
-    const firstUuid = asUuid(firstSelected);                                
+    const first = selectedImages[0];
+    const firstUuid = asUuid(first);                                
     if (firstUuid) {
       mainUuid = firstUuid; 
     } else {
-      const idxInFiles = fileCandidates.findIndex(fc => fc.src === firstSelected);
-      mainIndex = idxInFiles >= 0 ? idxInFiles : 0;
+      const i = fileCandidates.findIndex(fc => fc.src === first);
+      mainIndex = i >= 0 ? i : 0;
     }
 
     const imageUuids = mainUuid
@@ -318,8 +313,8 @@ function RecordWritingPage() {
           title,
           content,
           date: selectedDate,
-          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) : null,         // [FIX: S3 PATH]
-          imageUuids: imageUuids.map(buildImageUrl),                        // [FIX: S3 PATH]
+          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) : null,       
+          imageUuids: imageUuids.map(buildImageUrl),                      
           latitude: typeof latitude === "number" ? latitude : null,
           longitude: typeof longitude === "number" ? longitude : null,
           likeCount: 0,
@@ -347,10 +342,10 @@ function RecordWritingPage() {
           detailAddress: addr,
           placeName,
           pinCategory,
-          mainImageUuid: mainUuid || undefined,                              // [FIX: MAIN ORDER]
+          mainImageUuid: mainUuid || undefined,                             
           imageUuids,
-          files: filesForUpload,                                             // [FIX: MAIN ORDER]
-          mainIndex,                                                         // [FIX: MAIN ORDER]
+          files: filesForUpload,                                             
+          mainIndex,                                                         
         });
       } else if (typeof latitude === "number" && typeof longitude === "number") {
         result = await createWithLocation({
@@ -364,10 +359,10 @@ function RecordWritingPage() {
           detailAddress: addr,
           placeName,
           pinCategory,
-          mainImageUuid: mainUuid || undefined,                              // [FIX: MAIN ORDER]
+          mainImageUuid: mainUuid || undefined,                            
           imageUuids,
-          files: filesForUpload,                                             // [FIX: MAIN ORDER]
-          mainIndex,                                                         // [FIX: MAIN ORDER]
+          files: filesForUpload,                                            
+          mainIndex,                                                      
         });
       } else {
         alert("위치 정보가 없습니다. 기존 핀을 선택하거나 지도로 위치를 지정해 주세요.");
@@ -381,8 +376,8 @@ function RecordWritingPage() {
         title: result.title,
         content: result.content,
         date: result.date,
-        mainImageUuid: result.mainImageUuid ? buildImageUrl(result.mainImageUuid) : null, // [FIX: S3 PATH]
-        imageUuids: Array.isArray(result.imageUuids) ? result.imageUuids.map(buildImageUrl) : [], // [FIX: S3 PATH]
+        mainImageUuid: result.mainImageUuid ? buildImageUrl(result.mainImageUuid) : null, 
+        imageUuids: Array.isArray(result.imageUuids) ? result.imageUuids.map(buildImageUrl) : [], 
         latitude: typeof latitude === "number" ? latitude : null,
         longitude: typeof longitude === "number" ? longitude : null,
         likeCount: result.likeCount ?? 0,
@@ -466,7 +461,7 @@ function RecordWritingPage() {
           onChange={(e) => setTitle(e.target.value)}
           placeholder="새 게시물"
           className="w-full h-[30px] resize-none focus:outline-none"
-          style={{ fontFamily: fonts.family, fontSize: "23px", lineHeight: fonts.lineHeight.subtitle, fontWeight: fonts.weight.regular, border: "none", borderBottom: `1px solid ${colors.gray300}`, marginBottom: "10px", height: "56px" }}
+          style={{ fontFamily: fonts.family, fontSize: "23px", lineHeight: fonts.lineHeight.subtitle, fontWeight: fonts.weight.medium, border: "none", borderBottom: `1px solid ${colors.gray300}`, marginBottom: "10px", height: "56px" }}
         />
         <textarea
           value={content}
