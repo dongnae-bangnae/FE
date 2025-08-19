@@ -23,7 +23,8 @@ const CommentItem = ({
   onReplyClick,
   children,
   isReply = false,
-  isMine = true, //임시
+  isMine = false,
+  profileImage,
   onEdit,
   onDelete
 }: CommentItemProps) => {
@@ -44,7 +45,7 @@ const CommentItem = ({
             <div className="ml-[20px]" />
           )}
           <img
-            src={DefaultProfileIcon}
+            src={profileImage && profileImage.trim() !== "" ? profileImage : DefaultProfileIcon}
             alt="avatar"
             className="w-[46px] h-[46px] rounded-full"
           />
