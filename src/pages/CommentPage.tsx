@@ -357,7 +357,7 @@ function CommentPage() {
 
                 {/* 답글 */}
                 {children.length > 0 && (
-                  <div className="-mx-4 py-2">
+                  <div className="-mx-4">
                     {children.map((childComment) => {
                       const isChildActive = replyTarget?.id === childComment.id;
                       return (
@@ -465,7 +465,7 @@ function CommentPage() {
                 onClick={() =>
                   handleSubmitComment(
                     newComment,
-                    replyTarget ? replyTarget.id : null
+                    replyTarget ? (replyTarget.parentId ?? replyTarget.id) : null
                   )
                 }
                 className="absolute right-3 inset-y-0 my-auto flex items-center justify-center rounded-[12px] w-[40px] h-[27px]"
