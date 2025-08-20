@@ -329,13 +329,15 @@ function CommentPage() {
       <div className="flex-1 px-4 py-3 overflow-y-auto space-y-4">
         {comments
           .filter((comment) => comment.parentCommentId === null)
+          .sort((a, b) => a.id - b.id)
           .map((parentComment) => {
-            const children = comments.filter((c) => c.parentCommentId === parentComment.id); 
+            const children = comments.filter((c) => c.parentCommentId === parentComment.id)
+                                     .sort((a, b) => a.id - b.id);  
             const isParentActive = replyTarget?.id === parentComment.id;
             return (
               <div key={parentComment.id}>
                 {/* 부모댓글에 답글 달 때 배경 변화 */}
-                <div className={`${isParentActive ? `${activeBg}} -mx-4 px-4 py-2`: ""}`}> 
+                <div className={`${isParentActive ? activeBg : "bg-[#FFF5E7]"} -mx-4 px-4 py-2`}>
                   <CommentItem
                   nickname={parentComment.nickname ?? "익명"}          
                   content={parentComment.content}
@@ -353,24 +355,35 @@ function CommentPage() {
 
                 {/* 답글 */}
                 {children.length > 0 && (
-                  <div className="-mx-4 bg-[#FFF5E7] py-2">              
-                    {children.map((childComment) => (
-                      <CommentItem
-                        key={childComment.id}
-                        nickname={childComment.nickname ?? "익명"}    
-                        content={childComment.content}
-                        isReply
-                        profileImage={childComment.profileImage ?? ""}  
-                        isMine={isMine(childComment)}                  
-                        onEdit={() => handleEditComment(childComment.id, childComment.content)}
-                        onDelete={() => handleDeleteComment(childComment.id)}
-                        onReplyClick={() => {
-                          setEditCommentId(null);
-                          setReplyTarget({ id: parentComment.id, nickname: childComment.nickname ?? "익명", parentId: parentComment.id, });
-                          setNewComment("");
-                        }}
-                      />
-                    ))}
+                  <div className="-mx-4 py-2">
+                    {children.map((childComment) => {
+                      const isChildActive = replyTarget?.id === childComment.id;
+                      return (
+                        <div
+                          key={childComment.id}
+                          className={`${isChildActive ? activeBg : "bg-[#FFF5E7]"} px-4 py-2`}
+                        >
+                          <CommentItem
+                            nickname={childComment.nickname ?? "익명"}
+                            content={childComment.content}
+                            isReply
+                            profileImage={childComment.profileImage ?? ""}
+                            isMine={isMine(childComment)}
+                            onEdit={() => handleEditComment(childComment.id, childComment.content)}
+                            onDelete={() => handleDeleteComment(childComment.id)}
+                            onReplyClick={() => {
+                              setEditCommentId(null);
+                              setReplyTarget({
+                                id: childComment.id, // [FIX] replyTarget.id를 child로 지정
+                                nickname: childComment.nickname ?? "익명",
+                                parentId: parentComment.id,
+                              });
+                              setNewComment("");
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
