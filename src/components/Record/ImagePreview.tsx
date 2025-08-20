@@ -172,7 +172,7 @@ const ImagePreview = ({ selectedImages, onReorder }: ImagePreviewProps) => {
                 <FiveImageGrid images={selectedImages.slice(0, 5)} />
               </div>
 
-              <div className="flex gap-[6px] flex-shrink-0 ml-[6px]">
+              <div className="flex gap-[6px] flex-shrink-0 ml-[4px]">
                 {selectedImages.length === 6 && renderImage(selectedImages[5], 184, 184, 5)}
 
                 {selectedImages.length === 7 && (
