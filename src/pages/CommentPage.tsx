@@ -328,7 +328,7 @@ function CommentPage() {
       {/* 댓글 목록 */}
       {isLoading && <div className="px-4 py-2">댓글 불러오는 중...</div>}
       {isError && <div className="px-4 py-2">댓글 불러오기에 실패했습니다</div>}
-      <div className="flex-1 px-4 py-3 overflow-y-auto space-y-4">
+      <div className="flex-1 px-4 py-3 overflow-y-auto">
         {comments
           .filter((comment) => comment.parentCommentId === null)
           .sort((a, b) => a.id - b.id)
