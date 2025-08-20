@@ -101,8 +101,8 @@ function RecordWritingPage() {
           pinCategory: s.pinCategory,
           detailAddress: s.detailAddress,
           placeId: s.placeId,
-          latitude: null,
-          longitude: null,
+          latitude: s.latitude ?? null,
+          longitude: s.longitude ?? null,
         };
       } else if (s.mode === "new") {
         return {
