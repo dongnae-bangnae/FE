@@ -239,11 +239,10 @@ export const fetchArticleDetail = async (
 export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
   const { data } = await axiosInstance.post<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
-    // null,
-    // {
-    //   withCredentials: true,           
-    //   headers: authHeader(),       
-    // }
+    null,
+    {
+      withCredentials: true,                
+    }
   );
   return data.result;
 };
@@ -254,10 +253,9 @@ export const unlikeArticle = async (
 ): Promise<LikeResponse> => {
   const { data } = await axiosInstance.delete<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
-    // {
-    //   withCredentials: true,          
-    //   headers: authHeader(),        
-    // }
+    {
+      withCredentials: true,                
+    }
   );
   return data.result;
 };
@@ -266,7 +264,9 @@ export const unlikeArticle = async (
 export const reportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
-  const response = await axiosInstance.post(`/api/articles/${articleId}/spams`);
+  const response = await axiosInstance.post(`/api/articles/${articleId}/spams`, null, {
+    withCredentials: true,
+  });
   return response.data;
 };
 
@@ -275,7 +275,9 @@ export const unreportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
   const response = await axiosInstance.delete(
-    `/api/articles/${articleId}/spams`
+    `/api/articles/${articleId}/spams`, {
+      withCredentials: true,
+    }
   );
   return response.data;
 };
