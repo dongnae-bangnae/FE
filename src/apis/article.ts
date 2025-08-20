@@ -263,8 +263,10 @@ export const unlikeArticle = async (
 export const reportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
+  const token = localStorage.getItem("accessToken");
   const response = await axiosInstance.post(`/api/articles/${articleId}/spams`, null, {
     withCredentials: true,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   return response.data;
 };
@@ -273,9 +275,11 @@ export const reportSpam = async (
 export const unreportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
+  const token = localStorage.getItem("accessToken");
   const response = await axiosInstance.delete(
     `/api/articles/${articleId}/spams`, {
       withCredentials: true,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     }
   );
   return response.data;
