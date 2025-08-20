@@ -403,12 +403,39 @@ function RecordWritingPage() {
 
   const handleGalleryClick = () => fileInputRef.current?.click();
 
+  const MAX_FILES = 10;
+  const MAX_MB = 10;
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const fileArray = Array.from(files);
-    const readers = fileArray.map((file) =>
+    
+    const remain = MAX_FILES - selectedImages.length;
+    if (remain <= 0) {
+      alert(`이미지는 최대 ${MAX_FILES}장까지 업로드할 수 있어요.`);
+      return;
+    }
+
+    // 타입검증
+    const valid: File[] = [];
+    for (const f of fileArray) {
+      if (!f.type.startsWith("image/")) {
+        alert(`이미지 파일만 업로드 가능해요. (${f.name})`);
+        continue;
+      }
+      if (f.size > MAX_MB * 1024 * 1024) {
+        alert(`각 이미지 크기는 최대 ${MAX_MB}MB까지예요. (${f.name})`);
+        continue;
+      }
+      valid.push(f);
+      if (valid.length >= remain) break;
+    }
+    if (valid.length === 0) return;
+
+    // 미리보기
+    const readers = valid.map((file) =>
       new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -422,7 +449,6 @@ function RecordWritingPage() {
     );
 
     Promise.all(readers).then((imageUrls) => addImages(imageUrls));
-    setSelectedFiles((prev) => [...prev, ...fileArray].slice(0, 10));
   };
 
   const handleImageSelect = (src: string) => {
