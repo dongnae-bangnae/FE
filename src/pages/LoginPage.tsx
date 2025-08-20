@@ -39,69 +39,43 @@ function LoginPage() {
   }, [location.state]);
 
   return (
-    <div className="flex flex-col items-center h-screen bg-[#FFAC33] text-white px-6 pt-[253px]">
-      {/* 로고 */}
+    <div className="relative flex flex-col items-center min-h-screen bg-[#FFAC33] text-white px-6">
+      {/* 로고: 위에서 253px 위치 + 지정 사이즈 */}
       <img
         src={logo}
         alt="로고"
+        className="mt-[253px]"
         style={{ width: "135.9px", height: "135px" }}
-        className="mb-10"
       />
 
       {/* 소셜 로그인 버튼 */}
-      <div className="flex space-x-[20px] mb-10">
+      <div className="absolute bottom-[230px] left-1/2 -translate-x-1/2 flex items-center justify-center gap-[29px]">
         {/* Naver */}
         <button
           onClick={() => handleSocialLogin("naver")}
-          className="flex items-center justify-center"
-          style={{
-            width: "60px",
-            height: "60px",
-            borderRadius: "50%",
-            backgroundColor: "#03CF5D"
-          }}
+          className="w-[60px] h-[60px] p-0 rounded-full active:scale-95"
+          aria-label="네이버로 로그인"
         >
-          <img
-            src={naverIcon}
-            alt="Naver"
-            style={{ width: "33px", height: "33px" }}
-          />
+          <img src={naverIcon} alt="Naver" className="w-full h-full" />
         </button>
 
         {/* Kakao */}
         <button
           onClick={() => handleSocialLogin("kakao")}
-          className="flex items-center justify-center"
-          style={{
-            width: "60px",
-            height: "60px",
-            borderRadius: "50%",
-            backgroundColor: "#FEE102"
-          }}
+          className="w-[60px] h-[60px] p-0 rounded-full active:scale-95"
+          aria-label="카카오로 로그인"
         >
-          <img
-            src={kakaoIcon}
-            alt="Kakao"
-            style={{ width: "33px", height: "33px" }}
-          />
+          <img src={kakaoIcon} alt="Kakao" className="w-full h-full" />
         </button>
 
         {/* Google */}
+
         <button
           onClick={() => handleSocialLogin("google")}
-          className="flex items-center justify-center"
-          style={{
-            width: "60px",
-            height: "60px",
-            borderRadius: "50%",
-            backgroundColor: "#FFFFFF"
-          }}
+          className="w-[60px] h-[60px] p-0 rounded-full active:scale-95"
+          aria-label="구글로 로그인"
         >
-          <img
-            src={googleIcon}
-            alt="Google"
-            style={{ width: "33px", height: "33px" }}
-          />
+          <img src={googleIcon} alt="Google" className="w-full h-full" />
         </button>
       </div>
 
