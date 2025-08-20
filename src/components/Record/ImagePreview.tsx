@@ -57,6 +57,10 @@ const ImagePreview = ({ selectedImages, onReorder }: ImagePreviewProps) => {
     dragFromRef.current = null;
   };
 
+  const handleDragEnd = () => {
+    dragFromRef.current = null;
+  };
+
   const renderImage = (
     src: string,
     width: number,
@@ -65,13 +69,14 @@ const ImagePreview = ({ selectedImages, onReorder }: ImagePreviewProps) => {
     showBadge = false
   ) => (
       <div
-        key={src}
+        key={`${src}-${index}`}
         className="relative rounded-[15px]"
         style={{ width, height }}
         draggable
         onDragStart={handleDragStart(index)}
         onDragOver={handleDragOver(index)}
         onDrop={handleDrop(index)}
+        onDragEnd={handleDragEnd}
       >
       <img
         src={src}
