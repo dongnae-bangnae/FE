@@ -77,7 +77,11 @@ const CommentItem = ({
         {/* 모달 렌더링 */}
         {isMine && (
           <>
-            <button className="mr-[12px]" onClick={() => setShowModal(true)}>
+            <button className="mr-[12px]" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowModal(true);
+                    }}>
               <img src={MenuBarIcon} />
             </button>
             {showModal && (
