@@ -49,7 +49,6 @@ const toFormData = (form: ArticleForm) => {
 
   formData.append("categoryId", String(form.categoryId));
   // formData.append("placeId", String(form.placeId));
-  formData.append("regionId", String(form.regionId));
   formData.append("title", form.title);
   formData.append("content", form.content);
   formData.append("date", form.date);
@@ -74,7 +73,6 @@ const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
 
   // 공통 필드
   fd.append("categoryId", String(form.categoryId));
-  fd.append("regionId", String(form.regionId));
   fd.append("title", form.title);
   fd.append("content", form.content);
   fd.append("date", form.date);
@@ -112,7 +110,6 @@ const toPartialFormData = (form: Partial<ArticleForm>) => {
   };
 
   put("categoryId", form.categoryId);
-  put("regionId", form.regionId);
   put("title", form.title);
   put("content", form.content);
   put("date", form.date);
@@ -148,7 +145,6 @@ export const createArticle = async (
 
   const request: any = {
     categoryId: data.categoryId,
-    regionId: data.regionId,
     title: data.title,
     content: data.content,
     date: data.date,
@@ -188,7 +184,6 @@ export const createArticleAtPlace = async (
   const request: any = {
     categoryId: data.categoryId,
     placeId: data.placeId,
-    regionId: data.regionId,
     title: data.title,
     content: data.content,
     date: data.date,

@@ -3,7 +3,6 @@ export interface CreatedArticleResult {
   memberId: number;
   categoryId: number;
   placeId: number;
-  regionId: number;
   placeName: string;
   pinCategory: string;
   detailAddress: string;
@@ -24,7 +23,6 @@ export interface ArticleForm {
   memberId?: number;
   categoryId: number;
   // placeId: number;
-  regionId: number;
   title: string;
   date: string;
   content: string;
@@ -64,7 +62,6 @@ export interface ArticlePreview {
 export interface ArticleListItem {
   memberId: number;
   articleId: number;
-  regionId: number;
   placeId: number;
   nickname: string;
   title: string;

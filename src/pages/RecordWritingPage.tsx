@@ -324,7 +324,6 @@ function RecordWritingPage() {
         result = await createAtPlace({
           categoryId,
           placeId,
-          regionId: 1,
           title,
           content,
           date: selectedDate,
@@ -344,7 +343,6 @@ function RecordWritingPage() {
           date: selectedDate,
           latitude,
           longitude,
-          regionId:1 ,
           detailAddress: addr,
           placeName,
           pinCategory,
