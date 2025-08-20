@@ -232,11 +232,13 @@ export const fetchArticleDetail = async (
 
 //좋아요 등록
 export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
+  const token = localStorage.getItem("accessToken");
   const { data } = await axiosInstance.post<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
     null,
     {
-      withCredentials: true,                
+      withCredentials: true,   
+      headers: token ? { Authorization: `Bearer ${token}` } : {},             
     }
   );
   return data.result;
@@ -246,10 +248,12 @@ export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
 export const unlikeArticle = async (
   articleId: number
 ): Promise<LikeResponse> => {
+  const token = localStorage.getItem("accessToken");
   const { data } = await axiosInstance.delete<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
     {
-      withCredentials: true,                
+      withCredentials: true,   
+      headers: token ? { Authorization: `Bearer ${token}` } : {},             
     }
   );
   return data.result;
@@ -259,8 +263,10 @@ export const unlikeArticle = async (
 export const reportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
+  const token = localStorage.getItem("accessToken");
   const response = await axiosInstance.post(`/api/articles/${articleId}/spams`, null, {
     withCredentials: true,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   return response.data;
 };
@@ -269,9 +275,11 @@ export const reportSpam = async (
 export const unreportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
+  const token = localStorage.getItem("accessToken");
   const response = await axiosInstance.delete(
     `/api/articles/${articleId}/spams`, {
       withCredentials: true,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     }
   );
   return response.data;
