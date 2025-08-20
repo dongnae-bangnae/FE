@@ -210,21 +210,21 @@ function RecordWritingPage() {
     return new File([u8arr], filename, { type: mime });
   };
 
-  const commitReorder = (from: number | null, to: number | null) => {                                 // [CHANGED]
-    if (from == null || to == null || from === to) return;
-    const newOrder = [...selectedImages];
-    const [moved] = newOrder.splice(from, 1);
-    newOrder.splice(to, 0, moved);
+  const commitReorder = (from: number | null, to: number | null) => {
+  if (from == null || to == null || from === to) return;
 
-    hydrateFromEdit({
-        title,
-        content,
-        selectedDate,
-        selectedImages: newOrder,
-        mainImageUuid: newOrder[0] ?? null,
-      } as any);
-      setMain(newOrder[0] ?? null);
-    };
+  const newOrder = [...selectedImages];
+  [newOrder[from], newOrder[to]] = [newOrder[to], newOrder[from]];
+
+  hydrateFromEdit({
+    title,
+    content,
+    selectedDate,
+    selectedImages: newOrder,
+    mainImageUuid: newOrder[0] ?? null,
+  } as any);
+  setMain(newOrder[0] ?? null);
+};
 
   const handleSubmit = async () => {
     if (categoryId == null) return alert("카테고리를 먼저 선택해 주세요.");
@@ -384,35 +384,19 @@ function RecordWritingPage() {
   };
 
   const MAX_FILES = 10;
-  const MAX_MB = 10;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const fileArray = Array.from(files);
-    
     const remain = MAX_FILES - selectedImages.length;
     if (remain <= 0) {
       alert(`이미지는 최대 ${MAX_FILES}장까지 업로드할 수 있어요.`);
       return;
     }
 
-    // 타입검증
-    const valid: File[] = [];
-    for (const f of fileArray) {
-      if (!f.type.startsWith("image/")) {
-        alert(`이미지 파일만 업로드 가능해요. (${f.name})`);
-        continue;
-      }
-      if (f.size > MAX_MB * 1024 * 1024) {
-        alert(`각 이미지 크기는 최대 ${MAX_MB}MB까지예요. (${f.name})`);
-        continue;
-      }
-      valid.push(f);
-      if (valid.length >= remain) break;
-    }
-    if (valid.length === 0) return;
+    const valid = fileArray.slice(0, remain);
 
     // 미리보기
     const readers = valid.map((file) =>
