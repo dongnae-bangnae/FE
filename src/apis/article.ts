@@ -96,12 +96,10 @@ const jsonPart = (obj: unknown) =>
 
 function pickMainAndOthers(files: (File | undefined)[], mainIndex?: number) {
   const safe = (files ?? []).filter((f): f is File => f instanceof File);
-  if (safe.length === 0) return { main: undefined as File | undefined, others: [] as File[] };
+  if (safe.length === 0) return { files: [] as File[], mainIndex: 0 };
   let idx = typeof mainIndex === "number" ? mainIndex : 0;
   idx = Math.min(Math.max(idx, 0), safe.length - 1);
-  const main = safe[idx];
-  const others = safe.filter((_, i) => i !== idx);
-  return { main, others };
+  return { files: safe, mainIndex: idx };
 }
 
 const toPartialFormData = (form: Partial<ArticleForm>) => {
@@ -170,9 +168,9 @@ export const createArticle = async (
 
   fd.append("request", jsonPart(request));
 
-  const { main, others } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
-  if (main) fd.append("mainImage", main);
-  others.forEach((f) => fd.append("imageFiles", f));
+  const { files, mainIndex } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
+  files.forEach((f) => fd.append("images", f));
+  fd.append("mainIndex", String(mainIndex));
 
   const { data: res } = await axiosInstance.post("/api/articles/with-location", fd, {
     withCredentials: true,
@@ -203,9 +201,9 @@ export const createArticleAtPlace = async (
 
   fd.append("request", jsonPart(request));
 
-  const { main, others } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
-  if (main) fd.append("mainImage", main);
-  others.forEach((f) => fd.append("imageFiles", f));
+  const { files, mainIndex } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
+  files.forEach((f) => fd.append("images", f));
+  fd.append("mainIndex", String(mainIndex));
 
   const { data: res } = await axiosInstance.post("/api/articles", fd, {
     withCredentials: true,
