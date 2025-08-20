@@ -210,8 +210,6 @@ function RecordWritingPage() {
     return new File([u8arr], filename, { type: mime });
   };
 
-  const [dragIndex, setDragIndex] = useState<number | null>(null);                                    // [CHANGED]
-
   const commitReorder = (from: number | null, to: number | null) => {                                 // [CHANGED]
     if (from == null || to == null || from === to) return;
     const newOrder = [...selectedImages];
@@ -227,20 +225,6 @@ function RecordWritingPage() {
       } as any);
       setMain(newOrder[0] ?? null);
     };
-
-  const onThumbDragStart = (idx: number) => (e: React.DragEvent) => {                                 // [CHANGED]
-    e.dataTransfer.effectAllowed = "move";
-    setDragIndex(idx);
-  };
-  const onThumbDragOver = (idx: number) => (e: React.DragEvent) => {                                  // [CHANGED]
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-  const onThumbDrop = (idx: number) => (e: React.DragEvent) => {                                      // [CHANGED]
-    e.preventDefault();
-    commitReorder(dragIndex, idx);
-    setDragIndex(null);
-  };
 
   const handleSubmit = async () => {
     if (categoryId == null) return alert("카테고리를 먼저 선택해 주세요.");
@@ -504,7 +488,10 @@ function RecordWritingPage() {
 
         {/* 미리보기 */}
         <div className="fixed left-1/2 -translate-x-1/2 z-30 mx-auto w-[375px]" style={{ bottom: "15px" }}>
-          <ImagePreview selectedImages={selectedImages} />
+          <ImagePreview 
+          selectedImages={selectedImages} 
+          onReorder={(from, to) => commitReorder(from, to)}
+          />
         </div>
 
         {/* 지도 미리보기 */}
