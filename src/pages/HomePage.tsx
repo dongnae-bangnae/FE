@@ -73,7 +73,11 @@ function HomePage() {
                 date={formatDate(article.createdAt)}
                 title={article.title}
                 image={imageUrlFromUuid(article.mainImageUuid)}
-                onClick={() => navigate(`/record/${article.articleId}/detail`)}
+                onClick={() =>
+                  navigate(`/record/${article.articleId}`, {
+                    state: { articleId: article.articleId }
+                  })
+                }
               />
             ))}
 
