@@ -97,12 +97,13 @@ const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
   return fd;
 };
 
-const jsonPart = (obj: unknown) => 
-  new Blob([JSON.stringify(obj)], { type: "application/json"});
+const jsonPart = (obj: unknown) =>
+  new Blob([JSON.stringify(obj)], { type: "application/json" });
 
 function pickMainAndOthers(files: (File | undefined)[], mainIndex?: number) {
   const safe = (files ?? []).filter((f): f is File => f instanceof File);
-  if (safe.length === 0) return { main: undefined as File | undefined, others: [] as File[] };
+  if (safe.length === 0)
+    return { main: undefined as File | undefined, others: [] as File[] };
 
   let idx = typeof mainIndex === "number" ? mainIndex : 0;
   idx = Math.min(Math.max(idx, 0), safe.length - 1);
@@ -118,7 +119,7 @@ export const createArticle = async (
   opts?: { files?: File[]; mainIndex?: number }
 ): Promise<number> => {
   const fd = new FormData();
-  
+
   const request = {
     categoryId: data.categoryId,
     regionId: data.regionId,
@@ -129,17 +130,20 @@ export const createArticle = async (
     longitude: data.longitude,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory,
+    pinCategory: data.pinCategory
   };
   fd.append("request", jsonPart(request));
 
-  const { main, others } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
-  if (main) fd.append("mainImage", main);               
-  others.forEach((f) => fd.append("imageFiles", f));   
+  const { main, others } = pickMainAndOthers(
+    opts?.files ?? [],
+    opts?.mainIndex
+  );
+  if (main) fd.append("mainImage", main);
+  others.forEach((f) => fd.append("imageFiles", f));
 
   const { data: res } = await axiosInstance.post(
     "/api/articles/with-location",
-    fd 
+    fd
   );
   return res.result.articleId;
 };
@@ -147,7 +151,7 @@ export const createArticle = async (
 //게시글 작성(기존 핀)
 export const createArticleAtPlace = async (
   data: ArticleFormAtPlace,
-  opts? : { files?: File[]; mainIndex?: number}
+  opts?: { files?: File[]; mainIndex?: number }
 ): Promise<number> => {
   const fd = new FormData();
 
@@ -160,18 +164,18 @@ export const createArticleAtPlace = async (
     date: data.date,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory,
+    pinCategory: data.pinCategory
   };
   fd.append("request", jsonPart(request));
 
-  const { main, others } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
-  if (main) fd.append("mainImage", main);              
-  others.forEach((f) => fd.append("imageFiles", f));  
-
-  const { data: res } = await axiosInstance.post(
-    "/api/articles",
-    fd
+  const { main, others } = pickMainAndOthers(
+    opts?.files ?? [],
+    opts?.mainIndex
   );
+  if (main) fd.append("mainImage", main);
+  others.forEach((f) => fd.append("imageFiles", f));
+
+  const { data: res } = await axiosInstance.post("/api/articles", fd);
   return res.result.articleId;
 };
 
