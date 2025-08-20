@@ -146,7 +146,7 @@ function CommentPage() {
             c.memberProfileImage,
             c.writerProfileImage,
             c.userProfileImage,
-            cached?.nickname,
+            cached?.profileImage,
             (isMineServer || (myInfo?.memberId != null && memberId != null && memberId === myInfo.memberId))
               ? myInfo?.profileImage
               : undefined,
@@ -298,6 +298,8 @@ function CommentPage() {
   };
 
   const activeBg = "bg-[#F3FBFF]";
+  const isLikelyImageUrl = (s?: string) =>
+  !!s && /^(https?:\/\/|data:image\/)/i.test(s);
 
   return (
     <div className="flex flex-col h-screen" style={{ fontFamily: fonts.family }}>
@@ -341,7 +343,7 @@ function CommentPage() {
                   <CommentItem
                   nickname={parentComment.nickname ?? "익명"}          
                   content={parentComment.content}
-                  profileImage={parentComment.profileImage ?? ""}       
+                  profileImage={isLikelyImageUrl(parentComment.profileImage) ? parentComment.profileImage! : ""}       
                   isMine={isMine(parentComment)}                      
                   onEdit={() => handleEditComment(parentComment.id, parentComment.content)}
                   onDelete={() => handleDeleteComment(parentComment.id)}
@@ -367,7 +369,7 @@ function CommentPage() {
                             nickname={childComment.nickname ?? "익명"}
                             content={childComment.content}
                             isReply
-                            profileImage={childComment.profileImage ?? ""}
+                            profileImage={isLikelyImageUrl(childComment.profileImage) ? childComment.profileImage! : ""}
                             isMine={isMine(childComment)}
                             onEdit={() => handleEditComment(childComment.id, childComment.content)}
                             onDelete={() => handleDeleteComment(childComment.id)}
