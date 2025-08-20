@@ -4,7 +4,7 @@ import circleCheck from "../assets/icon-circleCheck.svg";
 import googleIcon from "../assets/icon-google.svg";
 import kakaoIcon from "../assets/icon-kakao.svg";
 import naverIcon from "../assets/icon-naver.svg";
-import logo from "../assets/logo.svg";
+import logo from "../assets/logo2.svg";
 
 function LoginPage() {
   const location = useLocation();
@@ -39,9 +39,14 @@ function LoginPage() {
   }, [location.state]);
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-[#F95F00] text-white px-6">
+    <div className="flex flex-col items-center h-screen bg-[#FFAC33] text-white px-6 pt-[253px]">
       {/* 로고 */}
-      <img src={logo} alt="로고" className="w-[101px] h-[100px] mb-10 mt-10" />
+      <img
+        src={logo}
+        alt="로고"
+        style={{ width: "135.9px", height: "135px" }}
+        className="mb-10"
+      />
 
       {/* 소셜 로그인 버튼 */}
       <div className="flex space-x-[20px] mb-10">
