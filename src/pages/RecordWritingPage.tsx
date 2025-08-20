@@ -211,20 +211,20 @@ function RecordWritingPage() {
   };
 
   const commitReorder = (from: number | null, to: number | null) => {
-  if (from == null || to == null || from === to) return;
+    if (from == null || to == null || from === to) return;
 
-  const newOrder = [...selectedImages];
-  [newOrder[from], newOrder[to]] = [newOrder[to], newOrder[from]];
+    const newOrder = [...selectedImages];
+    [newOrder[from], newOrder[to]] = [newOrder[to], newOrder[from]];
 
-  hydrateFromEdit({
-    title,
-    content,
-    selectedDate,
-    selectedImages: newOrder,
-    mainImageUuid: newOrder[0] ?? null,
-  } as any);
-  setMain(newOrder[0] ?? null);
-};
+    hydrateFromEdit({
+      title,
+      content,
+      selectedDate,
+      selectedImages: newOrder,
+      mainImageUuid: newOrder[0] ?? null,
+    } as any);
+    setMain(newOrder[0] ?? null);
+  };
 
   const handleSubmit = async () => {
     if (categoryId == null) return alert("카테고리를 먼저 선택해 주세요.");
