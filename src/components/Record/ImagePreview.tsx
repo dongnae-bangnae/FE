@@ -1,24 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import RepresentativeBadge from "./RepresentativeBadge";
 import MiniSpinner from "./MiniSpinner";
 import React from "react";
 
 interface ImagePreviewProps {
   selectedImages: string[];
+  onReorder?: (from: number, to: number) => void;
 }
 
-const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
+const ImagePreview = ({ selectedImages, onReorder }: ImagePreviewProps) => {
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+  const dragFromRef = useRef<number | null>(null);
 
    useEffect(() => {
     setLoadingMap((prev) => {
-      const newMap: Record<string, boolean> = { ...prev };
+      const next: Record<string, boolean> = { ...prev };
       selectedImages.forEach((src) => {
-        if (!(src in newMap)) {
-          newMap[src] = true;
-        }
+        if (!(src in next)) next[src] = true;
       });
-      return newMap;
+      return next;
     });
   }, [selectedImages]);
 
@@ -29,6 +29,34 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
     });
   };
 
+  const handleDragStart = (index: number) => (e: React.DragEvent) => {
+    dragFromRef.current = index;
+    e.dataTransfer.effectAllowed = "move";
+    // 파이어폭스 호환: 반드시 setData 필요
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+  const handleDragOver = (index: number) => (e: React.DragEvent) => {
+    e.preventDefault(); // drop 허용
+    e.dataTransfer.dropEffect = "move";
+  };
+  const handleDrop = (toIndex: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const fromIndexStr = e.dataTransfer.getData("text/plain");
+    const fromIndex =
+      fromIndexStr !== "" ? parseInt(fromIndexStr, 10) : dragFromRef.current;
+    if (
+      typeof fromIndex === "number" &&
+      fromIndex >= 0 &&
+      fromIndex < selectedImages.length &&
+      toIndex >= 0 &&
+      toIndex < selectedImages.length &&
+      fromIndex !== toIndex
+    ) {
+      onReorder?.(fromIndex, toIndex);
+    }
+    dragFromRef.current = null;
+  };
+
   const renderImage = (
     src: string,
     width: number,
@@ -36,12 +64,21 @@ const ImagePreview = ({ selectedImages }: ImagePreviewProps) => {
     index: number,
     showBadge = false
   ) => (
-    <div className="relative" style={{ width, height }} key={src}>
+      <div
+        key={src}
+        className="relative rounded-[15px]"
+        style={{ width, height }}
+        draggable
+        onDragStart={handleDragStart(index)}
+        onDragOver={handleDragOver(index)}
+        onDrop={handleDrop(index)}
+      >
       <img
         src={src}
         alt={`preview-${index}`}
         className="w-full h-full object-cover rounded-[15px]"
         onLoad={() => handleImageLoad(src)}
+        draggable={false}
       />
       {loadingMap[src] && (
         <div className="absolute inset-0 flex justify-center items-center bg-[#D9D9D9] rounded-[15px]">
