@@ -99,8 +99,8 @@ function RecordWritingPage() {
           pinCategory: s.pinCategory,
           detailAddress: s.detailAddress,
           placeId: s.placeId,
-          latitude: null,
-          longitude: null,
+          latitude: s.latitude,
+          longitude: s.longitude,
         };
       } else if (s.mode === "new") {
         return {
@@ -318,7 +318,7 @@ function RecordWritingPage() {
         return;
       }
 
-      // 새로 등록
+      // 등록
       let result;
       if (typeof placeId === "number") {
         result = await createAtPlace({
@@ -384,8 +384,6 @@ function RecordWritingPage() {
       setIsLoading(false);
     }
   };
-
-  const handleGalleryClick = () => fileInputRef.current?.click();
 
   const MAX_FILES = 10;
   const MAX_MB = 10;
