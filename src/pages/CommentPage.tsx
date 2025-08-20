@@ -339,7 +339,7 @@ function CommentPage() {
             return (
               <div key={parentComment.id}>
                 {/* 부모댓글에 답글 달 때 배경 변화 */}
-                <div className={`${isParentActive ? activeBg : "bg-[#FFF5E7]"} -mx-4 px-4 py-2`}>
+                <div className={`${isParentActive ? activeBg : ""} -mx-4 px-4`}>
                   <CommentItem
                   nickname={parentComment.nickname ?? "익명"}          
                   content={parentComment.content}
@@ -363,7 +363,7 @@ function CommentPage() {
                       return (
                         <div
                           key={childComment.id}
-                          className={`${isChildActive ? activeBg : "bg-[#FFF5E7]"} px-4 py-2`}
+                          className={`${isChildActive ? activeBg : "bg-[#FFF5E7]"} px-4`}
                         >
                           <CommentItem
                             nickname={childComment.nickname ?? "익명"}
@@ -376,7 +376,7 @@ function CommentPage() {
                             onReplyClick={() => {
                               setEditCommentId(null);
                               setReplyTarget({
-                                id: childComment.id, // [FIX] replyTarget.id를 child로 지정
+                                id: childComment.id, 
                                 nickname: childComment.nickname ?? "익명",
                                 parentId: parentComment.id,
                               });
