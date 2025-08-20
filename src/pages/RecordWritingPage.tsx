@@ -29,7 +29,6 @@ import { useMapViewStore } from "../stores/mapViewStore";
 //S3 경로 변환
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
 const ARTICLE_PHOTO_BASE = `${S3_BASE}/article/photo`;
-const DEFAULT_IMAGES_BASE = `${S3_BASE}/default-images`;
 
 const buildImageUrl = (v?: string | null) => {
   if (!v) return "";
@@ -41,11 +40,14 @@ function RecordWritingPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const articleIdFromStore = useArticleViewStore((s) => s.articleId) || 0;                
-  const stateMode = (location.state as any)?.mode;                                          
-  const stateArticleId = Number((location.state as any)?.articleId) || 0;                   
-  const editArticleId = stateMode === "edit" ? (stateArticleId || articleIdFromStore) : 0;  
-  const isEditMode = stateMode === "edit" && editArticleId > 0; 
+  const articleIdFromStore = useArticleViewStore((s) => s.articleId) || 0;
+  const stateMode = (location.state as any)?.mode;
+  const rawStateArticleId = (location.state as any)?.articleId;
+  const stateArticleId = typeof rawStateArticleId === "number"
+    ? rawStateArticleId
+    : Number(rawStateArticleId) || 0;
+  const editArticleId = stateMode === "edit" ? (stateArticleId || articleIdFromStore) : 0;
+  const isEditMode = stateMode === "edit" && editArticleId > 0;
 
   const { reset: resetSaveMode } = useSaveModeStore();
   useEffect(() => {
@@ -293,7 +295,6 @@ function RecordWritingPage() {
           mainImageUuid: mainUuid || undefined,
           imageUuids,
         };
-        
         await editMutate(payload);
 
         // 로컬 뷰(표시는 article/photo/{uuid})

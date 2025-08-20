@@ -343,7 +343,7 @@ const RecordDetailPage = () => {
           onEdit={() => {
             setShowMenu(false);
             navigate("/record/new/write", {
-              state: { mode: "edit", articleId },
+              state: { mode: "edit", articleId: stableId },
             });
           }}
           onDelete={() => {
