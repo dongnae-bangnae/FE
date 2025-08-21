@@ -92,6 +92,26 @@ const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
 const jsonPart = (obj: unknown) =>
   new Blob([JSON.stringify(obj)], { type: "application/json" });
 
+function normalizeFiles(files: (File | undefined)[]) {
+  return (files ?? []).filter((f): f is File => f instanceof File);
+}
+
+function appendImages(fd: FormData, files: File[], mainIndex?: number) {
+  if (!files.length) return;
+
+  const hasMain =
+    typeof mainIndex === "number" &&
+    mainIndex >= 0 &&
+    mainIndex < files.length;
+
+  files.forEach((f, i) => {
+    if (hasMain && i === mainIndex) {
+      fd.append("mainImage", f); 
+      fd.append("imageFiles", f); 
+    }
+  });
+}
+
 function pickMainAndOthers(files: (File | undefined)[], mainIndex?: number) {
   const safe = (files ?? []).filter((f): f is File => f instanceof File);
   if (safe.length === 0) return { files: [] as File[], mainIndex: 0 };
@@ -153,8 +173,9 @@ export const createArticle = async (
     detailAddress: data.detailAddress,
     placeName: data.placeName,
     pinCategory: data.pinCategory,
-    mainImageUuid: data.mainImageUuid ?? null,                 
-    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
+    mainImageUuid: data.mainImageUuid ?? null,  
+     // mainImageUuid: data.mainImageUuid ?? null,               
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
   };
 
   if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // UUID만
@@ -190,8 +211,8 @@ export const createArticleAtPlace = async (
     detailAddress: data.detailAddress,
     placeName: data.placeName,
     pinCategory: data.pinCategory,
-     mainImageUuid: data.mainImageUuid ?? null,                
-    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
+    // mainImageUuid: data.mainImageUuid ?? null,                
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
   };
 
   fd.append("request", jsonPart(request));
