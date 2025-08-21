@@ -264,7 +264,7 @@ function HomePage() {
       </div>
 
       {/* 하단 탭바 */}
-      <BottomTabBar className="fixed bottom-0 left-0 w-full z-50" />
+      <BottomTabBar className="absolute inset-x-0 bottom-0 z-50" />
 
       <ChallengeRewardModal
         isOpen={isRewardOpen}
