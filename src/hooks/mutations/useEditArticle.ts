@@ -6,7 +6,7 @@ export const useEditArticle = (articleId: number) => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (form: ArticleForm) => editArticle(articleId, form),
+    mutationFn: (form: Partial<ArticleForm>) => editArticle(articleId, form),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["articleDetail", articleId] });
       await qc.invalidateQueries({ queryKey: ["articles"] });

@@ -11,7 +11,7 @@ const EditModal = ({
 }: EditActionModalProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
-      <div className="w-full bg-white rounded-t-[15px] h-[262px] flex flex-col items-center">
+      <div className="max-w-[375px] bg-white rounded-t-[15px] h-[262px] flex flex-col items-center">
         <div className="bg-[#F5F5F5] w-[330px] h-[128px] rounded-[15px] mt-[30px] flex flex-col items-center justify-center">
           <button
             className="w-full py-4 text-[20px] font-semibold"
