@@ -194,11 +194,13 @@ function RecordWritingPage() {
 
   const stripExt = (name: string) => name.replace(/\.(png|jpe?g|webp|gif|bmp|svg)$/i, "");
 
-  const asUuid = (src?: string | null) => {
+   const asUuid = (src?: string | null) => {
     if (!src) return "";
-    if (uuidRe.test(src)) return src; // 이미 uuid라면 그대로 사용
-    if (isDefaultImageUrl(src)) return ""; // CHANGED: 디폴트 이미지는 파일 업로드 대상으로 전환
-    if (isArticlePhotoUrl(src)) return stripExt(extractLastPathSegment(src));
+    if (uuidRe.test(src)) return src; // 이미 uuid인 경우
+
+    if (isDefaultImageUrl(src) || isArticlePhotoUrl(src)) {
+      return stripExt(extractLastPathSegment(src));
+    }
     return "";
   };
 
