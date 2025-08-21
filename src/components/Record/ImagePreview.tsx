@@ -69,7 +69,7 @@ const ImagePreview = ({ selectedImages, onReorder }: ImagePreviewProps) => {
     showBadge = false
   ) => (
       <div
-        key={`${src}-${index}`}
+        key={src}
         className="relative rounded-[15px]"
         style={{ width, height }}
         draggable
