@@ -163,10 +163,10 @@ export const createArticle = async (
     longitude: data.longitude,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory
+    pinCategory: data.pinCategory,
 
-    // mainImageUuid: data.mainImageUuid ?? null,
-    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
+    mainImageUuid: data.mainImageUuid ?? null,
+    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
 
   };
 
@@ -177,6 +177,10 @@ export const createArticle = async (
   }
 
   fd.append("request", jsonPart(request));
+
+  for (const [k, v] of fd.entries()) {
+  console.log("FD", k, v instanceof File ? `(File ${v.name})` : v);
+  }
  
   const files = safeFiles(opts?.files);
   appendMainAndOthers(fd, files, opts?.mainIndex);
@@ -207,9 +211,9 @@ export const createArticleAtPlace = async (
     date: data.date,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory
-    // mainImageUuid: data.mainImageUuid ?? null,
-    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
+    pinCategory: data.pinCategory,
+    mainImageUuid: data.mainImageUuid ?? null,
+    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
   };
 
   fd.append("request", jsonPart(request));
@@ -231,7 +235,6 @@ export const editArticle = async (
 ): Promise<void> => {
   const fd = new FormData();
 
-  // CHANGED: @RequestPart("request") ArticleUpdateRequestDTO 규격으로 보냄
   const request: any = {
     categoryId: data.categoryId,
     title: data.title,

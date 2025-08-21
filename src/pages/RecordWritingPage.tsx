@@ -99,8 +99,8 @@ function RecordWritingPage() {
           pinCategory: s.pinCategory,
           detailAddress: s.detailAddress,
           placeId: s.placeId,
-          latitude: s.latitude ?? null,
-          longitude: s.longitude ?? null,
+          latitude: null,
+          longitude: null,
         };
       } else if (s.mode === "new") {
         return {
@@ -306,7 +306,7 @@ function RecordWritingPage() {
         mainIndex,
       }); 
       console.log({ isEditMode, editArticleId })
-      
+
       //확인용 디버그 로그
 
     setIsLoading(true);
