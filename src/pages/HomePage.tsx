@@ -8,7 +8,7 @@ import ChallengeRewardModal from "../components/Home/ChallengeRewardModal";
 import sampleImage from "../assets/record/img1.jpg";
 import { getChallengeDetail } from "../apis/home";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
-import LockBadge from "../assets/home-secert.svg";
+import LockBadge from "../assets/home-secret.svg";
 import { imageUrlFromUuid } from "../utils/image";
 import { getNewArticles } from "../apis/home";
 
