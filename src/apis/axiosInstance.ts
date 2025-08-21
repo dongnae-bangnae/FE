@@ -35,14 +35,8 @@ function normalizeBearer(v: string): string {
 
 // 최종 토큰 조회 (스토리지 → 쿠키 순)
 function getAccessToken(): string | null {
-  const fromStorage = pickFromStorage();
-  if (fromStorage) return normalizeBearer(fromStorage);
-
-  // HttpOnly 쿠키는 JS로 못 읽음(= null). 읽히는 쿠키만 시도.
-  const fromCookie =
-    getCookieValue("Authorization") ??
-    getCookieValue("accessToken") ??
-    null;
+  // 이제 Local/Session Storage는 확인하지 않고, 쿠키에서만 토큰을 찾습니다.
+  const fromCookie = getCookieValue("accessToken") ?? null;
 
   return fromCookie ? normalizeBearer(fromCookie) : null;
 }
