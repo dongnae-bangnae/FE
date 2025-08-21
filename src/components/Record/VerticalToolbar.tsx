@@ -13,14 +13,14 @@ import PinIcon_o from "../../assets/record/icon-map-orange.svg";
 interface VerticalToolbarProps {
   show: boolean;
   onCalendarClick: () => void;
-  onGalleryClick: () => void;
+  // onGalleryClick: () => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const VerticalToolbar = ({
   show,
   onCalendarClick,
-  onGalleryClick,
+  // onGalleryClick,
   onFileChange,
 }: VerticalToolbarProps) => {
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ const VerticalToolbar = ({
             className="w-[24px] h-[24px]"
           />
         </button>
-
+{/* 
         <button
           className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
           onClick={onGalleryClick}
@@ -97,7 +97,7 @@ const VerticalToolbar = ({
             alt="갤러리"
             className="w-[24px] h-[24px]"
           />
-        </button>
+        </button> */}
 
         <button
           className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
@@ -107,8 +107,8 @@ const VerticalToolbar = ({
           style={{ backgroundColor: colors.primaryDark }}
         >
           <img
-            src={hoveredIcon === "file" ? FileIcon_o : FileIcon_w}
-            alt="파일"
+            src={hoveredIcon === "file" ? GalleryIcon_o : GalleryIcon_w}
+            alt="갤러리"
             className="w-[24px] h-[24px]"
           />
         </button>
