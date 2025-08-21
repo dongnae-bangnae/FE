@@ -50,7 +50,7 @@ function HomePage() {
       {/* 메인 스크롤 영역 */}
       <div className="relative flex-1 flex flex-col overflow-y-auto pb-[67px]">
         {/* Section: 새글 */}
-        <section className="w-full flex flex-col gap-2 bg-[#FFDEAE] px-0 py-4 min-h-[317px]">
+        <section className="relative z-0 w-full flex flex-col gap-2 bg-[#FFDEAE] px-0 py-4 min-h-[317px]">
           <div className="flex justify-between items-center w-full px-4 py-[5px]">
             <h2 className="text-[20px] font-bold">새 글</h2>
             <button
@@ -86,7 +86,7 @@ function HomePage() {
         </section>
 
         {/* Section: 챌린지 */}
-        <section className="w-full flex justify-center items-center h-[198px] bg-white relative">
+        <section className="relative z-30 w-full flex justify-center items-center h-[198px] bg-white">
           <div
             className="w-[359px] h-[124px] flex flex-col justify-center px-4"
             style={{
@@ -202,7 +202,7 @@ function HomePage() {
 
             {/* 버튼 */}
             <div
-              className="flex flex-col gap-[10px]"
+              className="flex flex-col gap-[10px] z-40"
               style={{ position: "absolute", top: "35px", right: "19px" }}
             >
               <button
@@ -242,7 +242,7 @@ function HomePage() {
         </section>
 
         {/* Section: 맞춤 큐레이션 */}
-        <section className="w-full flex flex-col gap-2 bg-[#D6EBFF] px-0 py-4">
+        <section className="relative z-0 w-full flex flex-col gap-2 bg-[#D6EBFF] px-0 py-4">
           <div className="w-full px-4">
             <h2 className="text-[20px] font-bold">맞춤 큐레이션</h2>
           </div>
