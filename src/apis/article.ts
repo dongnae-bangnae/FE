@@ -8,6 +8,26 @@ import { ArticleListItem } from "../types/article";
 import { ApiResponse } from "../types/common";
 import { axiosInstance } from "./axiosInstance";
 
+function getCookie(name: string): string | null {
+  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+function getAccessToken(): string | null {
+  return (
+    localStorage.getItem("accessToken") ||
+    getCookie("accessToken") ||
+    getCookie("Authorization") ||
+    null
+  );
+}
+function authHeaders() {
+  const token = getAccessToken();
+  if (!token) return {}; // 토큰 없으면 헤더 비움(백엔드가 401/토큰 에러 처리)
+  return {
+    Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}`
+  };
+}
+
 // 게시글 리스트 조회용 타입
 export interface Article {
   articleId: number;
@@ -154,16 +174,6 @@ const toPartialFormData = (form: Partial<ArticleForm>) => {
   return fd;
 };
 
-// function getCookie(name: string): string | null {
-//   const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-//   return m ? decodeURIComponent(m[1]) : null;
-// }
-
-// function authHeader() {
-//   const token = getCookie("accessToken");
-//   return token ? { Authorization: `Bearer ${token}` } : {};
-// }
-
 //게시글 작성(미등록장소)
 export const createArticle = async (
   data: ArticleForm,
@@ -180,9 +190,9 @@ export const createArticle = async (
     longitude: data.longitude,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory,
-    mainImageUuid: data.mainImageUuid ?? null,
-    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : []
+    pinCategory: data.pinCategory
+    // mainImageUuid: data.mainImageUuid ?? null,
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
   };
 
   if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // UUID만
@@ -227,9 +237,9 @@ export const createArticleAtPlace = async (
     date: data.date,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory,
-    mainImageUuid: data.mainImageUuid ?? null,
-    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : []
+    pinCategory: data.pinCategory
+    // mainImageUuid: data.mainImageUuid ?? null,
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
   };
 
   fd.append("request", jsonPart(request));
@@ -276,13 +286,12 @@ export const fetchArticleDetail = async (
 
 //좋아요 등록
 export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
-  const token = localStorage.getItem("accessToken");
   const { data } = await axiosInstance.post<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
     null,
     {
       withCredentials: true,
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      headers: authHeaders()
     }
   );
   return data.result;
@@ -292,12 +301,11 @@ export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
 export const unlikeArticle = async (
   articleId: number
 ): Promise<LikeResponse> => {
-  const token = localStorage.getItem("accessToken");
   const { data } = await axiosInstance.delete<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
     {
       withCredentials: true,
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      headers: authHeaders()
     }
   );
   return data.result;
@@ -307,13 +315,12 @@ export const unlikeArticle = async (
 export const reportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
-  const token = localStorage.getItem("accessToken");
   const response = await axiosInstance.post(
     `/api/articles/${articleId}/spams`,
     null,
     {
       withCredentials: true,
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      headers: authHeaders()
     }
   );
   return response.data;
@@ -323,12 +330,11 @@ export const reportSpam = async (
 export const unreportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
-  const token = localStorage.getItem("accessToken");
   const response = await axiosInstance.delete(
     `/api/articles/${articleId}/spams`,
     {
       withCredentials: true,
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      headers: authHeaders()
     }
   );
   return response.data;

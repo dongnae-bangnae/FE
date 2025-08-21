@@ -5,7 +5,20 @@ import MyPagePostCard from "../components/MyPagePostCard";
 import SkeletonPostCard from "../components/SkeletonPostCard";
 import { usePlaceArticles } from "../hooks/queries/useArticles";
 
-type RouteParams = { placeId?: string };
+// /** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
+function getCookieValue(name: string): string | null {
+  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return m ? decodeURIComponent(m[2]) : null;
+}
+
+function getAccessToken(): string | null {
+  return (
+    localStorage.getItem("accessToken") ||
+    getCookieValue("Authorization") ||
+    getCookieValue("accessToken") ||
+    null
+  );
+}
 
 export default function MyPostListPage() {
   const { placeId: placeIdParam } = useParams<RouteParams>();
