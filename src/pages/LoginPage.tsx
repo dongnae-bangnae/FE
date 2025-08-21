@@ -5,10 +5,12 @@ import googleIcon from "../assets/icon-google.svg";
 import kakaoIcon from "../assets/icon-kakao.svg";
 import naverIcon from "../assets/icon-naver.svg";
 import logo from "../assets/logo2.svg";
+import OnBoardingLoadingSpinner from "../components/OnBoardingLoadingSpinner";
 
 function LoginPage() {
   const location = useLocation();
   const [toastMessage, setToastMessage] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
 
   const handleSocialLogin = (provider: "naver" | "kakao" | "google") => {
     const loginUrls = {
@@ -18,13 +20,20 @@ function LoginPage() {
     };
 
     const redirectUrl = loginUrls[provider];
-
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-    } else {
+    if (!redirectUrl) {
       console.error(`Login URL for ${provider} is not defined`);
+      return;
     }
+
+    setAuthLoading(true); // 스피너 켜기
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.location.href = redirectUrl;
+      });
+    });
   };
+
+  if (authLoading) return <OnBoardingLoadingSpinner />;
 
   useEffect(() => {
     if (location.state?.message) {
