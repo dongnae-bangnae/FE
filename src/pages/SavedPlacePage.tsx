@@ -93,11 +93,7 @@ export default function SavedPlacePage() {
             if (!selectedPlace) return;
             const range = 0.01;
             navigate(
-              `/map?latMin=${selectedPlace.latitude - range}&latMax=${
-                selectedPlace.latitude + range
-              }&lngMin=${selectedPlace.longitude - range}&lngMax=${
-                selectedPlace.longitude + range
-              }`
+              `/mypage/saved/map?latMin=${selectedPlace.latitude - range}&latMax=${selectedPlace.latitude + range}&lngMin=${selectedPlace.longitude - range}&lngMax=${selectedPlace.longitude + range}`
             );
           }}
           disabled={!isButtonActive}
