@@ -217,6 +217,7 @@ function HomePage() {
               style={{ position: "absolute", top: "35px", right: "19px" }}
             >
               <button
+                onClick={() => navigate("/record/new/write")}
                 style={{
                   width: "83px",
                   height: "30px",
