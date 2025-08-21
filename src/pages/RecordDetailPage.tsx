@@ -87,15 +87,17 @@ const RecordDetailPage = () => {
 
   useEffect(() => {
     if (!stableId) return;
+    const shouldReload = sessionStorage.getItem("rdp_force_reload") === "1"; 
+    if (!shouldReload) return;                                             
+
     const key = `rdp_reloaded_${stableId}`;
     const hasReloaded = sessionStorage.getItem(key);
     if (!hasReloaded) {
       sessionStorage.setItem(key, "1");
-      // location.reload()는 히스토리에 현재 항목을 유지함.
-      // replace로도 동일 효과 가능: window.location.replace(window.location.href)
-      window.location.reload(); // CHANGED
+      sessionStorage.removeItem("rdp_force_reload"); 
+      window.location.reload();
     }
-  }, [stableId]);
+  }, [stableId]); // 리로드
 
   // --- 1) 캐시 복원 ---
   useEffect(() => {
