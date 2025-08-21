@@ -165,8 +165,8 @@ export const createArticle = async (
     placeName: data.placeName,
     pinCategory: data.pinCategory,
 
-    mainImageUuid: data.mainImageUuid ?? null,
-    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
+    // mainImageUuid: data.mainImageUuid ?? null,
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
 
   };
 
