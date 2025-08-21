@@ -9,6 +9,11 @@ import FileIcon_w from "../../assets/record/icon-file-white.svg";
 import FileIcon_o from "../../assets/record/icon-file-orange.svg";
 import PinIcon_w from "../../assets/record/icon-map-white.svg";
 import PinIcon_o from "../../assets/record/icon-map-orange.svg";
+import Writing_w from "../../assets/record/icon-writing_w.svg";
+import Writing_o from "../../assets/record/icon-writing_o.svg";
+import Back_y from "../../assets/record/icon-back_y.svg";
+import Back_o from "../../assets/record/icon-back_o.svg";
+
 
 interface VerticalToolbarProps {
   show: boolean;
@@ -26,8 +31,10 @@ const VerticalToolbar = ({
   const navigate = useNavigate();
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const [visible, setVisible] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
@@ -67,16 +74,55 @@ const VerticalToolbar = ({
       className="fixed left-1/2 -translate-x-1/2 bottom-0 z-50"
       style={{ width: "390px", height: "100%", pointerEvents: "none" }}
     >
-      <div
-        className="absolute bottom-[20px] right-[20px] flex flex-col gap-[6px]"
-        style={{ pointerEvents: "auto" }}
-      >
+      {!isExpanded && (
+        <button
+          aria-label="편집 열기"
+          onClick={() => setIsExpanded(true)}
+          onMouseEnter={() => setHoveredIcon("write")}
+          onMouseLeave={() => setHoveredIcon(null)}
+          className="absolute"
+          style={{
+            right: 110,
+            bottom: 24,
+            width: 78,
+            height: 78,
+            borderRadius: "50%",
+            backgroundColor: colors.primaryDark,      // 배경 지정
+            boxShadow: "0 10px 22px #FFAC33",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "auto",
+            border: "none",
+          }}
+        >
+          <img
+            src={hoveredIcon === "write" ? Writing_o : Writing_w}
+            alt="연필"
+            style={{ width: 22, height: 22 }}
+          />
+        </button>
+      )}
+
+      {isExpanded && (
+        <div
+          className="absolute"
+          style={{
+            right: 20,
+            bottom: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+            alignItems: "flex-end",
+            pointerEvents: "auto",
+          }}
+        >
         <button
           className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
           onClick={onCalendarClick}
           onMouseEnter={() => setHoveredIcon("calendar")}
           onMouseLeave={() => setHoveredIcon(null)}
-          style={{ backgroundColor: colors.primaryDark }}
+          style={{ backgroundColor: colors.primaryDark, boxShadow: "0 10px 22px #FFAC33", }}
         >
           <img
             src={hoveredIcon === "calendar" ? CalendarIcon_o : CalendarIcon_w}
@@ -104,7 +150,7 @@ const VerticalToolbar = ({
           onClick={handleGalleryClick}
           onMouseEnter={() => setHoveredIcon("file")}
           onMouseLeave={() => setHoveredIcon(null)}
-          style={{ backgroundColor: colors.primaryDark }}
+          style={{ backgroundColor: colors.primaryDark, boxShadow: "0 10px 22px #FFAC33", }}
         >
           <img
             src={hoveredIcon === "file" ? GalleryIcon_o : GalleryIcon_w}
@@ -120,6 +166,19 @@ const VerticalToolbar = ({
           onChange={onFileChange}
           className="hidden"
         />
+
+        <button
+            aria-label="접기"
+            onClick={() => setIsExpanded(false)}
+            onMouseEnter={() => setHoveredIcon("back")}
+            onMouseLeave={() => setHoveredIcon(null)}
+          >
+            <img
+              src={hoveredIcon === "back" ? Back_y : Back_o}
+              alt="접기"
+              style={{ width: 78, height: 78, boxShadow: "0 10px 22px #D9D9D9", backgroundColor: "white"}}
+            />
+          </button>
 
         <button
           className="w-[52px] h-[52px] rounded-full flex justify-center items-center shadow"
@@ -145,6 +204,7 @@ const VerticalToolbar = ({
           />
         </button>
       </div>
+      )}
     </div>
   );
 };

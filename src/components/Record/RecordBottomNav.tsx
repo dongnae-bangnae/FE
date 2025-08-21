@@ -4,8 +4,6 @@ import CommentIcon from "../../assets/icon-comment.svg";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import fonts from "../../styles/fonts";
-import CheckIcon_g from "../assets/icon-check-green.svg";
-import MessagePopup from "../MessagePopup";
 
 import { useToggleLikeArticle } from "../../hooks/mutations/useToggleLikeArticle";
 import { useFetchComments } from "../../hooks/queries/useFetchComments"; 
