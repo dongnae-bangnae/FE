@@ -4,6 +4,8 @@ import CommentIcon from "../../assets/icon-comment.svg";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import fonts from "../../styles/fonts";
+import CheckIcon_g from "../assets/icon-check-green.svg";
+import MessagePopup from "../MessagePopup";
 
 import { useToggleLikeArticle } from "../../hooks/mutations/useToggleLikeArticle";
 import { useFetchComments } from "../../hooks/queries/useFetchComments"; 
@@ -30,11 +32,6 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, isReported, onShowR
   const totalCommentCount = allComments.length || comments;
 
   const handleLike = () => {
-    if (liked) {
-      const confirmCancel = window.confirm("좋아요를 취소하시겠습니까?");
-      if (!confirmCancel) return;
-    }
-
     toggleLike(liked, {
       onSuccess: () => {
         setLiked((prev) => !prev);
@@ -48,10 +45,7 @@ const RecordBottomNav = ({ articleId, likes, spam, comments, isReported, onShowR
 
   const handleSpam = () => {
     if (isReported) {
-      const confirmCancel = window.confirm("광고 신고를 취소하시겠습니까?");
-      if (confirmCancel) {
         onCancelReport(); 
-      }
     } else {
       onShowReportModal(); 
     }
