@@ -8,9 +8,8 @@ import ChallengeRewardModal from "../components/Home/ChallengeRewardModal";
 import sampleImage from "../assets/record/img1.jpg";
 import { getChallengeDetail } from "../apis/home";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
-import { useMyInfo } from "../hooks/queries/useMyInfo";
-import { usePlaceArticles } from "../hooks/queries/useArticles"; // V1 단일 커서 (place)
 import { imageUrlFromUuid } from "../utils/image";
+import { getNewArticles } from "../apis/home";
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -32,15 +31,13 @@ function HomePage() {
     staleTime: 1000 * 60 * 10 // 10분 동안은 stale 아님 → 캐시 유지
   });
 
-  // 1) 내 정보에서 placeId 뽑기
-  const { data: me } = useMyInfo();
-  const placeId = me?.likePlaces?.[0]?.regionId ?? null; // regionId == placeId
-
-  // 2) placeId로 V1 목록 호출 (훅 내부 enabled: !!placeId 라면 0 전달해도 호출 안 됨)
-  const { data: placePages } = usePlaceArticles(placeId ?? 0, 10);
-
-  // 3)
-  const items = placePages?.pages?.flatMap((p) => p.items) ?? [];
+  // 홈 새 글 연결
+  const { data: homePage1 } = useQuery({
+    queryKey: ["homeNewArticles", 1],
+    queryFn: () => getNewArticles(1),
+    staleTime: 1000 * 60 * 10
+  });
+  const items = homePage1?.postList ?? [];
 
   return (
     <div className="flex flex-col min-h-screen relative bg-[#f5f5f5]">
@@ -57,7 +54,7 @@ function HomePage() {
           <div className="flex justify-between items-center w-full px-4 py-[5px]">
             <h2 className="text-[20px] font-bold">새 글</h2>
             <button
-              onClick={() => navigate(`/record/list?placeId=${placeId ?? 0}`)}
+              onClick={() => navigate("/record/list")} // placeId 참조 제거(변수 없음)
               className="text-[14px] bg-[#fff] rounded-[8px] px-4 py-1 border border-gray-300"
             >
               게시물 확인하기
@@ -68,11 +65,16 @@ function HomePage() {
               <PreviewPost
                 key={article.articleId}
                 id={String(article.articleId)}
-                profileImage={DefaultProfile}
-                author={article.nickname}
+                profileImage={DefaultProfile} // 홈 응답에 프로필이 없으면 기본이미지
+                author={article.username ?? "익명"}
                 date={formatDate(article.createdAt)}
                 title={article.title}
-                image={imageUrlFromUuid(article.mainImageUuid)}
+                image={
+                  (article.mainImageUuid &&
+                    imageUrlFromUuid(article.mainImageUuid)) ||
+                  article.imageUrl ||
+                  sampleImage
+                }
                 onClick={() =>
                   navigate(`/record/${article.articleId}`, {
                     state: { articleId: article.articleId }
@@ -80,19 +82,6 @@ function HomePage() {
                 }
               />
             ))}
-
-            {/* {newArticles.map((article) => (
-              <PreviewPost
-                key={article.id}
-                id={String(article.id)}
-                profileImage={article.profileImageUrl || DefaultProfile}
-                author={article.authorNickname}
-                date={formatDate(article.createdAt)}
-                title={article.title}
-                image={article.imageUrl || sampleImage}
-                onClick={() => navigate(`/record/${article.id}`)}
-              />
-            ))} */}
           </div>
         </section>
 

@@ -28,7 +28,7 @@ export type PlaceArticlesPage = {
   limit: number;
 };
 
-// V1 단일 커서 - 홈 게시물 카드 전용
+// V1 단일 커서
 export function usePlaceArticles(placeId: number, limit = 10) {
   return useInfiniteQuery<
     PlaceArticlesPage,
