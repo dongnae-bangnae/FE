@@ -8,9 +8,9 @@ import ChallengeRewardModal from "../components/Home/ChallengeRewardModal";
 import sampleImage from "../assets/record/img1.jpg";
 import { getChallengeDetail } from "../apis/home";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
-import { useMyInfo } from "../hooks/queries/useMyInfo";
-import { usePlaceArticles } from "../hooks/queries/useArticles"; // V1 단일 커서 (place)
+import LockBadge from "../assets/home-secret.svg";
 import { imageUrlFromUuid } from "../utils/image";
+import { getNewArticles } from "../apis/home";
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -32,15 +32,13 @@ function HomePage() {
     staleTime: 1000 * 60 * 10 // 10분 동안은 stale 아님 → 캐시 유지
   });
 
-  // 1) 내 정보에서 placeId 뽑기
-  const { data: me } = useMyInfo();
-  const placeId = me?.likePlaces?.[0]?.regionId ?? null; // regionId == placeId
-
-  // 2) placeId로 V1 목록 호출 (훅 내부 enabled: !!placeId 라면 0 전달해도 호출 안 됨)
-  const { data: placePages } = usePlaceArticles(placeId ?? 0, 10);
-
-  // 3)
-  const items = placePages?.pages?.flatMap((p) => p.items) ?? [];
+  // 홈 새 글 연결
+  const { data: homePage1 } = useQuery({
+    queryKey: ["homeNewArticles", 1],
+    queryFn: () => getNewArticles(1),
+    staleTime: 1000 * 60 * 10
+  });
+  const items = homePage1?.postList ?? [];
 
   return (
     <div className="flex flex-col min-h-screen relative bg-[#f5f5f5]">
@@ -53,11 +51,11 @@ function HomePage() {
       {/* 메인 스크롤 영역 */}
       <div className="relative flex-1 flex flex-col overflow-y-auto pb-[67px]">
         {/* Section: 새글 */}
-        <section className="w-full flex flex-col gap-2 bg-[#FFDEAE] px-0 py-4 min-h-[317px]">
+        <section className="relative z-0 w-full flex flex-col gap-2 bg-[#FFDEAE] px-0 py-4 min-h-[317px]">
           <div className="flex justify-between items-center w-full px-4 py-[5px]">
             <h2 className="text-[20px] font-bold">새 글</h2>
             <button
-              onClick={() => navigate(`/record/list?placeId=${placeId ?? 0}`)}
+              onClick={() => navigate("/record/list")} // placeId 참조 제거(변수 없음)
               className="text-[14px] bg-[#fff] rounded-[8px] px-4 py-1 border border-gray-300"
             >
               게시물 확인하기
@@ -68,11 +66,16 @@ function HomePage() {
               <PreviewPost
                 key={article.articleId}
                 id={String(article.articleId)}
-                profileImage={DefaultProfile}
-                author={article.nickname}
+                profileImage={DefaultProfile} // 홈 응답에 프로필이 없으면 기본이미지
+                author={article.username ?? "익명"}
                 date={formatDate(article.createdAt)}
                 title={article.title}
-                image={imageUrlFromUuid(article.mainImageUuid)}
+                image={
+                  (article.mainImageUuid &&
+                    imageUrlFromUuid(article.mainImageUuid)) ||
+                  article.imageUrl ||
+                  sampleImage
+                }
                 onClick={() =>
                   navigate(`/record/${article.articleId}`, {
                     state: { articleId: article.articleId }
@@ -80,24 +83,11 @@ function HomePage() {
                 }
               />
             ))}
-
-            {/* {newArticles.map((article) => (
-              <PreviewPost
-                key={article.id}
-                id={String(article.id)}
-                profileImage={article.profileImageUrl || DefaultProfile}
-                author={article.authorNickname}
-                date={formatDate(article.createdAt)}
-                title={article.title}
-                image={article.imageUrl || sampleImage}
-                onClick={() => navigate(`/record/${article.id}`)}
-              />
-            ))} */}
           </div>
         </section>
 
         {/* Section: 챌린지 */}
-        <section className="w-full flex justify-center items-center h-[198px] bg-white relative">
+        <section className="relative z-30 w-full flex justify-center items-center h-[198px] bg-white">
           <div
             className="w-[359px] h-[124px] flex flex-col justify-center px-4"
             style={{
@@ -213,10 +203,11 @@ function HomePage() {
 
             {/* 버튼 */}
             <div
-              className="flex flex-col gap-[10px]"
+              className="flex flex-col gap-[10px] z-40"
               style={{ position: "absolute", top: "35px", right: "19px" }}
             >
               <button
+                onClick={() => navigate("/record/new/write")}
                 style={{
                   width: "83px",
                   height: "30px",
@@ -252,29 +243,55 @@ function HomePage() {
         </section>
 
         {/* Section: 맞춤 큐레이션 */}
-        <section className="w-full flex flex-col gap-2 bg-[#D6EBFF] px-0 py-4">
+        <section className="relative z-0 w-full flex flex-col gap-2 bg-[#D6EBFF] px-0 py-4">
           <div className="w-full px-4">
             <h2 className="text-[20px] font-bold">맞춤 큐레이션</h2>
           </div>
+
           <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <PreviewPost
-                key={i}
-                id={String(i)}
-                profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
-                author="푸짐바오"
-                date="2시간 전"
-                title="연남동 지브리 카페 다녀왔어요"
-                image={sampleImage}
-                onClick={() => navigate(`/post/${i}`)}
-              />
-            ))}
+            {Array.from({ length: 5 }).map((_, i) => {
+              const locked = i !== 0; // ← 첫 번째만 오픈
+
+              return (
+                <div key={i} className="relative">
+                  <PreviewPost
+                    id={String(i)}
+                    profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
+                    author="푸짐바오"
+                    date="2시간 전"
+                    title="연남동 지브리 카페 다녀왔어요"
+                    image={sampleImage}
+                    onClick={() => {
+                      if (!locked) navigate(`/post/${i}`); // 잠금이면 클릭 막기
+                    }}
+                  />
+
+                  {locked && (
+                    <div
+                      className="
+                absolute inset-0 z-10
+                rounded-[12px]
+                bg-[#CDD4DC]/80   /* 연한 그레이 오버레이 */
+                flex items-center justify-center
+              "
+                      // 오버레이가 클릭을 가로채서 아래 카드 클릭 방지
+                    >
+                      <img
+                        src={LockBadge}
+                        alt="잠김"
+                        className="w-8 h-8 opacity-90"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
       </div>
 
       {/* 하단 탭바 */}
-      <BottomTabBar className="fixed bottom-0 left-0 w-full z-50" />
+      <BottomTabBar className="absolute inset-x-0 bottom-0 z-50" />
 
       <ChallengeRewardModal
         isOpen={isRewardOpen}
