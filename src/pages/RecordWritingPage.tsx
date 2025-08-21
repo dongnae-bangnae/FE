@@ -183,7 +183,7 @@ function RecordWritingPage() {
     try { return new URL(src).pathname.includes("/default-images/"); }
     catch { return src.includes("/default-images/"); }
   };
-  const extractUuidFromS3Url = (src: string) => {
+  const extractLastPathSegment = (src: string) => {
     try {
       const u = new URL(src);
       const last = u.pathname.split("/").filter(Boolean).pop() || "";
@@ -193,12 +193,13 @@ function RecordWritingPage() {
       return last.split("?")[0];
     }
   };
+
   const asUuid = (src?: string | null) => {
     if (!src) return "";
-    if (uuidRe.test(src)) return src;
-    if (isArticlePhotoUrl(src)) return extractUuidFromS3Url(src);
-    if (isDefaultImageUrl(src)) return extractUuidFromS3Url(src);
-    return "";
+    if (uuidRe.test(src)) return src; 
+    if (isDefaultImageUrl(src)) return extractLastPathSegment(src);   
+    if (isArticlePhotoUrl(src)) return extractLastPathSegment(src);   
+    return ""; 
   };
 
   const dataUrlToFile = (dataUrl: string, filename: string) => {
@@ -239,43 +240,54 @@ function RecordWritingPage() {
     if (!content.trim()) missing.push("내용");
 
     // 전체 선택 목록에서 파일/uuid 분리
-    const firstSelected = selectedImages[0];                                
+   const firstSelected = selectedImages[0];
+
+    // 업로드 파일 대상(= uuid 없는 것)만 파일로 묶기
     const fileCandidates = selectedImages
       .map((src, idx) => ({ src, idx }))
       .filter(({ src }) => asUuid(src) === "");
-    const filesForUpload: File[] = []; // [CHANGED]
+
+      const filesForUpload: File[] = [];
     for (const { src, idx } of fileCandidates) {
+      // 1) 파일 input에서 온 dataURL은 fileMapRef에 File로 저장되어 있음
       let file = fileMapRef.current.get(src);
+
+      // 2) 혹시 없으면 dataURL/Blob/HTTP에서 직접 File 생성
       if (!file) {
         if (src.startsWith("data:")) {
           file = dataUrlToFile(src, `image-${idx + 1}.png`);
-        } else if (src.startsWith("blob:")) {
-          const res = await fetch(src);
-          const blob = await res.blob();
-          const ext = (blob.type && blob.type.split("/")[1]) || "png";
-          file = new File([blob], `image-${idx + 1}.${ext}`, { type: blob.type || "image/png" });
+        } else if (src.startsWith("blob:") || /^https?:\/\//i.test(src)) {
+          try {
+            const res = await fetch(src);
+            const blob = await res.blob();
+            const ext = (blob.type && blob.type.split("/")[1]) || "png";
+            file = new File([blob], `image-${idx + 1}.${ext}`, {
+              type: blob.type || "image/png",
+            });
+          } catch (e) {
+            console.warn("파일 변환 실패:", src, e);
+            continue; // 실패한 항목은 건너뜀
+          }
         } else {
-          // http(s) 기본 이미지/기타 → 업로드 대상이지만 uuid가 있다면 위 filter에서 걸러짐
-          // 혹 uuid 판단 실패 대비
-          const res = await fetch(src);
-          const blob = await res.blob();
-          const ext = (blob.type && blob.type.split("/")[1]) || "png";
-          file = new File([blob], `image-${idx + 1}.${ext}`, { type: blob.type || "image/png" });
+          // 그 외는 업로드 불가 소스 → 건너뜀
+          continue;
         }
       }
+
       filesForUpload.push(file);
-    }                                      
+    }
 
-    const orderedUuids = selectedImages.map(asUuid).filter(Boolean);     
-    const hasAnyImage = orderedUuids.length + filesForUpload.length > 0;
-    if (!hasAnyImage) return alert("사진(1장 이상)이 필요해요.");
+    // 서버로 보낼 uuid 배열 (디폴트/기존 이미지 모두 포함)
+    const orderedUuids = selectedImages
+      .map(asUuid)
+      .filter(Boolean);
 
-    // main 결정
-    let mainUuid = "";                                                      
-    let mainIndex: number | undefined;    
-    const firstUuid = asUuid(firstSelected);                                
+    // 대표사진: 1번이 uuid면 mainImageUuid, 아니면 파일 대표(mainIndex)
+    let mainUuid = "";
+    let mainIndex: number | undefined;
+    const firstUuid = asUuid(firstSelected);
     if (firstUuid) {
-      mainUuid = firstUuid; 
+      mainUuid = firstUuid;
     } else {
       const idxInFiles = fileCandidates.findIndex(fc => fc.src === firstSelected);
       mainIndex = idxInFiles >= 0 ? idxInFiles : 0;
