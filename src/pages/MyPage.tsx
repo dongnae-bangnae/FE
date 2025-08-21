@@ -114,41 +114,55 @@ function MyPage() {
       <div className="w-[357px] mt-4 mx-auto border-b border-[#999]" />
 
       {/* 저장 탭 */}
-      {selectedTab === "saved" && (
-        <div className="w-full px-5 mt-6">
-          {myCategories?.map((cat) => (
-            <CategoryItem
-              key={cat.name}
-              name={cat.name}
-              color={getColorCode(cat.color)}
-              onClick={() =>
-                navigate(`/mypage/saved/${cat.categoryId}`, {
-                  state: { categoryName: cat.name }
-                })
-              }
-            />
-          ))}
-        </div>
-      )}
+      {selectedTab === "saved" &&
+        (myCategories && myCategories.length > 0 ? (
+          <div className="w-full px-5 mt-6">
+            {myCategories.map((cat) => (
+              <CategoryItem
+                key={cat.name}
+                name={cat.name}
+                color={getColorCode(cat.color)}
+                onClick={() =>
+                  navigate(`/mypage/saved/${cat.categoryId}`, {
+                    state: { categoryName: cat.name }
+                  })
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          !isLoading && (
+            <p className="text-center text-gray-500 mt-10">
+              장소를 저장해 보세요!
+            </p>
+          )
+        ))}
 
       {/* 내 글 탭 */}
-      {selectedTab === "myPosts" && (
-        <div className="w-full px-5 mt-6">
-          {myCategories?.map((cat) => (
-            <CategoryItem
-              key={cat.name}
-              name={cat.name}
-              color={getColorCode(cat.color)}
-              iconType="pencil"
-              onClick={() =>
-                navigate(`/mypage/locationposts/${cat.categoryId}`, {
-                  state: { categoryName: cat.name }
-                })
-              }
-            />
-          ))}
-        </div>
-      )}
+      {selectedTab === "myPosts" &&
+        (myCategories && myCategories.length > 0 ? (
+          <div className="w-full px-5 mt-6">
+            {myCategories.map((cat) => (
+              <CategoryItem
+                key={cat.name}
+                name={cat.name}
+                color={getColorCode(cat.color)}
+                iconType="pencil"
+                onClick={() =>
+                  navigate(`/mypage/locationposts/${cat.categoryId}`, {
+                    state: { categoryName: cat.name }
+                  })
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          !isLoading && (
+            <p className="text-center text-gray-500 mt-10">
+              게시물을 작성해 보세요!
+            </p>
+          )
+        ))}
     </>
   );
 }
