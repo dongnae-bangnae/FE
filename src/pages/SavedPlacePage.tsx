@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+// src/pages/SavedPlacePage.tsx
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import pin_bookstore from "../assets/pin/pin_bookstore.svg";
 import pin_cafe from "../assets/pin/pin_cafe.svg";
@@ -26,25 +25,37 @@ const pinIcons: Record<string, string> = {
   ETC: pin_etc
 };
 
-function SavedPlacePage() {
+export default function SavedPlacePage() {
   const navigate = useNavigate();
-  const { placeId } = useParams<{ placeId: string }>();
-  const categoryId = Number(placeId); // 저장된 장소 카테고리 ID
-  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
+  const { placeId } = useParams<{ placeId: string }>(); // param 이름이 placeId로 들어오지만 실제로 카테고리ID임
+  const categoryId = Number(placeId);
 
   const location = useLocation();
-  const state = location.state as { categoryName?: string };
+  const state = location.state as { categoryName?: string } | undefined;
 
-  const { data: places, isLoading } = useSavedPlaces(categoryId);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useSavedPlaces(categoryId, 20);
 
+  // pages -> places 평탄화
+  const places = data?.pages.flatMap((p) => p.places) ?? [];
+
+  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
   const isButtonActive = selectedPlaceId !== null;
-
-  const selectedPlace = places?.find((p) => p.placeId === selectedPlaceId);
+  const selectedPlace = places.find((p) => p.placeId === selectedPlaceId);
 
   useEffect(() => {
     console.log("카테고리 ID:", categoryId);
     console.log("받은 장소 데이터:", places);
-  }, [places]);
+  }, [places, categoryId]);
+
+  if (!Number.isFinite(categoryId)) {
+    return (
+      <div className="bg-white min-h-screen flex flex-col">
+        <Header title="저장된 장소" underline={true} />
+        <div className="p-4">유효하지 않은 카테고리입니다.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
@@ -53,7 +64,7 @@ function SavedPlacePage() {
       <div className="flex flex-col px-4 pt-4 pb-28">
         {isLoading && <div>불러오는 중...</div>}
 
-        {places?.map((place) => (
+        {places.map((place) => (
           <SavedPlaceItem
             key={place.placeId}
             name={place.title}
@@ -63,6 +74,16 @@ function SavedPlacePage() {
             onClick={() => setSelectedPlaceId(place.placeId)}
           />
         ))}
+
+        {hasNextPage && (
+          <button
+            className="mt-3 w-full rounded-md border py-2"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? "불러오는 중..." : "더 보기"}
+          </button>
+        )}
       </div>
 
       {/* 하단 버튼 */}
@@ -70,9 +91,7 @@ function SavedPlacePage() {
         <button
           onClick={() => {
             if (!selectedPlace) return;
-
-            // 지도 페이지로 위도/경도 범위를 전달
-            const range = 0.01; // 표시 범위(대략 1km 내)
+            const range = 0.01;
             navigate(
               `/map?latMin=${selectedPlace.latitude - range}&latMax=${
                 selectedPlace.latitude + range
@@ -83,11 +102,7 @@ function SavedPlacePage() {
           }}
           disabled={!isButtonActive}
           className={`w-[120px] py-2 rounded-md text-sm font-medium transition-colors duration-200
-            ${
-              isButtonActive
-                ? "bg-[#E5E5E5] text-black hover:bg-[#FFC064] cursor-pointer"
-                : "bg-[#ECECEC] cursor-not-allowed"
-            }`}
+            ${isButtonActive ? "bg-[#E5E5E5] text-black hover:bg-[#FFC064] cursor-pointer" : "bg-[#ECECEC] cursor-not-allowed"}`}
         >
           지도 불러오기
         </button>
@@ -96,16 +111,12 @@ function SavedPlacePage() {
           onClick={() => {
             if (!selectedPlace) return;
             navigate(`/mypage/saved/${selectedPlace.placeId}/list`, {
-              state: { placeName: selectedPlace.title } //헤더에 전달
+              state: { placeName: selectedPlace.title }
             });
           }}
           disabled={!isButtonActive}
           className={`w-[120px] py-2 rounded-md text-sm font-medium transition-colors duration-200
-            ${
-              isButtonActive
-                ? "bg-[#E5E5E5] text-black hover:bg-[#FFC064] cursor-pointer"
-                : "bg-[#ECECEC] cursor-not-allowed"
-            }`}
+            ${isButtonActive ? "bg-[#E5E5E5] text-black hover:bg-[#FFC064] cursor-pointer" : "bg-[#ECECEC] cursor-not-allowed"}`}
         >
           게시물 확인
         </button>
@@ -113,5 +124,3 @@ function SavedPlacePage() {
     </div>
   );
 }
-
-export default SavedPlacePage;
