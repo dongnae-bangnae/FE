@@ -17,8 +17,14 @@ import MessagePopup from "../components/MessagePopup";
 
 // --- S3 이미지 유틸 ---
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
-const toArticlePhotoUrl = (uuid?: string | null) =>
-  uuid ? `${S3_BASE}/article/photo/${uuid}` : null;
+// const toArticlePhotoUrl = (uuid?: string | null) =>
+//   uuid ? `${S3_BASE}/article/photo/${uuid}` : null; 
+
+const toArticlePhotoUrl = (v?: string | null) => {
+  if (!v) return null;
+  return /^https?:\/\//i.test(v) ? v : `${S3_BASE}/article/photo/${v}`;
+};  //로컬에서만 사진 표시
+
 const toImgSrc = (v?: string | null) => {
   if (!v) return "";
   return /^https?:\/\//i.test(v) ? v : `${S3_BASE}/article/photo/${v}`;
