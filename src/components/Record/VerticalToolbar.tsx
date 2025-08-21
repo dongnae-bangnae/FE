@@ -52,8 +52,8 @@ const VerticalToolbar = ({
       touchEndX.current = e.changedTouches[0].screenX;
       if (touchStartX.current !== null && touchEndX.current !== null) {
         const diff = touchEndX.current - touchStartX.current;
-        if (diff > 50) setVisible(false); // 오른쪽 스와이프 → 숨김
-        if (diff < -50) setVisible(true);  // 왼쪽 스와이프 → 다시 보임
+        if (diff > 50) setVisible(false); 
+        if (diff < -50) setVisible(true);  
       }
     };
 
