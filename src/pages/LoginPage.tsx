@@ -33,7 +33,13 @@ function LoginPage() {
     });
   };
 
-  if (authLoading) return <OnBoardingLoadingSpinner />;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <OnBoardingLoadingSpinner overlay={false} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (location.state?.message) {

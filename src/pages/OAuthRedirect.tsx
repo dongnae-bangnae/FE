@@ -51,5 +51,9 @@ export default function OAuthRedirect() {
 
   // 4) 기다릴 때만 스피너 표시
   if (initial !== null) return null;
-  return <OnBoardingLoadingSpinner />;
+  return (
+    <div className="min-h-screen bg-white">
+      <OnBoardingLoadingSpinner overlay={false} />
+    </div>
+  );
 }
