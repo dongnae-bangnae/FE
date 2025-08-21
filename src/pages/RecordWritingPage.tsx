@@ -22,7 +22,7 @@ import { useArticleDraftStore } from "../stores/articleDraft";
 import { useArticleViewStore } from "../stores/articleView";
 import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticleWithLocation";
 import { useEditArticle } from "../hooks/mutations/useEditArticle";
-import { fetchArticleDetail } from "../apis/article";
+import { editArticle, fetchArticleDetail } from "../apis/article";
 import { useSaveModeStore } from "../stores/saveModeStore";
 import { useMapViewStore } from "../stores/mapViewStore";
 
@@ -42,10 +42,10 @@ function RecordWritingPage() {
 
   const articleIdFromStore = Number(useArticleViewStore((s) => s.articleId)) || 0; 
   const rawState = (location.state as any) || {};                                  
-  const stateMode = rawState.mode;                                                 
+  const fromEdit = rawState?.mode === "edit";                                                
   const stateArticleId = Number(rawState.articleId) || 0;                      
   const editArticleId = stateArticleId || articleIdFromStore;                     
-  const isEditMode = editArticleId > 0;
+  const isEditMode = fromEdit && editArticleId > 0;
 
   const { reset: resetSaveMode } = useSaveModeStore();
   useEffect(() => {
@@ -129,7 +129,7 @@ function RecordWritingPage() {
 
   const { mutateAsync: createAtPlace } = useCreateArticle(); // 기존핀
   const { mutateAsync: createWithLocation } = useCreateArticleWithLocation(); // 미등록장소
-  const { mutateAsync: editMutate } = useEditArticle(editArticleId);
+  // const { mutateAsync: editMutate } = useEditArticle(editArticleId);
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
@@ -194,11 +194,13 @@ function RecordWritingPage() {
 
   const stripExt = (name: string) => name.replace(/\.(png|jpe?g|webp|gif|bmp|svg)$/i, "");
 
-  const asUuid = (src?: string | null) => {
+   const asUuid = (src?: string | null) => {
     if (!src) return "";
-    if (uuidRe.test(src)) return src; // 이미 uuid라면 그대로 사용
-    if (isDefaultImageUrl(src)) return ""; // CHANGED: 디폴트 이미지는 파일 업로드 대상으로 전환
-    if (isArticlePhotoUrl(src)) return stripExt(extractLastPathSegment(src));
+    if (uuidRe.test(src)) return src; // 이미 uuid인 경우
+
+    if (isDefaultImageUrl(src) || isArticlePhotoUrl(src)) {
+      return stripExt(extractLastPathSegment(src));
+    }
     return "";
   };
 
@@ -318,8 +320,11 @@ function RecordWritingPage() {
           date: selectedDate,
           mainImageUuid: mainUuid || undefined,
           imageUuids,
+          // files: filesForUpload,
+          // mainIndex,
         };
-        await editMutate(payload);
+
+         await editArticle(editArticleId, payload);
 
         // 로컬 뷰(표시는 article/photo/{uuid})
         useArticleViewStore.getState().hydrate({
