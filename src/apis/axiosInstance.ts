@@ -6,19 +6,45 @@ import axios, {
   type AxiosRequestHeaders
 } from "axios";
 
-// /** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
+/* ================== CHANGED: 토큰 탐색 유틸 보강 ================== */
 function getCookieValue(name: string): string | null {
-  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-  return m ? decodeURIComponent(m[2]) : null;
+  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : null;
 }
 
+function pickFromStorage(): string | null {
+  const keys = [
+    "Authorization", "authorization",
+    "accessToken", "access_token",
+    "jwt", "token"
+  ];
+  for (const k of keys) {
+    const v =
+      window.localStorage.getItem(k) ??
+      window.sessionStorage.getItem(k);
+    if (v && v.trim()) return v.trim();
+  }
+  return null;
+}
+
+
+function normalizeBearer(v: string): string {
+  const raw = decodeURIComponent(v).replace(/^"+|"+$/g, ""); 
+  return raw.startsWith("Bearer ") ? raw : `Bearer ${raw}`;
+}
+
+// 최종 토큰 조회 (스토리지 → 쿠키 순)
 function getAccessToken(): string | null {
-  return (
-    localStorage.getItem("accessToken") ||
-    getCookieValue("Authorization") ||
-    getCookieValue("accessToken") ||
-    null
-  );
+  const fromStorage = pickFromStorage();
+  if (fromStorage) return normalizeBearer(fromStorage);
+
+  // HttpOnly 쿠키는 JS로 못 읽음(= null). 읽히는 쿠키만 시도.
+  const fromCookie =
+    getCookieValue("Authorization") ??
+    getCookieValue("accessToken") ??
+    null;
+
+  return fromCookie ? normalizeBearer(fromCookie) : null;
 }
 
 /** headers를 AxiosHeaders 인스턴스로 보장 */
@@ -26,7 +52,6 @@ function ensureAxiosHeaders(
   headers?: AxiosRequestHeaders | undefined
 ): AxiosHeaders {
   if (headers instanceof AxiosHeaders) return headers;
-  // 기존 값이 plain object여도 여기서 AxiosHeaders로 흡수
   return new AxiosHeaders(headers ?? {});
 }
 
@@ -42,9 +67,6 @@ axiosInstance.interceptors.request.use((config) => {
   // 항상 AxiosHeaders로 변환
   const h = ensureAxiosHeaders(config.headers as AxiosRequestHeaders);
 
-  // 디버그 라벨 (이 instance에서 나간 요청인지 구분)
-  h.set("X-DEBUG-INSTANCE", "main-axiosInstance");
-
   // // CSRF 쿠키가 있을 때만 XSRF 헤더 추가
   // const csrf = getCookieValue("XSRF-TOKEN");
   // if (csrf) {
@@ -52,8 +74,12 @@ axiosInstance.interceptors.request.use((config) => {
   // }
   if (!h.has("Authorization")) {
     const token = getAccessToken();
-    if (token) h.set("Authorization", token.startsWith("Bearer ") ? token : `Bearer ${token}`);
+    if (token) h.set("Authorization", token);             
   }
+
+  h.set("X-DEBUG-INSTANCE", "main-axiosInstance");
+  if (h.has("Authorization")) h.set("X-DEBUG-AUTH", "present"); 
+  else h.set("X-DEBUG-AUTH", "absent");
 
   config.headers = h;
   config.withCredentials = true;
@@ -128,6 +154,11 @@ axiosInstance.interceptors.response.use(
         throw error;
       }
     }
+
+    const h = ensureAxiosHeaders(original.headers as AxiosRequestHeaders);
+    const token = getAccessToken();
+    if (token) h.set("Authorization", token);            
+    original.headers = h;
 
     // 리프레시 성공 → 원 요청 재시도 (CSRF 재주입)
     original._retry = true;
