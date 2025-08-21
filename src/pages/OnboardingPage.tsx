@@ -12,12 +12,12 @@ import IconRedChecked from "../assets/icon-redChecked.svg";
 import { usePatchNickname } from "../hooks/mutations/usePatchNickname";
 import { usePatchProfileImage } from "../hooks/mutations/usePatchProfileImage";
 import { usePatchRegions } from "../hooks/mutations/usePatchRegions";
-//import { postOnboarding, searchRegions } from "../apis/member";
 import {
   postOnboarding,
   searchRegions,
   type RegionSearchItem
 } from "../apis/member";
+import { checkNicknameAvailability } from "../apis/member"; // 추가
 
 type RegionOption = { id: number; label: string };
 
@@ -28,6 +28,7 @@ function OnboardingPage() {
   // Step1 상태
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState("");
+  const [isCheckingNick, setIsCheckingNick] = useState(false); // 추가
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -97,22 +98,33 @@ function OnboardingPage() {
   const handleNextFromNickname = async () => {
     if (!validateNickname()) return;
     try {
-      if (imageFile) await saveImage(imageFile);
-      await saveNickname(nickname.trim());
+      // if (imageFile) await saveImage(imageFile);
+      // await saveNickname(nickname.trim());
+      // setStep(2);
+      setIsCheckingNick(true);
+      const res = await checkNicknameAvailability(nickname.trim());
+      if (!res.available) {
+        setNicknameError(res.message ?? "닉네임을 사용할 수 없어요.");
+        return;
+      }
+      // 사용 가능 → 다음 단계
       setStep(2);
     } catch (err: any) {
-      const code = err?.response?.data?.code as string | undefined;
-      const DUP = ["NICKNAME_DUPLICATE", "MEMBER4008", "MEMBERA008"];
-      const EMPTY = ["NICKNAME_NOT_EXIST", "EMPTY_NICKNAME"];
-      if (DUP.includes(code ?? ""))
-        return setNicknameError("이미 사용 중인 닉네임입니다.");
-      if (EMPTY.includes(code ?? ""))
-        return setNicknameError("닉네임을 입력해주세요");
-      if (nickname.trim().length > 10)
-        return setNicknameError("닉네임은 최대 10자입니다.");
-      setNicknameError(
-        err?.response?.data?.message ?? "닉네임 변경에 실패했습니다."
-      );
+      // const code = err?.response?.data?.code as string | undefined;
+      // const DUP = ["NICKNAME_DUPLICATE", "MEMBER4008", "MEMBERA008"];
+      // const EMPTY = ["NICKNAME_NOT_EXIST", "EMPTY_NICKNAME"];
+      // if (DUP.includes(code ?? ""))
+      //   return setNicknameError("이미 사용 중인 닉네임입니다.");
+      // if (EMPTY.includes(code ?? ""))
+      //   return setNicknameError("닉네임을 입력해주세요");
+      // if (nickname.trim().length > 10)
+      //   return setNicknameError("닉네임은 최대 10자입니다.");
+      // setNicknameError(
+      //   err?.response?.data?.message ?? "닉네임 변경에 실패했습니다."
+      // );
+      setNicknameError("닉네임 확인 중 오류가 발생했어요.");
+    } finally {
+      setIsCheckingNick(false);
     }
   };
 
@@ -253,15 +265,18 @@ function OnboardingPage() {
             <button
               type="button"
               onClick={handleNextFromNickname}
-              disabled={!nickname.trim() || isNickSaving || isImgSaving}
+              //disabled={!nickname.trim() || isNickSaving || isImgSaving}
+              disabled={!nickname.trim() || isCheckingNick}
               className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center transition-all
                 ${
-                  !nickname.trim() || isNickSaving || isImgSaving
+                  // !nickname.trim() || isNickSaving || isImgSaving
+                  !nickname.trim() || isCheckingNick
                     ? "bg-white text-black border border-black opacity-60 cursor-not-allowed"
                     : "bg-[#FFAC33] text-white shadow-[0_2px_4px_0_rgba(255,172,51,0.5)] border border-[#FFAC33]"
                 }`}
             >
-              {isNickSaving || isImgSaving ? "저장 중..." : "다음으로 넘어가기"}
+              {/*isNickSaving || isImgSaving ? "저장 중..." : "다음으로 넘어가기"*/}
+              {isCheckingNick ? "확인 중..." : "다음으로 넘어가기"}
             </button>
           </div>
         </>
