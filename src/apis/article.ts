@@ -52,16 +52,12 @@ export const fetchCategoryArticles = async (
 const jsonPart = (obj: unknown) =>
   new Blob([JSON.stringify(obj)], { type: "application/json" });
 
-// REMOVED: toFormData / toFormDataAtPlace (컨트롤러가 @RequestPart("request")만 받음)  :contentReference[oaicite:2]{index=2}
-
-
 function safeFiles(files?: (File | undefined)[]): File[] {
   return (files ?? []).filter((f): f is File => f instanceof File);
 }
 
-/** files 배열에서 mainIndex가 가리키는 파일을 mainImage, 나머지를 imageFiles로 분리해서 append */
 function appendMainAndOthers(fd: FormData, files: File[], mainIndex?: number) {
-  if (!files.length) return; // 파일 없으면 아무것도 안 붙임
+  if (!files.length) return; 
 
   const hasMain =
     typeof mainIndex === "number" &&
@@ -70,9 +66,9 @@ function appendMainAndOthers(fd: FormData, files: File[], mainIndex?: number) {
 
   files.forEach((f, i) => {
     if (hasMain && i === mainIndex) {
-      fd.append("mainImage", f);   // CHANGED: 컨트롤러 계약 - 대표 1장  :contentReference[oaicite:3]{index=3}
+      fd.append("mainImage", f);   
     } else {
-      fd.append("imageFiles", f);  // CHANGED: 컨트롤러 계약 - 그 외 파일들
+      fd.append("imageFiles", f); 
     }
   });
 }
@@ -212,9 +208,12 @@ export const createArticleAtPlace = async (
     detailAddress: data.detailAddress,
     placeName: data.placeName,
     pinCategory: data.pinCategory,
-    mainImageUuid: data.mainImageUuid ?? null,
-    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
   };
+
+  if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // CHANGED
+  if (Array.isArray(data.imageUuids) && data.imageUuids.length) {
+  request.imageUuids = data.imageUuids; // CHANGED
+  }
 
   fd.append("request", jsonPart(request));
 

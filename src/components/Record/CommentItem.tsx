@@ -85,7 +85,8 @@ const CommentItem = ({
               <img src={MenuBarIcon} />
             </button>
             {showModal && (
-              <CommentEditModal
+              <div className="w-[375px]">
+                <CommentEditModal
                 onClose={() => setShowModal(false)}
                 onEdit={() => {
                   onEdit?.();
@@ -96,6 +97,7 @@ const CommentItem = ({
                   setShowModal(false);
                 }}
               />
+              </div>
             )}
           </>
         )}
