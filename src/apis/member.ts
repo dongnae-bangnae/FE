@@ -45,12 +45,6 @@ export async function patchProfileImage(file: File) {
   return data;
 }
 
-// 온보딩 완료 플래그 (바디 없음)
-export async function postOnboarding() {
-  const { data } = await axiosInstance.post("/api/member/onboarding");
-  return data;
-}
-
 // 닉네임 중복/유효성 검사 (JWT 필요)
 // - 200: 사용 가능 (자기 닉네임도 OK)
 // - 400: 에러코드로 사유 전달
@@ -95,4 +89,30 @@ export async function checkNicknameAvailability(nickname: string): Promise<{
       message: msg ?? "닉네임 확인 중 오류가 발생했어요."
     };
   }
+}
+
+// 온보딩 통합 등록 (nickname + chosenRegionIds + profileImage)
+export async function submitOnboarding(params: {
+  nickname: string;
+  chosenRegionIds: number[];
+  profileImage?: File | null;
+}) {
+  const { nickname, chosenRegionIds, profileImage } = params;
+
+  const fd = new FormData();
+
+  // request(JSON) 파트: 명세서의 필드명 그대로 'request'
+  const requestBlob = new Blob(
+    [JSON.stringify({ nickname, chosenRegionIds })],
+    { type: "application/json" }
+  );
+  fd.append("request", requestBlob);
+
+  // 선택 파일
+  if (profileImage) {
+    fd.append("profileImage", profileImage);
+  }
+
+  const { data } = await axiosInstance.post("/api/member/onboarding", fd);
+  return data; // { isSuccess, code, message, result: { memberId, nickname, profileImage, chosenRegionIds, isOnboardingCompleted } }
 }

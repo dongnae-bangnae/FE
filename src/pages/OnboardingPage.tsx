@@ -9,15 +9,9 @@ import { useNavigate } from "react-router-dom";
 import IconDefault from "../assets/icon-default.svg";
 import IconRedChecked from "../assets/icon-redChecked.svg";
 
-import { usePatchNickname } from "../hooks/mutations/usePatchNickname";
-import { usePatchProfileImage } from "../hooks/mutations/usePatchProfileImage";
-import { usePatchRegions } from "../hooks/mutations/usePatchRegions";
-import {
-  postOnboarding,
-  searchRegions,
-  type RegionSearchItem
-} from "../apis/member";
-import { checkNicknameAvailability } from "../apis/member"; // 추가
+import { searchRegions, type RegionSearchItem } from "../apis/member";
+import { checkNicknameAvailability } from "../apis/member";
+import { useCompleteOnboarding } from "../hooks/mutations/useCompleteOnboarding";
 
 type RegionOption = { id: number; label: string };
 
@@ -28,7 +22,7 @@ function OnboardingPage() {
   // Step1 상태
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState("");
-  const [isCheckingNick, setIsCheckingNick] = useState(false); // 추가
+  const [isCheckingNick, setIsCheckingNick] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -59,25 +53,20 @@ function OnboardingPage() {
     staleTime: 60_000
   });
 
-  // 기존 훅
-  const { mutateAsync: saveNickname, isPending: isNickSaving } =
-    usePatchNickname({ silent: true });
-  const { mutateAsync: saveImage, isPending: isImgSaving } =
-    usePatchProfileImage();
-  const { mutateAsync: saveRegions, isPending: isRegionSaving } =
-    usePatchRegions();
+  // 온보딩 완료(한 번에 전송) 훅
+  const { mutateAsync: completeOnboarding, isPending: isFinishing } =
+    useCompleteOnboarding();
 
-  // 지역 추가/삭제
+  // 지역 추가/삭제 (서버 저장 X, 로컬만 관리)
   const addRegion = (opt: RegionOption) => {
     if (selected.find((s) => s.id === opt.id)) return;
     if (selected.length >= 3) return;
     setSelected((prev) => [...prev, opt]);
   };
 
-  const removeRegion = async (id: number) => {
+  const removeRegion = (id: number) => {
     const next = selected.filter((s) => s.id !== id);
     setSelected(next);
-    await saveRegions(next.map((s) => s.id));
   };
 
   // 닉네임 검증
@@ -98,30 +87,14 @@ function OnboardingPage() {
   const handleNextFromNickname = async () => {
     if (!validateNickname()) return;
     try {
-      // if (imageFile) await saveImage(imageFile);
-      // await saveNickname(nickname.trim());
-      // setStep(2);
       setIsCheckingNick(true);
       const res = await checkNicknameAvailability(nickname.trim());
       if (!res.available) {
         setNicknameError(res.message ?? "닉네임을 사용할 수 없어요.");
         return;
       }
-      // 사용 가능 → 다음 단계
       setStep(2);
-    } catch (err: any) {
-      // const code = err?.response?.data?.code as string | undefined;
-      // const DUP = ["NICKNAME_DUPLICATE", "MEMBER4008", "MEMBERA008"];
-      // const EMPTY = ["NICKNAME_NOT_EXIST", "EMPTY_NICKNAME"];
-      // if (DUP.includes(code ?? ""))
-      //   return setNicknameError("이미 사용 중인 닉네임입니다.");
-      // if (EMPTY.includes(code ?? ""))
-      //   return setNicknameError("닉네임을 입력해주세요");
-      // if (nickname.trim().length > 10)
-      //   return setNicknameError("닉네임은 최대 10자입니다.");
-      // setNicknameError(
-      //   err?.response?.data?.message ?? "닉네임 변경에 실패했습니다."
-      // );
+    } catch {
       setNicknameError("닉네임 확인 중 오류가 발생했어요.");
     } finally {
       setIsCheckingNick(false);
@@ -138,8 +111,7 @@ function OnboardingPage() {
     }
   };
 
-  // 온보딩 제출
-  const [isFinishing, setIsFinishing] = useState(false);
+  // 온보딩 제출(명세서대로 한 번에 전송)
   const handleOnboardingSubmit = async () => {
     const ids = selected.map((s) => s.id);
     if (ids.length < 1 || ids.length > 3) {
@@ -147,16 +119,17 @@ function OnboardingPage() {
       return;
     }
     try {
-      setIsFinishing(true);
-      await saveRegions(ids);
-      await postOnboarding();
-      navigate("/home");
+      await completeOnboarding({
+        nickname,
+        regionIds: ids,
+        imageFile
+      });
+      // 기록 남기지 않고 바로 홈 진입 (SPA, 히스토리 교체)
+      navigate("/home", { replace: true });
     } catch (err: any) {
       alert(
         err?.response?.data?.message ?? "온보딩 완료 처리 중 오류가 발생했어요."
       );
-    } finally {
-      setIsFinishing(false);
     }
   };
 
@@ -265,17 +238,14 @@ function OnboardingPage() {
             <button
               type="button"
               onClick={handleNextFromNickname}
-              //disabled={!nickname.trim() || isNickSaving || isImgSaving}
               disabled={!nickname.trim() || isCheckingNick}
               className={`w-[264px] h-[56px] rounded-[10px] text-[17px] font-bold leading-[150%] flex items-center justify-center transition-all
                 ${
-                  // !nickname.trim() || isNickSaving || isImgSaving
                   !nickname.trim() || isCheckingNick
                     ? "bg-white text-black border border-black opacity-60 cursor-not-allowed"
                     : "bg-[#FFAC33] text-white shadow-[0_2px_4px_0_rgba(255,172,51,0.5)] border border-[#FFAC33]"
                 }`}
             >
-              {/*isNickSaving || isImgSaving ? "저장 중..." : "다음으로 넘어가기"*/}
               {isCheckingNick ? "확인 중..." : "다음으로 넘어가기"}
             </button>
           </div>
@@ -477,7 +447,7 @@ function OnboardingPage() {
 
             <button
               type="button"
-              onClick={async () => {
+              onClick={() => {
                 const ids = selected.map((s) => s.id);
                 if (ids.length < 1 || ids.length > 3) {
                   alert(
@@ -485,17 +455,16 @@ function OnboardingPage() {
                   );
                   return;
                 }
-                await saveRegions(ids); // 서버에 즉시 저장
-                setStep(2); // 요약 화면으로
+                setStep(2); // 요약 화면으로만 복귀 (서버 저장 X)
               }}
-              disabled={selected.length === 0 || isRegionSaving}
+              disabled={selected.length === 0}
               className={`w-[110px] h-[45px] rounded-[9px] text-[17px] font-bold leading-[150%] ${
-                selected.length === 0 || isRegionSaving
+                selected.length === 0
                   ? "bg-[#D9D9D9] text-gray-500"
                   : "bg-[#FF9700] text-white"
               }`}
             >
-              {isRegionSaving ? "저장 중..." : "확인"}
+              확인
             </button>
           </div>
         </div>
