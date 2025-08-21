@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import PostCard from "../components/Home/PostCard";
 import {
-  usePlaceArticles,
-  type PlaceArticlesPage
+  usePlaceArticlesV2,
+  type PlaceArticlesPageV2
 } from "../hooks/queries/useArticles";
 import { imageUrlFromUuid } from "../utils/image";
 import type { PlaceArticleRow } from "../apis/article";
@@ -21,6 +21,7 @@ function useQueryNumber(key: string, fallback = 0) {
 function RecordListPage() {
   const navigate = useNavigate();
   const placeId = useQueryNumber("placeId", 0);
+
   const {
     data,
     isLoading,
@@ -28,10 +29,10 @@ function RecordListPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = usePlaceArticles(placeId, 10);
+  } = usePlaceArticlesV2(placeId, 10); //  V2 훅 사용
 
   const items = useMemo<PlaceArticleRow[]>(
-    () => (data ? data.pages.flatMap((p: PlaceArticlesPage) => p.items) : []),
+    () => (data ? data.pages.flatMap((p: PlaceArticlesPageV2) => p.items) : []),
     [data]
   );
 
@@ -59,7 +60,7 @@ function RecordListPage() {
         {items.map((row: PlaceArticleRow) => (
           <div
             key={row.articleId}
-            onClick={() => navigate(`/record/${row.articleId}/detail`)}
+            onClick={() => navigate(`/record/${row.articleId}`)}
             className="cursor-pointer"
           >
             <PostCard

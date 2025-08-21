@@ -17,8 +17,14 @@ import MessagePopup from "../components/MessagePopup";
 
 // --- S3 이미지 유틸 ---
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
-const toArticlePhotoUrl = (uuid?: string | null) =>
-  uuid ? `${S3_BASE}/article/photo/${uuid}` : null;
+// const toArticlePhotoUrl = (uuid?: string | null) =>
+//   uuid ? `${S3_BASE}/article/photo/${uuid}` : null; 
+
+const toArticlePhotoUrl = (v?: string | null) => {
+  if (!v) return null;
+  return /^https?:\/\//i.test(v) ? v : `${S3_BASE}/article/photo/${v}`;
+};  //로컬에서만 사진 표시
+
 const toImgSrc = (v?: string | null) => {
   if (!v) return "";
   return /^https?:\/\//i.test(v) ? v : `${S3_BASE}/article/photo/${v}`;
@@ -79,6 +85,20 @@ const RecordDetailPage = () => {
     return Number.isFinite(n) ? n : null;
   };
 
+  useEffect(() => {
+    if (!stableId) return;
+    const shouldReload = sessionStorage.getItem("rdp_force_reload") === "1"; 
+    if (!shouldReload) return;                                             
+
+    const key = `rdp_reloaded_${stableId}`;
+    const hasReloaded = sessionStorage.getItem(key);
+    if (!hasReloaded) {
+      sessionStorage.setItem(key, "1");
+      sessionStorage.removeItem("rdp_force_reload"); 
+      window.location.reload();
+    }
+  }, [stableId]); // 리로드
+
   // --- 1) 캐시 복원 ---
   useEffect(() => {
     if (!stableId) return;
@@ -123,10 +143,11 @@ const RecordDetailPage = () => {
 
         const srvMainUrl = d.mainImageUuid ? toArticlePhotoUrl(d.mainImageUuid) : null;
         const srvSubUrls: string[] = Array.isArray(d.imageUuids)
-          ? d.imageUuids
-              .map((u: string) => toArticlePhotoUrl(u))
-              .filter((u): u is string => typeof u === "string" && u.length > 0)
-          : [];
+        ? d.imageUuids
+            .filter((u: string) => !d.mainImageUuid || u !== d.mainImageUuid) // CHANGED
+            .map((u: string) => toArticlePhotoUrl(u))
+            .filter((u): u is string => typeof u === "string" && u.length > 0)
+        : [];
 
         const safeText = (next: unknown, prevText: string | undefined) =>
           typeof next === "string" && next.trim() !== "" ? next : prevText ?? "";
@@ -193,9 +214,18 @@ const RecordDetailPage = () => {
     isReported,
   ]);
 
+  const rawList = mainImageUuid
+  ? [mainImageUuid, ...(imageUuids ?? [])]
+  : (imageUuids ?? []);
+
   // 이미지/지도
-  const allImages = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : imageUuids ?? [])
-    .map((s) => toImgSrc(s));
+  const allImages = Array.from(
+    new Set(
+      rawList.filter(
+        (s): s is string => typeof s === "string" && s.trim().length > 0
+      )
+    )
+  ).map((s) => toImgSrc(s));
 
   const mapLat = useMemo(
     () => (typeof latitude === "number" && Number.isFinite(latitude) ? latitude : null),

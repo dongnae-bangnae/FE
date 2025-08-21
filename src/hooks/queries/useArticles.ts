@@ -7,7 +7,9 @@ import {
 import {
   fetchArticles,
   fetchArticlesByPlace,
-  type PlaceArticleRow
+  fetchArticlesByPlaceV2,
+  type PlaceArticleRow,
+  type PlaceCursor
 } from "../../apis/article";
 
 /** 🔹 기존 페이지들이 쓰는 기본 목록 훅 (cursor/limit) */
@@ -26,6 +28,7 @@ export type PlaceArticlesPage = {
   limit: number;
 };
 
+// V1 단일 커서
 export function usePlaceArticles(placeId: number, limit = 10) {
   return useInfiniteQuery<
     PlaceArticlesPage,
@@ -40,6 +43,32 @@ export function usePlaceArticles(placeId: number, limit = 10) {
       fetchArticlesByPlace(placeId, pageParam as number | null, limit),
     getNextPageParam: (lastPage) =>
       lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
+    enabled: !!placeId
+  });
+}
+
+// V2 복합 커서 - RecordListPage 전용
+export type PlaceArticlesPageV2 = {
+  items: PlaceArticleRow[];
+  nextCursor: PlaceCursor | null;
+  hasNext: boolean;
+  limit: number;
+};
+
+export function usePlaceArticlesV2(placeId: number, limit = 10) {
+  return useInfiniteQuery<
+    PlaceArticlesPageV2,
+    Error,
+    InfiniteData<PlaceArticlesPageV2>,
+    readonly ["placeArticlesV2", number, number],
+    PlaceCursor | null
+  >({
+    queryKey: ["placeArticlesV2", placeId, limit] as const,
+    initialPageParam: null, // 첫 호출은 커서 없음
+    queryFn: ({ pageParam }) =>
+      fetchArticlesByPlaceV2(placeId, pageParam, limit),
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.nextCursor : undefined,
     enabled: !!placeId
   });
 }

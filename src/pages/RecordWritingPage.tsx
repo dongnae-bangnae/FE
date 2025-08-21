@@ -22,7 +22,7 @@ import { useArticleDraftStore } from "../stores/articleDraft";
 import { useArticleViewStore } from "../stores/articleView";
 import { useCreateArticleWithLocation } from "../hooks/mutations/useCreateArticleWithLocation";
 import { useEditArticle } from "../hooks/mutations/useEditArticle";
-import { fetchArticleDetail } from "../apis/article";
+import { editArticle, fetchArticleDetail } from "../apis/article";
 import { useSaveModeStore } from "../stores/saveModeStore";
 import { useMapViewStore } from "../stores/mapViewStore";
 
@@ -40,14 +40,12 @@ function RecordWritingPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const articleIdFromStore = useArticleViewStore((s) => s.articleId) || 0;
-  const stateMode = (location.state as any)?.mode;
-  const rawStateArticleId = (location.state as any)?.articleId;
-  const stateArticleId = typeof rawStateArticleId === "number"
-    ? rawStateArticleId
-    : Number(rawStateArticleId) || 0;
-  const editArticleId = stateMode === "edit" ? (stateArticleId || articleIdFromStore) : 0;
-  const isEditMode = stateMode === "edit" && editArticleId > 0;
+  const articleIdFromStore = Number(useArticleViewStore((s) => s.articleId)) || 0; 
+  const rawState = (location.state as any) || {};                                  
+  const fromEdit = rawState?.mode === "edit";                                                
+  const stateArticleId = Number(rawState.articleId) || 0;                      
+  const editArticleId = stateArticleId || articleIdFromStore;                     
+  const isEditMode = fromEdit && editArticleId > 0;
 
   const { reset: resetSaveMode } = useSaveModeStore();
   useEffect(() => {
@@ -101,8 +99,8 @@ function RecordWritingPage() {
           pinCategory: s.pinCategory,
           detailAddress: s.detailAddress,
           placeId: s.placeId,
-          latitude: s.latitude ?? null,
-          longitude: s.longitude ?? null,
+          latitude: null,
+          longitude: null,
         };
       } else if (s.mode === "new") {
         return {
@@ -131,7 +129,7 @@ function RecordWritingPage() {
 
   const { mutateAsync: createAtPlace } = useCreateArticle(); // 기존핀
   const { mutateAsync: createWithLocation } = useCreateArticleWithLocation(); // 미등록장소
-  const { mutateAsync: editMutate } = useEditArticle(editArticleId);
+  // const { mutateAsync: editMutate } = useEditArticle(editArticleId);
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
@@ -196,12 +194,14 @@ function RecordWritingPage() {
 
   const stripExt = (name: string) => name.replace(/\.(png|jpe?g|webp|gif|bmp|svg)$/i, "");
 
-  const asUuid = (src?: string | null) => {
+   const asUuid = (src?: string | null) => {
     if (!src) return "";
-    if (uuidRe.test(src)) return src; 
-    if (isDefaultImageUrl(src)) return stripExt(extractLastPathSegment(src));   
-    if (isArticlePhotoUrl(src)) return stripExt(extractLastPathSegment(src));   
-    return ""; 
+    if (uuidRe.test(src)) return src; // 이미 uuid인 경우
+
+    if (isDefaultImageUrl(src) || isArticlePhotoUrl(src)) {
+      return stripExt(extractLastPathSegment(src));
+    }
+    return "";
   };
 
   const dataUrlToFile = (dataUrl: string, filename: string) => {
@@ -216,20 +216,21 @@ function RecordWritingPage() {
   };
 
   const commitReorder = (from: number | null, to: number | null) => {
-    if (from == null || to == null || from === to) return;
+  if (from == null || to == null || from === to) return;
 
-    const newOrder = [...selectedImages];
-    [newOrder[from], newOrder[to]] = [newOrder[to], newOrder[from]];
+  const next = [...selectedImages];
+  const [dragged] = next.splice(from, 1); 
+  next.splice(to, 0, dragged);            
 
-    hydrateFromEdit({
-      title,
-      content,
-      selectedDate,
-      selectedImages: newOrder,
-      mainImageUuid: newOrder[0] ?? null,
-    } as any);
-    setMain(newOrder[0] ?? null);
-  };
+  hydrateFromEdit({
+    title,
+    content,
+    selectedDate,
+    selectedImages: next,
+    mainImageUuid: next[0] ?? null,
+  } as any);
+  setMain(next[0] ?? null);
+};
 
   const handleSubmit = async () => {
     if (categoryId == null) return alert("카테고리를 먼저 선택해 주세요.");
@@ -250,7 +251,7 @@ function RecordWritingPage() {
       .filter(({ src }) => asUuid(src) === "");
 
       const filesForUpload: File[] = [];
-    for (const { src, idx } of fileCandidates) {
+      for (const { src, idx } of fileCandidates) {
       // 1) 파일 input에서 온 dataURL은 fileMapRef에 File로 저장되어 있음
       let file = fileMapRef.current.get(src);
 
@@ -306,7 +307,10 @@ function RecordWritingPage() {
         imageUuids,
         filesForUploadCount: filesForUpload.length,
         mainIndex,
-      }); //확인용 디버그 로그
+      }); 
+      console.log({ isEditMode, editArticleId })
+
+      //확인용 디버그 로그
 
     setIsLoading(true);
     try {
@@ -317,8 +321,28 @@ function RecordWritingPage() {
           date: selectedDate,
           mainImageUuid: mainUuid || undefined,
           imageUuids,
+          // files: filesForUpload,
+          // mainIndex,
         };
-        await editMutate(payload);
+
+         await editArticle(editArticleId, payload);
+
+         const snap = {
+          articleId: editArticleId,
+          title,
+          content,
+          date: selectedDate,
+          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) : null,
+          imageUuids: imageUuids.map(buildImageUrl),
+          latitude: typeof latitude === "number" ? latitude : null,
+          longitude: typeof longitude === "number" ? longitude : null,
+          likeCount: 0,
+          spamCount: 0,
+          commentCount: 0,
+          liked: false,
+          isReported: false,
+        };
+        localStorage.setItem(`articleView:${editArticleId}`, JSON.stringify(snap));
 
         // 로컬 뷰(표시는 article/photo/{uuid})
         useArticleViewStore.getState().hydrate({
@@ -397,6 +421,27 @@ function RecordWritingPage() {
         liked: false,
         isReported: false,
       });
+
+      const snap = {
+        articleId: result.articleId,
+        title: result.title,
+        content: result.content,
+        date: result.date,
+        mainImageUuid: result.mainImageUuid
+          ? buildImageUrl(result.mainImageUuid)
+          : (mainUuid ? buildImageUrl(mainUuid) : null), 
+        imageUuids: Array.isArray(result.imageUuids) && result.imageUuids.length
+          ? result.imageUuids.map(buildImageUrl)
+          : selectedImages.map(buildImageUrl), 
+        latitude: typeof latitude === "number" ? latitude : null,
+        longitude: typeof longitude === "number" ? longitude : null,
+        likeCount: result.likeCount ?? 0,
+        spamCount: result.spamCount ?? 0,
+        commentCount: 0,
+        liked: false,
+        isReported: false,
+      };
+      localStorage.setItem(`articleView:${result.articleId}`, JSON.stringify(snap));
 
       reset(); resetPin(); resetDraft();
       navigate(`/record/${result.articleId}`, { state: { from: "writing" } });

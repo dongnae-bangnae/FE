@@ -1,15 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  patchNickname,
-  patchRegions,
-  patchProfileImage,
-  postOnboarding
-} from "../../apis/member";
+import { submitOnboarding } from "../../apis/member";
 
 type Payload = {
   nickname: string;
-  regionIds: number[]; // normalizeToId 로 만든 숫자 배열
-  imageFile?: File | null;
+  regionIds: number[]; // 선택된 지역 id 배열
+  imageFile?: File | null; // 선택
 };
 
 export const useCompleteOnboarding = () => {
@@ -17,20 +12,11 @@ export const useCompleteOnboarding = () => {
 
   return useMutation({
     mutationFn: async ({ nickname, regionIds, imageFile }: Payload) => {
-      // 1) 닉네임
-      await patchNickname(nickname.trim());
-
-      // 2) 관심 동네
-      await patchRegions(regionIds);
-
-      // 3) 프로필 이미지(선택)
-      if (imageFile) {
-        await patchProfileImage(imageFile);
-      }
-
-      // 4) 온보딩 완료 플래그
-      const result = await postOnboarding();
-      return result;
+      return submitOnboarding({
+        nickname: nickname.trim(),
+        chosenRegionIds: regionIds,
+        profileImage: imageFile ?? null
+      });
     },
     onSuccess: () => {
       // 온보딩 후 내 정보 갱신
