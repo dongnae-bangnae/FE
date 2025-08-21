@@ -141,10 +141,11 @@ const RecordDetailPage = () => {
 
         const srvMainUrl = d.mainImageUuid ? toArticlePhotoUrl(d.mainImageUuid) : null;
         const srvSubUrls: string[] = Array.isArray(d.imageUuids)
-          ? d.imageUuids
-              .map((u: string) => toArticlePhotoUrl(u))
-              .filter((u): u is string => typeof u === "string" && u.length > 0)
-          : [];
+        ? d.imageUuids
+            .filter((u: string) => !d.mainImageUuid || u !== d.mainImageUuid) // CHANGED
+            .map((u: string) => toArticlePhotoUrl(u))
+            .filter((u): u is string => typeof u === "string" && u.length > 0)
+        : [];
 
         const safeText = (next: unknown, prevText: string | undefined) =>
           typeof next === "string" && next.trim() !== "" ? next : prevText ?? "";
@@ -211,9 +212,18 @@ const RecordDetailPage = () => {
     isReported,
   ]);
 
+  const rawList = mainImageUuid
+  ? [mainImageUuid, ...(imageUuids ?? [])]
+  : (imageUuids ?? []);
+
   // 이미지/지도
-  const allImages = (mainImageUuid ? [mainImageUuid, ...(imageUuids ?? [])] : imageUuids ?? [])
-    .map((s) => toImgSrc(s));
+  const allImages = Array.from(
+    new Set(
+      rawList.filter(
+        (s): s is string => typeof s === "string" && s.trim().length > 0
+      )
+    )
+  ).map((s) => toImgSrc(s));
 
   const mapLat = useMemo(
     () => (typeof latitude === "number" && Number.isFinite(latitude) ? latitude : null),
