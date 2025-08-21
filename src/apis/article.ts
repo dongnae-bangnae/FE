@@ -182,8 +182,8 @@ export const createArticle = async (
     detailAddress: data.detailAddress,
     placeName: data.placeName,
     pinCategory: data.pinCategory,
-    mainImageUuid: data.mainImageUuid ?? null,               
-    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
+    // mainImageUuid: data.mainImageUuid ?? null,               
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
   };
 
   if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // UUID만
@@ -222,8 +222,8 @@ export const createArticleAtPlace = async (
     detailAddress: data.detailAddress,
     placeName: data.placeName,
     pinCategory: data.pinCategory,
-    mainImageUuid: data.mainImageUuid ?? null,                
-    imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
+    // mainImageUuid: data.mainImageUuid ?? null,                
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
   };
 
   fd.append("request", jsonPart(request));

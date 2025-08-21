@@ -194,11 +194,13 @@ function RecordWritingPage() {
     }
   };
 
+  const stripExt = (name: string) => name.replace(/\.(png|jpe?g|webp|gif|bmp|svg)$/i, "");
+
   const asUuid = (src?: string | null) => {
     if (!src) return "";
     if (uuidRe.test(src)) return src; 
-    if (isDefaultImageUrl(src)) return extractLastPathSegment(src);   
-    if (isArticlePhotoUrl(src)) return extractLastPathSegment(src);   
+    if (isDefaultImageUrl(src)) return stripExt(extractLastPathSegment(src));   
+    if (isArticlePhotoUrl(src)) return stripExt(extractLastPathSegment(src));   
     return ""; 
   };
 
@@ -296,6 +298,15 @@ function RecordWritingPage() {
     const imageUuids = mainUuid
       ? orderedUuids.filter((u) => u !== mainUuid)
       : orderedUuids;
+
+      console.log({
+        firstSelected,
+        orderedUuids,
+        mainUuid,
+        imageUuids,
+        filesForUploadCount: filesForUpload.length,
+        mainIndex,
+      }); //확인용 디버그 로그
 
     setIsLoading(true);
     try {

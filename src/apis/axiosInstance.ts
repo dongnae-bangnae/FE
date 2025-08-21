@@ -7,10 +7,19 @@ import axios, {
 } from "axios";
 
 // /** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
-// function getCookieValue(name: string): string | null {
-//   const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-//   return m ? decodeURIComponent(m[2]) : null;
-// }
+function getCookieValue(name: string): string | null {
+  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return m ? decodeURIComponent(m[2]) : null;
+}
+
+function getAccessToken(): string | null {
+  return (
+    localStorage.getItem("accessToken") ||
+    getCookieValue("Authorization") ||
+    getCookieValue("accessToken") ||
+    null
+  );
+}
 
 /** headers를 AxiosHeaders 인스턴스로 보장 */
 function ensureAxiosHeaders(
