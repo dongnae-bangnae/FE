@@ -216,21 +216,21 @@ function RecordWritingPage() {
   };
 
   const commitReorder = (from: number | null, to: number | null) => {
-  if (from == null || to == null || from === to) return;
+    if (from == null || to == null || from === to) return;
 
-  const next = [...selectedImages];
-  const [dragged] = next.splice(from, 1); 
-  next.splice(to, 0, dragged);            
+    const next = [...selectedImages];
+    const [dragged] = next.splice(from, 1); 
+    next.splice(to, 0, dragged);            
 
-  hydrateFromEdit({
-    title,
-    content,
-    selectedDate,
-    selectedImages: next,
-    mainImageUuid: next[0] ?? null,
-  } as any);
-  setMain(next[0] ?? null);
-};
+    hydrateFromEdit({
+      title,
+      content,
+      selectedDate,
+      selectedImages: next,
+      mainImageUuid: next[0] ?? null,
+    } as any);
+    setMain(next[0] ?? null);
+  };
 
   const handleSubmit = async () => {
     if (categoryId == null) return alert("카테고리를 먼저 선택해 주세요.");
@@ -321,8 +321,8 @@ function RecordWritingPage() {
           date: selectedDate,
           mainImageUuid: mainUuid || undefined,
           imageUuids,
-          // files: filesForUpload,
-          // mainIndex,
+          files: filesForUpload,
+          mainIndex,
         };
 
          await editArticle(editArticleId, payload);
@@ -577,7 +577,7 @@ function RecordWritingPage() {
       <VerticalToolbar
         show={!showCalendar && !showGallery}
         onCalendarClick={() => setShowCalendar(true)}
-        onGalleryClick={() => setShowGallery(true)}
+        // onGalleryClick={() => setShowGallery(true)}
         onFileChange={handleFileChange}
       />
 
