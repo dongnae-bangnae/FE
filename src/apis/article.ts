@@ -92,29 +92,30 @@ const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
 const jsonPart = (obj: unknown) =>
   new Blob([JSON.stringify(obj)], { type: "application/json" });
 
-function normalizeFiles(files: (File | undefined)[]) {
-  return (files ?? []).filter((f): f is File => f instanceof File);
-}
+// function normalizeFiles(files: (File | undefined)[]) {
+//   return (files ?? []).filter((f): f is File => f instanceof File);
+// }
 
-function appendImages(fd: FormData, files: File[], mainIndex?: number) {
-  if (!files.length) return;
+// function appendImages(fd: FormData, files: File[], mainIndex?: number) {
+//   if (!files.length) return;
 
-  const hasMain =
-    typeof mainIndex === "number" &&
-    mainIndex >= 0 &&
-    mainIndex < files.length;
+//   const hasMain =
+//     typeof mainIndex === "number" &&
+//     mainIndex >= 0 &&
+//     mainIndex < files.length;
 
-  files.forEach((f, i) => {
-    if (hasMain && i === mainIndex) {
-      fd.append("mainImage", f); 
-      fd.append("imageFiles", f); 
-    }
-  });
-}
+//   files.forEach((f, i) => {
+//     if (hasMain && i === mainIndex) {
+//       fd.append("mainImage", f);
+//     } else {
+//       fd.append("imageFiles", f);
+//     }
+//   });
+// }
 
 function pickMainAndOthers(files: (File | undefined)[], mainIndex?: number) {
   const safe = (files ?? []).filter((f): f is File => f instanceof File);
-  if (safe.length === 0) return { files: [] as File[], mainIndex: 0 };
+  if (safe.length === 0) return { files: [] as File[], mainIndex: undefined }; // CHANGED
   let idx = typeof mainIndex === "number" ? mainIndex : 0;
   idx = Math.min(Math.max(idx, 0), safe.length - 1);
   return { files: safe, mainIndex: idx };
@@ -187,7 +188,10 @@ export const createArticle = async (
 
   const { files, mainIndex } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
   files.forEach((f) => fd.append("images", f));
-  fd.append("mainIndex", String(mainIndex));
+  
+  if (files.length > 0 && typeof mainIndex === "number") {
+    fd.append("mainIndex", String(mainIndex)); 
+  }
 
   const { data: res } = await axiosInstance.post("/api/articles/with-location", fd, {
     withCredentials: true,
@@ -219,7 +223,10 @@ export const createArticleAtPlace = async (
 
   const { files, mainIndex } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
   files.forEach((f) => fd.append("images", f));
-  fd.append("mainIndex", String(mainIndex));
+  
+  if (files.length > 0 && typeof mainIndex === "number") {
+    fd.append("mainIndex", String(mainIndex));
+  }
 
   const { data: res } = await axiosInstance.post("/api/articles", fd, {
     withCredentials: true,
