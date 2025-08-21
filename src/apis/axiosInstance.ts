@@ -50,8 +50,13 @@ axiosInstance.interceptors.request.use((config) => {
   // if (csrf) {
   //   h.set("X-XSRF-TOKEN", csrf);
   // }
+  if (!h.has("Authorization")) {
+    const token = getAccessToken();
+    if (token) h.set("Authorization", token.startsWith("Bearer ") ? token : `Bearer ${token}`);
+  }
 
   config.headers = h;
+  config.withCredentials = true;
   return config;
 });
 
