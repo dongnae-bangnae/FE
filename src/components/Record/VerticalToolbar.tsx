@@ -14,7 +14,6 @@ import Writing_o from "../../assets/record/icon-writing_o.svg";
 import Back_y from "../../assets/record/icon-back_y.svg";
 import Back_o from "../../assets/record/icon-back_o.svg";
 
-
 interface VerticalToolbarProps {
   show: boolean;
   onCalendarClick: () => void;
