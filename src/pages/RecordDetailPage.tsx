@@ -79,6 +79,18 @@ const RecordDetailPage = () => {
     return Number.isFinite(n) ? n : null;
   };
 
+  useEffect(() => {
+    if (!stableId) return;
+    const key = `rdp_reloaded_${stableId}`;
+    const hasReloaded = sessionStorage.getItem(key);
+    if (!hasReloaded) {
+      sessionStorage.setItem(key, "1");
+      // location.reload()는 히스토리에 현재 항목을 유지함.
+      // replace로도 동일 효과 가능: window.location.replace(window.location.href)
+      window.location.reload(); // CHANGED
+    }
+  }, [stableId]);
+
   // --- 1) 캐시 복원 ---
   useEffect(() => {
     if (!stableId) return;
