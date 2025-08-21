@@ -8,26 +8,6 @@ import { ArticleListItem } from "../types/article";
 import { ApiResponse } from "../types/common";
 import { axiosInstance } from "./axiosInstance";
 
-function getCookie(name: string): string | null {
-  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return m ? decodeURIComponent(m[1]) : null;
-}
-function getAccessToken(): string | null {
-  return (
-    localStorage.getItem("accessToken") ||
-    getCookie("accessToken") ||
-    getCookie("Authorization") ||
-    null
-  );
-}
-function authHeaders() {
-  const token = getAccessToken();
-  if (!token) return {}; // 토큰 없으면 헤더 비움(백엔드가 401/토큰 에러 처리)
-  return {
-    Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}`
-  };
-}
-
 // 게시글 리스트 조회용 타입
 export interface Article {
   articleId: number;
@@ -68,56 +48,80 @@ export const fetchCategoryArticles = async (
   return data.result;
 };
 
-/** FormData */
-const toFormData = (form: ArticleForm) => {
-  const formData = new FormData();
-
-  formData.append("categoryId", String(form.categoryId));
-  // formData.append("placeId", String(form.placeId));
-  formData.append("title", form.title);
-  formData.append("content", form.content);
-  formData.append("date", form.date);
-  formData.append("latitude", String(form.latitude));
-  formData.append("longitude", String(form.longitude));
-  formData.append("detailAddress", form.detailAddress);
-  formData.append("placeName", form.placeName);
-  formData.append("pinCategory", form.pinCategory);
-
-  if (form.mainImageUuid) formData.append("mainImageUuid", form.mainImageUuid);
-  (form.imageUuids ?? []).forEach((uuid) =>
-    formData.append("imageUuids", uuid)
-  );
-
-  return formData;
-};
-
-export type ArticleFormAtPlace = Omit<ArticleForm, "latitude" | "longitude"> & {
-  placeId: number; // 기존 핀: placeId 필수
-};
-
-const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
-  const fd = new FormData();
-
-  // 공통 필드
-  fd.append("categoryId", String(form.categoryId));
-  fd.append("title", form.title);
-  fd.append("content", form.content);
-  fd.append("date", form.date);
-  fd.append("detailAddress", form.detailAddress);
-  fd.append("placeName", form.placeName);
-  fd.append("pinCategory", form.pinCategory);
-
-  // 기존 핀 식별
-  fd.append("placeId", String(form.placeId));
-
-  if (form.mainImageUuid) fd.append("mainImageUuid", form.mainImageUuid);
-  (form.imageUuids ?? []).forEach((uuid) => fd.append("imageUuids", uuid));
-
-  return fd;
-};
-
 const jsonPart = (obj: unknown) =>
   new Blob([JSON.stringify(obj)], { type: "application/json" });
+
+// REMOVED: toFormData / toFormDataAtPlace (컨트롤러가 @RequestPart("request")만 받음)  :contentReference[oaicite:2]{index=2}
+
+function safeFiles(files?: (File | undefined)[]): File[] {
+  return (files ?? []).filter((f): f is File => f instanceof File);
+}
+
+/** files 배열에서 mainIndex가 가리키는 파일을 mainImage, 나머지를 imageFiles로 분리해서 append */
+function appendMainAndOthers(fd: FormData, files: File[], mainIndex?: number) {
+  if (!files.length) return; // 파일 없으면 아무것도 안 붙임
+
+  const hasMain =
+    typeof mainIndex === "number" &&
+    mainIndex >= 0 &&
+    mainIndex < files.length;
+
+  files.forEach((f, i) => {
+    if (hasMain && i === mainIndex) {
+      fd.append("mainImage", f);   // CHANGED: 컨트롤러 계약 - 대표 1장  :contentReference[oaicite:3]{index=3}
+    } else {
+      fd.append("imageFiles", f);  // CHANGED: 컨트롤러 계약 - 그 외 파일들
+    }
+  });
+}
+
+// /** FormData */
+// const toFormData = (form: ArticleForm) => {
+//   const formData = new FormData();
+
+//   formData.append("categoryId", String(form.categoryId));
+//   // formData.append("placeId", String(form.placeId));
+//   formData.append("title", form.title);
+//   formData.append("content", form.content);
+//   formData.append("date", form.date);
+//   formData.append("latitude", String(form.latitude));
+//   formData.append("longitude", String(form.longitude));
+//   formData.append("detailAddress", form.detailAddress);
+//   formData.append("placeName", form.placeName);
+//   formData.append("pinCategory", form.pinCategory);
+
+//   if (form.mainImageUuid) formData.append("mainImageUuid", form.mainImageUuid);
+//   (form.imageUuids ?? []).forEach((uuid) =>
+//     formData.append("imageUuids", uuid)
+//   );
+
+//   return formData;
+// };
+
+// export type ArticleFormAtPlace = Omit<ArticleForm, "latitude" | "longitude"> & {
+//   placeId: number; // 기존 핀: placeId 필수
+// };
+
+// const toFormDataAtPlace = (form: ArticleFormAtPlace) => {
+//   const fd = new FormData();
+
+//   // 공통 필드
+//   fd.append("categoryId", String(form.categoryId));
+//   fd.append("title", form.title);
+//   fd.append("content", form.content);
+//   fd.append("date", form.date);
+//   fd.append("detailAddress", form.detailAddress);
+//   fd.append("placeName", form.placeName);
+//   fd.append("pinCategory", form.pinCategory);
+
+//   // 기존 핀 식별
+//   fd.append("placeId", String(form.placeId));
+
+//   if (form.mainImageUuid) fd.append("mainImageUuid", form.mainImageUuid);
+//   (form.imageUuids ?? []).forEach((uuid) => fd.append("imageUuids", uuid));
+
+//   return fd;
+// };
 
 // function normalizeFiles(files: (File | undefined)[]) {
 //   return (files ?? []).filter((f): f is File => f instanceof File);
@@ -139,40 +143,6 @@ const jsonPart = (obj: unknown) =>
 //     }
 //   });
 // }
-
-function pickMainAndOthers(files: (File | undefined)[], mainIndex?: number) {
-  const safe = (files ?? []).filter((f): f is File => f instanceof File);
-  if (safe.length === 0) return { files: [] as File[], mainIndex: undefined }; // CHANGED
-  let idx = typeof mainIndex === "number" ? mainIndex : 0;
-  idx = Math.min(Math.max(idx, 0), safe.length - 1);
-  return { files: safe, mainIndex: idx };
-}
-
-const toPartialFormData = (form: Partial<ArticleForm>) => {
-  const fd = new FormData();
-
-  const put = (k: keyof ArticleForm, v: any) => {
-    if (v !== undefined && v !== null && v !== "") {
-      fd.append(String(k), String(v));
-    }
-  };
-
-  put("categoryId", form.categoryId);
-  put("title", form.title);
-  put("content", form.content);
-  put("date", form.date);
-  put("latitude", form.latitude);
-  put("longitude", form.longitude);
-  put("detailAddress", form.detailAddress);
-  put("placeName", form.placeName);
-  put("pinCategory", form.pinCategory);
-  put("mainImageUuid", form.mainImageUuid);
-
-  if (form.imageUuids) {
-    form.imageUuids.forEach((uuid) => fd.append("imageUuids", uuid));
-  }
-  return fd;
-};
 
 //게시글 작성(미등록장소)
 export const createArticle = async (
@@ -201,16 +171,9 @@ export const createArticle = async (
   }
 
   fd.append("request", jsonPart(request));
-
-  const { files, mainIndex } = pickMainAndOthers(
-    opts?.files ?? [],
-    opts?.mainIndex
-  );
-  files.forEach((f) => fd.append("images", f));
-
-  if (files.length > 0 && typeof mainIndex === "number") {
-    fd.append("mainIndex", String(mainIndex));
-  }
+ 
+  const files = safeFiles(opts?.files);
+  appendMainAndOthers(fd, files, opts?.mainIndex);
 
   const { data: res } = await axiosInstance.post(
     "/api/articles/with-location",
@@ -244,18 +207,11 @@ export const createArticleAtPlace = async (
 
   fd.append("request", jsonPart(request));
 
-  const { files, mainIndex } = pickMainAndOthers(
-    opts?.files ?? [],
-    opts?.mainIndex
-  );
-  files.forEach((f) => fd.append("images", f));
-
-  if (files.length > 0 && typeof mainIndex === "number") {
-    fd.append("mainIndex", String(mainIndex));
-  }
+  const files = safeFiles(opts?.files);
+  appendMainAndOthers(fd, files, opts?.mainIndex);                          // CHANGED
 
   const { data: res } = await axiosInstance.post("/api/articles", fd, {
-    withCredentials: true
+    withCredentials: true,
   });
   return res.result as CreatedArticleResult;
 };
@@ -263,11 +219,37 @@ export const createArticleAtPlace = async (
 //게시글 수정
 export const editArticle = async (
   articleId: number,
-  data: Partial<ArticleForm>
+  data: Partial<ArticleForm> & { files?: File[]; mainIndex?: number } // CHANGED: files/mainIndex 옵션 지원
 ): Promise<void> => {
-  const formData = toPartialFormData(data);
-  await axiosInstance.put(`/api/articles/${articleId}`, formData);
+  const fd = new FormData();
+
+  // CHANGED: @RequestPart("request") ArticleUpdateRequestDTO 규격으로 보냄
+  const request: any = {
+    categoryId: data.categoryId,
+    title: data.title,
+    content: data.content,
+    date: data.date,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    detailAddress: data.detailAddress,
+    placeName: data.placeName,
+    pinCategory: data.pinCategory,
+  };
+  if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid;     
+  if (Array.isArray(data.imageUuids) && data.imageUuids.length) {
+    request.imageUuids = data.imageUuids;                                  
+  }
+
+  fd.append("request", jsonPart(request));                                   
+
+  const files = safeFiles(data.files);
+  appendMainAndOthers(fd, files, data.mainIndex);
+
+  await axiosInstance.put(`/api/articles/${articleId}`, fd, {
+    withCredentials: true,
+  });
 };
+
 
 //게시글 삭제
 export const deleteArticle = async (articleId: number): Promise<void> => {
@@ -291,7 +273,6 @@ export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
     null,
     {
       withCredentials: true,
-      headers: authHeaders()
     }
   );
   return data.result;
@@ -305,7 +286,6 @@ export const unlikeArticle = async (
     `/api/articles/${articleId}/likes`,
     {
       withCredentials: true,
-      headers: authHeaders()
     }
   );
   return data.result;
@@ -320,7 +300,6 @@ export const reportSpam = async (
     null,
     {
       withCredentials: true,
-      headers: authHeaders()
     }
   );
   return response.data;
@@ -334,7 +313,6 @@ export const unreportSpam = async (
     `/api/articles/${articleId}/spams`,
     {
       withCredentials: true,
-      headers: authHeaders()
     }
   );
   return response.data;
