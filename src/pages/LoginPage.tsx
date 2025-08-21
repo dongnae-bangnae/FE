@@ -4,11 +4,13 @@ import circleCheck from "../assets/icon-circleCheck.svg";
 import googleIcon from "../assets/icon-google.svg";
 import kakaoIcon from "../assets/icon-kakao.svg";
 import naverIcon from "../assets/icon-naver.svg";
-import logo from "../assets/logo.svg";
+import logo from "../assets/logo2.svg";
+import OnBoardingLoadingSpinner from "../components/OnBoardingLoadingSpinner";
 
 function LoginPage() {
   const location = useLocation();
   const [toastMessage, setToastMessage] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
 
   const handleSocialLogin = (provider: "naver" | "kakao" | "google") => {
     const loginUrls = {
@@ -18,13 +20,26 @@ function LoginPage() {
     };
 
     const redirectUrl = loginUrls[provider];
-
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-    } else {
+    if (!redirectUrl) {
       console.error(`Login URL for ${provider} is not defined`);
+      return;
     }
+
+    setAuthLoading(true); // 스피너 켜기
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.location.href = redirectUrl;
+      });
+    });
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <OnBoardingLoadingSpinner overlay={false} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (location.state?.message) {
@@ -39,64 +54,43 @@ function LoginPage() {
   }, [location.state]);
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-[#F95F00] text-white px-6">
-      {/* 로고 */}
-      <img src={logo} alt="로고" className="w-[101px] h-[100px] mb-10 mt-10" />
+    <div className="relative flex flex-col items-center min-h-screen bg-[#FFAC33] text-white px-6">
+      {/* 로고: 위에서 253px 위치 + 지정 사이즈 */}
+      <img
+        src={logo}
+        alt="로고"
+        className="mt-[253px]"
+        style={{ width: "135.9px", height: "135px" }}
+      />
 
       {/* 소셜 로그인 버튼 */}
-      <div className="flex space-x-[20px] mb-10">
+      <div className="absolute bottom-[230px] left-1/2 -translate-x-1/2 flex items-center justify-center gap-[29px]">
         {/* Naver */}
         <button
           onClick={() => handleSocialLogin("naver")}
-          className="flex items-center justify-center"
-          style={{
-            width: "60px",
-            height: "60px",
-            borderRadius: "50%",
-            backgroundColor: "#03CF5D"
-          }}
+          className="w-[60px] h-[60px] p-0 rounded-full active:scale-95"
+          aria-label="네이버로 로그인"
         >
-          <img
-            src={naverIcon}
-            alt="Naver"
-            style={{ width: "33px", height: "33px" }}
-          />
+          <img src={naverIcon} alt="Naver" className="w-full h-full" />
         </button>
 
         {/* Kakao */}
         <button
           onClick={() => handleSocialLogin("kakao")}
-          className="flex items-center justify-center"
-          style={{
-            width: "60px",
-            height: "60px",
-            borderRadius: "50%",
-            backgroundColor: "#FEE102"
-          }}
+          className="w-[60px] h-[60px] p-0 rounded-full active:scale-95"
+          aria-label="카카오로 로그인"
         >
-          <img
-            src={kakaoIcon}
-            alt="Kakao"
-            style={{ width: "33px", height: "33px" }}
-          />
+          <img src={kakaoIcon} alt="Kakao" className="w-full h-full" />
         </button>
 
         {/* Google */}
+
         <button
           onClick={() => handleSocialLogin("google")}
-          className="flex items-center justify-center"
-          style={{
-            width: "60px",
-            height: "60px",
-            borderRadius: "50%",
-            backgroundColor: "#FFFFFF"
-          }}
+          className="w-[60px] h-[60px] p-0 rounded-full active:scale-95"
+          aria-label="구글로 로그인"
         >
-          <img
-            src={googleIcon}
-            alt="Google"
-            style={{ width: "33px", height: "33px" }}
-          />
+          <img src={googleIcon} alt="Google" className="w-full h-full" />
         </button>
       </div>
 
