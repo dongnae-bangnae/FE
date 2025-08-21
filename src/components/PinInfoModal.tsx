@@ -5,6 +5,7 @@ import ConfrimWriteIcon from "../assets/icon-confirmWrite.svg?react";
 import PlaceIcon from "../assets/icon-PinPlace.svg?react";
 import SavePlaceIcon from "../assets/icon-savePlace.svg?react";
 import { Place } from "../types/place";
+import { useSaveModeStore } from "../stores/saveModeStore";
 
 interface PinInfoModalProps {
   place: Place | null;
@@ -36,7 +37,7 @@ export default function PinInfoModal({ place, onClose }: PinInfoModalProps) {
   const placeId = place.placeId;
 
   console.log(isSaved);
-
+  const { setSaveMode } = useSaveModeStore();
   const navigate = useNavigate();
 
   return (
@@ -58,12 +59,9 @@ export default function PinInfoModal({ place, onClose }: PinInfoModalProps) {
         <button
           onClick={() => {
             if (isSaved) return;
-            navigate("/category", {
-              state: {
-                mode: "save",
-                placeId
-              }
-            });
+            console.log("저장 모드 설정 시도 - placeId:", place.placeId);
+            setSaveMode(place.placeId);
+            navigate("/category");
           }}
           onMouseEnter={() => {
             if (!isSaved) setIsSaveHovered(true);

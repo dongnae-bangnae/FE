@@ -37,7 +37,7 @@ export default function PinCategorySelector({ selected, onSelect }: Props) {
 		<div className="flex justify-center flex-wrap  py-2">
 			{pinCategories.map(({ id, Icon, color, border }) => {
 				const isSelected = selected === id;
-
+				const isWalk = id === "WALK";
 
 				return (
 					<button
@@ -50,8 +50,10 @@ export default function PinCategorySelector({ selected, onSelect }: Props) {
 						}}
 					>
 						<Icon
-							className="w-5 h-5"
+                            className="w-5 h-5"
 							style={{
+								width: isWalk ? "25px" : "20px",
+								height: isWalk ? "25px" : "20px",
 								color: isSelected ? color : "#FFC064"
 							}}
 						/>

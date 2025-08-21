@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import { getColorCode } from "../utils/getColorCode";
 import CategoryItem from "../components/common/CategoryItem";
@@ -10,15 +10,14 @@ import { useSavePlaceToCategory } from "../hooks/mutations/useSavePlaceToCategor
 import { useCategorySelectionStore } from "../stores/categorySelection";
 import { CategoryColorName } from "../types/categoryColors";
 import MessagePopup from "../components/MessagePopup";
+import { useSaveModeStore } from "../stores/saveModeStore";
 
 
 function CategoryPage() {
-	const location = useLocation(); 
 	const navigate = useNavigate();
 
-	// 모드에 따라 다르게 관리 
-	const mode = location.state?.mode ?? "write"; 
-	const placeId = location.state?.placeId;
+	const { mode, placeId: savePlaceId, reset: resetSaveMode } = useSaveModeStore();
+	console.log("CategoryPage 렌더링 - 현재 모드:", mode, "현재 placeId:", savePlaceId);
 
 	// 상태 관리 변수 
 	const [selectedCategory, setSelectedCategory] = useState<{categoryId: number; name: string; color: CategoryColorName;} | null>(null);
@@ -26,9 +25,11 @@ function CategoryPage() {
 	const [popup, setPopup] = useState<{ message: string; icon?: string } | null>(null);
 
 	const {data: categories = [], isLoading, isError} = useFetchCategories(); 
+
 	const { mutate: saveMutate } = useSavePlaceToCategory({
 		onSuccess: () => {
 			setPopup({ message: "장소가 카테고리에 저장되었습니다." });
+			resetSaveMode(); 
 			navigate("/map");
 		},
 		onError: () => {
@@ -52,17 +53,11 @@ function CategoryPage() {
 			return; 
 
 		} else if (mode === "save") {
-			if (!placeId) {
+			if (!savePlaceId) { 
 				alert("저장할 장소 정보가 없습니다. 다시 시도해 주세요.");
 				return;
 			}
-			saveMutate({placeId, categoryId: selectedCategory.categoryId},
-				{
-					onSuccess: () => {
-						navigate("/map"); 
-					}, 
-				}
-			);
+			saveMutate({ placeId: savePlaceId, categoryId: selectedCategory.categoryId });
 		}
 	};
 

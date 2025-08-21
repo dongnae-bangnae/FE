@@ -23,7 +23,8 @@ const CommentItem = ({
   onReplyClick,
   children,
   isReply = false,
-  isMine = true, //임시
+  isMine = false,
+  profileImage,
   onEdit,
   onDelete
 }: CommentItemProps) => {
@@ -34,7 +35,7 @@ const CommentItem = ({
     <div
       className="w-full max-w-[355px]"
       style={{
-        marginTop: isReply ? "10px" : 0,
+        marginTop: 0,
       }}
     >
       {/* 프로필 + 닉네임 + 댓*/}
@@ -44,7 +45,7 @@ const CommentItem = ({
             <div className="ml-[20px]" />
           )}
           <img
-            src={DefaultProfileIcon}
+            src={profileImage && profileImage.trim() !== "" ? profileImage : DefaultProfileIcon}
             alt="avatar"
             className="w-[46px] h-[46px] rounded-full"
           />
@@ -76,7 +77,11 @@ const CommentItem = ({
         {/* 모달 렌더링 */}
         {isMine && (
           <>
-            <button className="mr-[12px]" onClick={() => setShowModal(true)}>
+            <button className="mr-[12px]" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowModal(true);
+                    }}>
               <img src={MenuBarIcon} />
             </button>
             {showModal && (

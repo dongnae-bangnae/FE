@@ -1,12 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { createArticle } from "../../apis/article";
-import { ArticleForm } from "../../types/article";
+import { ArticleForm, CreatedArticleResult } from "../../types/article";
 
-type Payload = ArticleForm & { files?: File[]; mainIndex?: number }; // [ADD]
+type Payload = ArticleForm & { files?: File[]; mainIndex?: number };
 
 export const useCreateArticleWithLocation = () => {
-  return useMutation<number, Error, Payload>({
+  return useMutation<CreatedArticleResult, Error, Payload>({
     mutationFn: ({ files, mainIndex, ...rest }) =>
-      createArticle(rest, { files, mainIndex }), // [MOD]
+      createArticle(rest, { files, mainIndex }),
   });
 };

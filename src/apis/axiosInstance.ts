@@ -1,16 +1,25 @@
 // src/apis/axiosInstance.ts
 import axios, {
   AxiosError,
-  AxiosRequestConfig,
   AxiosHeaders,
+  AxiosRequestConfig,
   type AxiosRequestHeaders
 } from "axios";
 
 // /** 쿠키 읽기 (HttpOnly 쿠키는 읽히지 않음) */
-// function getCookieValue(name: string): string | null {
-//   const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-//   return m ? decodeURIComponent(m[2]) : null;
-// }
+function getCookieValue(name: string): string | null {
+  const m = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return m ? decodeURIComponent(m[2]) : null;
+}
+
+function getAccessToken(): string | null {
+  return (
+    localStorage.getItem("accessToken") ||
+    getCookieValue("Authorization") ||
+    getCookieValue("accessToken") ||
+    null
+  );
+}
 
 /** headers를 AxiosHeaders 인스턴스로 보장 */
 function ensureAxiosHeaders(
@@ -41,8 +50,13 @@ axiosInstance.interceptors.request.use((config) => {
   // if (csrf) {
   //   h.set("X-XSRF-TOKEN", csrf);
   // }
+  if (!h.has("Authorization")) {
+    const token = getAccessToken();
+    if (token) h.set("Authorization", token.startsWith("Bearer ") ? token : `Bearer ${token}`);
+  }
 
   config.headers = h;
+  config.withCredentials = true;
   return config;
 });
 
@@ -126,4 +140,3 @@ axiosInstance.interceptors.response.use(
     return axiosInstance(original);
   }
 );
-
