@@ -1,5 +1,4 @@
-// src/pages/SavedPlacePage.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import pin_bookstore from "../assets/pin/pin_bookstore.svg";
@@ -27,28 +26,32 @@ const pinIcons: Record<string, string> = {
 
 export default function SavedPlacePage() {
   const navigate = useNavigate();
-  const { placeId } = useParams<{ placeId: string }>(); // param 이름이 placeId로 들어오지만 실제로 카테고리ID임
-  const categoryId = Number(placeId);
+
+  const { categoryId } = useParams<{ categoryId: string }>();
+  const categoryIdNum = Number(categoryId);
 
   const location = useLocation();
   const state = location.state as { categoryName?: string } | undefined;
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useSavedPlaces(categoryId, 20);
+    useSavedPlaces(Number.isFinite(categoryIdNum) ? categoryIdNum : 0, 0, 20);
 
-  // pages -> places 평탄화
-  const places = data?.pages.flatMap((p) => p.places) ?? [];
+  const places = useMemo(
+    () => data?.pages.flatMap((p) => p.places) ?? [],
+    [data]
+  );
 
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
-  const isButtonActive = selectedPlaceId !== null;
-  const selectedPlace = places.find((p) => p.placeId === selectedPlaceId);
+  const selectedPlace =
+    places.find((p) => p.placeId === selectedPlaceId) ?? null;
+  const isButtonActive = !!selectedPlace;
 
   useEffect(() => {
-    console.log("카테고리 ID:", categoryId);
+    console.log("카테고리 ID:", categoryIdNum);
     console.log("받은 장소 데이터:", places);
-  }, [places, categoryId]);
+  }, [places, categoryIdNum]);
 
-  if (!Number.isFinite(categoryId)) {
+  if (!Number.isFinite(categoryIdNum) || categoryIdNum <= 0) {
     return (
       <div className="bg-white min-h-screen flex flex-col">
         <Header title="저장된 장소" underline={true} />
@@ -93,7 +96,11 @@ export default function SavedPlacePage() {
             if (!selectedPlace) return;
             const range = 0.01;
             navigate(
-              `/mypage/saved/map?latMin=${selectedPlace.latitude - range}&latMax=${selectedPlace.latitude + range}&lngMin=${selectedPlace.longitude - range}&lngMax=${selectedPlace.longitude + range}`
+              `/mypage/saved/map?latMin=${selectedPlace.latitude - range}&latMax=${
+                selectedPlace.latitude + range
+              }&lngMin=${selectedPlace.longitude - range}&lngMax=${
+                selectedPlace.longitude + range
+              }`
             );
           }}
           disabled={!isButtonActive}
