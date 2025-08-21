@@ -81,8 +81,8 @@ const VerticalToolbar = ({
           onMouseLeave={() => setHoveredIcon(null)}
           className="absolute"
           style={{
-            right: 110,
-            bottom: 24,
+            right: 24,
+            bottom: 110,
             width: 78,
             height: 78,
             borderRadius: "50%",
@@ -175,7 +175,7 @@ const VerticalToolbar = ({
             <img
               src={hoveredIcon === "back" ? Back_y : Back_o}
               alt="접기"
-              style={{ width: 78, height: 78, boxShadow: "0 10px 22px #D9D9D9", backgroundColor: "white"}}
+              style={{ width: 78, height: 78, boxShadow: "0 10px 22px #D9D9D9", backgroundColor: "white", borderRadius: "50%",}}
             />
           </button>
 
@@ -194,7 +194,7 @@ const VerticalToolbar = ({
           })}
           onMouseEnter={() => setHoveredIcon("map")}
           onMouseLeave={() => setHoveredIcon(null)}
-          style={{ backgroundColor: colors.primaryDark }}
+          style={{ backgroundColor: colors.primaryDark, boxShadow: "0 10px 22px #D9D9D9", }}
         >
           <img
             src={hoveredIcon === "map" ? PinIcon_o : PinIcon_w}
