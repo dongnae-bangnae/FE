@@ -1,8 +1,8 @@
 // src/apis/axiosInstance.ts
 import axios, {
   AxiosError,
-  AxiosRequestConfig,
   AxiosHeaders,
+  AxiosRequestConfig,
   type AxiosRequestHeaders
 } from "axios";
 
@@ -135,4 +135,3 @@ axiosInstance.interceptors.response.use(
     return axiosInstance(original);
   }
 );
-

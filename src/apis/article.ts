@@ -1,4 +1,9 @@
-import { ArticleDetail, ArticleForm, LikeResponse, CreatedArticleResult } from "../types/article";
+import {
+  ArticleDetail,
+  ArticleForm,
+  CreatedArticleResult,
+  LikeResponse
+} from "../types/article";
 import { ArticleListItem } from "../types/article";
 import { ApiResponse } from "../types/common";
 import { axiosInstance } from "./axiosInstance";
@@ -18,7 +23,9 @@ function getAccessToken(): string | null {
 function authHeaders() {
   const token = getAccessToken();
   if (!token) return {}; // 토큰 없으면 헤더 비움(백엔드가 401/토큰 에러 처리)
-  return { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` };
+  return {
+    Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}`
+  };
 }
 
 // 게시글 리스트 조회용 타입
@@ -77,7 +84,9 @@ const toFormData = (form: ArticleForm) => {
   formData.append("pinCategory", form.pinCategory);
 
   if (form.mainImageUuid) formData.append("mainImageUuid", form.mainImageUuid);
-  (form.imageUuids ?? []).forEach((uuid) => formData.append("imageUuids", uuid));
+  (form.imageUuids ?? []).forEach((uuid) =>
+    formData.append("imageUuids", uuid)
+  );
 
   return formData;
 };
@@ -152,8 +161,8 @@ const toPartialFormData = (form: Partial<ArticleForm>) => {
   put("title", form.title);
   put("content", form.content);
   put("date", form.date);
-  put("latitude", form.latitude);   
-  put("longitude", form.longitude); 
+  put("latitude", form.latitude);
+  put("longitude", form.longitude);
   put("detailAddress", form.detailAddress);
   put("placeName", form.placeName);
   put("pinCategory", form.pinCategory);
@@ -181,9 +190,9 @@ export const createArticle = async (
     longitude: data.longitude,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory,
-    // mainImageUuid: data.mainImageUuid ?? null,               
-    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
+    pinCategory: data.pinCategory
+    // mainImageUuid: data.mainImageUuid ?? null,
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
   };
 
   if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // UUID만
@@ -193,16 +202,23 @@ export const createArticle = async (
 
   fd.append("request", jsonPart(request));
 
-  const { files, mainIndex } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
+  const { files, mainIndex } = pickMainAndOthers(
+    opts?.files ?? [],
+    opts?.mainIndex
+  );
   files.forEach((f) => fd.append("images", f));
-  
+
   if (files.length > 0 && typeof mainIndex === "number") {
-    fd.append("mainIndex", String(mainIndex)); 
+    fd.append("mainIndex", String(mainIndex));
   }
 
-  const { data: res } = await axiosInstance.post("/api/articles/with-location", fd, {
-    withCredentials: true,
-  });
+  const { data: res } = await axiosInstance.post(
+    "/api/articles/with-location",
+    fd,
+    {
+      withCredentials: true
+    }
+  );
   return res.result as CreatedArticleResult;
 };
 
@@ -221,22 +237,25 @@ export const createArticleAtPlace = async (
     date: data.date,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory,
-    // mainImageUuid: data.mainImageUuid ?? null,                
-    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [], 
+    pinCategory: data.pinCategory
+    // mainImageUuid: data.mainImageUuid ?? null,
+    // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
   };
 
   fd.append("request", jsonPart(request));
 
-  const { files, mainIndex } = pickMainAndOthers(opts?.files ?? [], opts?.mainIndex);
+  const { files, mainIndex } = pickMainAndOthers(
+    opts?.files ?? [],
+    opts?.mainIndex
+  );
   files.forEach((f) => fd.append("images", f));
-  
+
   if (files.length > 0 && typeof mainIndex === "number") {
     fd.append("mainIndex", String(mainIndex));
   }
 
   const { data: res } = await axiosInstance.post("/api/articles", fd, {
-    withCredentials: true,
+    withCredentials: true
   });
   return res.result as CreatedArticleResult;
 };
@@ -271,8 +290,8 @@ export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
     `/api/articles/${articleId}/likes`,
     null,
     {
-      withCredentials: true,   
-      headers: authHeaders(),   
+      withCredentials: true,
+      headers: authHeaders()
     }
   );
   return data.result;
@@ -285,8 +304,8 @@ export const unlikeArticle = async (
   const { data } = await axiosInstance.delete<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
     {
-      withCredentials: true,   
-      headers: authHeaders(),
+      withCredentials: true,
+      headers: authHeaders()
     }
   );
   return data.result;
@@ -296,10 +315,14 @@ export const unlikeArticle = async (
 export const reportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
-  const response = await axiosInstance.post(`/api/articles/${articleId}/spams`, null, {
-    withCredentials: true,
-    headers: authHeaders(),
-  });
+  const response = await axiosInstance.post(
+    `/api/articles/${articleId}/spams`,
+    null,
+    {
+      withCredentials: true,
+      headers: authHeaders()
+    }
+  );
   return response.data;
 };
 
@@ -308,9 +331,10 @@ export const unreportSpam = async (
   articleId: number
 ): Promise<ApiResponse<null>> => {
   const response = await axiosInstance.delete(
-    `/api/articles/${articleId}/spams`, {
+    `/api/articles/${articleId}/spams`,
+    {
       withCredentials: true,
-      headers: authHeaders(),
+      headers: authHeaders()
     }
   );
   return response.data;
@@ -349,29 +373,14 @@ export type PlaceArticleRow = {
 
 export async function fetchArticlesByPlace(
   placeId: number,
-  cursor?: number | null, // null/-1 => 첫 페이지로 간주
-  limit: number = 10
-): Promise<{
-  items: PlaceArticleRow[];
-  nextCursor: number | null;
-  hasNext: boolean;
-  limit: number;
-}> {
-  const params: Record<string, any> = { placeId, limit };
+  cursor: number | null = -1,
+  limit: number = 20
+) {
+  const { data } = await axiosInstance.get("/api/articles", {
+    params: { placeId, cursor, limit }
+  });
 
-  // 명세서 상: cursor가 null 이거나 -1이면 첫 페이지
-  if (cursor !== undefined && cursor !== null && cursor !== -1) {
-    params.cursor = cursor;
-  }
-
-  const { data } = await axiosInstance.get("/api/articles", { params });
-
-  // 안전 가드: result가 배열이라는 가정
-  const items: PlaceArticleRow[] = Array.isArray(data?.result)
-    ? data.result
-    : [];
-
-  // 다음 커서/hasNext 유추 (서버에서 명시 안 주면 마지막 articleId 기준)
+  const items = Array.isArray(data?.result) ? data.result : [];
   const nextCursor = items.length ? items[items.length - 1].articleId : null;
   const hasNext = items.length === limit;
 
