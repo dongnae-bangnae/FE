@@ -8,6 +8,7 @@ import ChallengeRewardModal from "../components/Home/ChallengeRewardModal";
 import sampleImage from "../assets/record/img1.jpg";
 import { getChallengeDetail } from "../apis/home";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
+import LockBadge from "../assets/home-secert.svg";
 import { imageUrlFromUuid } from "../utils/image";
 import { getNewArticles } from "../apis/home";
 
@@ -246,19 +247,45 @@ function HomePage() {
           <div className="w-full px-4">
             <h2 className="text-[20px] font-bold">맞춤 큐레이션</h2>
           </div>
+
           <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <PreviewPost
-                key={i}
-                id={String(i)}
-                profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
-                author="푸짐바오"
-                date="2시간 전"
-                title="연남동 지브리 카페 다녀왔어요"
-                image={sampleImage}
-                onClick={() => navigate(`/post/${i}`)}
-              />
-            ))}
+            {Array.from({ length: 5 }).map((_, i) => {
+              const locked = i !== 0; // ← 첫 번째만 오픈
+
+              return (
+                <div key={i} className="relative">
+                  <PreviewPost
+                    id={String(i)}
+                    profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
+                    author="푸짐바오"
+                    date="2시간 전"
+                    title="연남동 지브리 카페 다녀왔어요"
+                    image={sampleImage}
+                    onClick={() => {
+                      if (!locked) navigate(`/post/${i}`); // 잠금이면 클릭 막기
+                    }}
+                  />
+
+                  {locked && (
+                    <div
+                      className="
+                absolute inset-0 z-10
+                rounded-[12px]
+                bg-[#CDD4DC]/80   /* 연한 그레이 오버레이 */
+                flex items-center justify-center
+              "
+                      // 오버레이가 클릭을 가로채서 아래 카드 클릭 방지
+                    >
+                      <img
+                        src={LockBadge}
+                        alt="잠김"
+                        className="w-8 h-8 opacity-90"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
       </div>
