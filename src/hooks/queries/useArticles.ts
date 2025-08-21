@@ -1,8 +1,9 @@
 import {
-  useQuery,
+  type InfiniteData,
   useInfiniteQuery,
-  type InfiniteData
+  useQuery
 } from "@tanstack/react-query";
+
 import {
   fetchArticles,
   fetchArticlesByPlace,
@@ -31,12 +32,12 @@ export function usePlaceArticles(placeId: number, limit = 10) {
     Error,
     InfiniteData<PlaceArticlesPage>,
     readonly ["placeArticles", number, number],
-    number
+    number | null
   >({
     queryKey: ["placeArticles", placeId, limit] as const,
-    initialPageParam: -1,
+    initialPageParam: null, // 또는 undefined
     queryFn: ({ pageParam }) =>
-      fetchArticlesByPlace(placeId, pageParam as number, limit),
+      fetchArticlesByPlace(placeId, pageParam as number | null, limit),
     getNextPageParam: (lastPage) =>
       lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
     enabled: !!placeId

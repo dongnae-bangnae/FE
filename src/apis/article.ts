@@ -373,12 +373,13 @@ export type PlaceArticleRow = {
 
 export async function fetchArticlesByPlace(
   placeId: number,
-  cursor: number | null = -1,
+  cursor?: number | null, // 기본값 제거
   limit: number = 20
 ) {
-  const { data } = await axiosInstance.get("/api/articles", {
-    params: { placeId, cursor, limit }
-  });
+  const params: Record<string, any> = { placeId, limit };
+  if (cursor !== null && cursor !== undefined) params.cursor = cursor; // 있을 때만
+
+  const { data } = await axiosInstance.get("/api/articles", { params });
 
   const items = Array.isArray(data?.result) ? data.result : [];
   const nextCursor = items.length ? items[items.length - 1].articleId : null;
