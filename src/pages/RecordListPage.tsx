@@ -60,7 +60,7 @@ function RecordListPage() {
         {items.map((row: PlaceArticleRow) => (
           <div
             key={row.articleId}
-            onClick={() => navigate(`/record/${row.articleId}/detail`)}
+            onClick={() => navigate(`/record/${row.articleId}`)}
             className="cursor-pointer"
           >
             <PostCard
