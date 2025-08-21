@@ -255,7 +255,7 @@ export const editArticle = async (
   const files = safeFiles(data.files);
   appendMainAndOthers(fd, files, data.mainIndex);
 
-  await axiosInstance.put(`/api/articles/${articleId}`, fd, {
+  await axiosInstance.patch(`/api/articles/${articleId}`, fd, {
     withCredentials: true,
   });
 };
