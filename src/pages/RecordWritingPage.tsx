@@ -40,14 +40,12 @@ function RecordWritingPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const articleIdFromStore = useArticleViewStore((s) => s.articleId) || 0;
-  const stateMode = (location.state as any)?.mode;
-  const rawStateArticleId = (location.state as any)?.articleId;
-  const stateArticleId = typeof rawStateArticleId === "number"
-    ? rawStateArticleId
-    : Number(rawStateArticleId) || 0;
-  const editArticleId = stateMode === "edit" ? (stateArticleId || articleIdFromStore) : 0;
-  const isEditMode = stateMode === "edit" && editArticleId > 0;
+  const articleIdFromStore = Number(useArticleViewStore((s) => s.articleId)) || 0; 
+  const rawState = (location.state as any) || {};                                  
+  const stateMode = rawState.mode;                                                 
+  const stateArticleId = Number(rawState.articleId) || 0;                      
+  const editArticleId = stateArticleId || articleIdFromStore;                     
+  const isEditMode = editArticleId > 0;
 
   const { reset: resetSaveMode } = useSaveModeStore();
   useEffect(() => {
@@ -306,7 +304,10 @@ function RecordWritingPage() {
         imageUuids,
         filesForUploadCount: filesForUpload.length,
         mainIndex,
-      }); //확인용 디버그 로그
+      }); 
+      console.log({ isEditMode, editArticleId })
+      
+      //확인용 디버그 로그
 
     setIsLoading(true);
     try {
