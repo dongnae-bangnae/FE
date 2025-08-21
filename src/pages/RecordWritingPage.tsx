@@ -250,7 +250,7 @@ function RecordWritingPage() {
       .filter(({ src }) => asUuid(src) === "");
 
       const filesForUpload: File[] = [];
-    for (const { src, idx } of fileCandidates) {
+      for (const { src, idx } of fileCandidates) {
       // 1) 파일 input에서 온 dataURL은 fileMapRef에 File로 저장되어 있음
       let file = fileMapRef.current.get(src);
 
@@ -325,6 +325,23 @@ function RecordWritingPage() {
         };
 
          await editArticle(editArticleId, payload);
+
+         const snap = {
+          articleId: editArticleId,
+          title,
+          content,
+          date: selectedDate,
+          mainImageUuid: mainUuid ? buildImageUrl(mainUuid) : null,
+          imageUuids: imageUuids.map(buildImageUrl),
+          latitude: typeof latitude === "number" ? latitude : null,
+          longitude: typeof longitude === "number" ? longitude : null,
+          likeCount: 0,
+          spamCount: 0,
+          commentCount: 0,
+          liked: false,
+          isReported: false,
+        };
+        localStorage.setItem(`articleView:${editArticleId}`, JSON.stringify(snap));
 
         // 로컬 뷰(표시는 article/photo/{uuid})
         useArticleViewStore.getState().hydrate({
@@ -403,6 +420,27 @@ function RecordWritingPage() {
         liked: false,
         isReported: false,
       });
+
+      const snap = {
+        articleId: result.articleId,
+        title: result.title,
+        content: result.content,
+        date: result.date,
+        mainImageUuid: result.mainImageUuid
+          ? buildImageUrl(result.mainImageUuid)
+          : (mainUuid ? buildImageUrl(mainUuid) : null), 
+        imageUuids: Array.isArray(result.imageUuids) && result.imageUuids.length
+          ? result.imageUuids.map(buildImageUrl)
+          : selectedImages.map(buildImageUrl), 
+        latitude: typeof latitude === "number" ? latitude : null,
+        longitude: typeof longitude === "number" ? longitude : null,
+        likeCount: result.likeCount ?? 0,
+        spamCount: result.spamCount ?? 0,
+        commentCount: 0,
+        liked: false,
+        isReported: false,
+      };
+      localStorage.setItem(`articleView:${result.articleId}`, JSON.stringify(snap));
 
       reset(); resetPin(); resetDraft();
       navigate(`/record/${result.articleId}`, { state: { from: "writing" } });

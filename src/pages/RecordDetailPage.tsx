@@ -17,8 +17,14 @@ import MessagePopup from "../components/MessagePopup";
 
 // --- S3 이미지 유틸 ---
 const S3_BASE = "https://dnbn-bucket.s3.ap-northeast-2.amazonaws.com";
-const toArticlePhotoUrl = (uuid?: string | null) =>
-  uuid ? `${S3_BASE}/article/photo/${uuid}` : null;
+// const toArticlePhotoUrl = (uuid?: string | null) =>
+//   uuid ? `${S3_BASE}/article/photo/${uuid}` : null; 
+
+const toArticlePhotoUrl = (v?: string | null) => {
+  if (!v) return null;
+  return /^https?:\/\//i.test(v) ? v : `${S3_BASE}/article/photo/${v}`;
+};  //로컬에서만 사진 표시
+
 const toImgSrc = (v?: string | null) => {
   if (!v) return "";
   return /^https?:\/\//i.test(v) ? v : `${S3_BASE}/article/photo/${v}`;
@@ -78,6 +84,18 @@ const RecordDetailPage = () => {
     const n = typeof v === "string" ? parseFloat(v) : typeof v === "number" ? v : NaN;
     return Number.isFinite(n) ? n : null;
   };
+
+  useEffect(() => {
+    if (!stableId) return;
+    const key = `rdp_reloaded_${stableId}`;
+    const hasReloaded = sessionStorage.getItem(key);
+    if (!hasReloaded) {
+      sessionStorage.setItem(key, "1");
+      // location.reload()는 히스토리에 현재 항목을 유지함.
+      // replace로도 동일 효과 가능: window.location.replace(window.location.href)
+      window.location.reload(); // CHANGED
+    }
+  }, [stableId]);
 
   // --- 1) 캐시 복원 ---
   useEffect(() => {
