@@ -3,22 +3,20 @@ import { axiosInstance } from "./axiosInstance";
 // 카테고리별 장소 조회
 export const getPlacesByCategory = async (
   categoryId: number,
-  cursor?: number,
-  limit: number = 10
+  cursor?: number | null,
+  limit: number = 20
 ) => {
-  const params = {
-    cursor,
-    limit
-  };
+  const params: Record<string, any> = { limit };
+  // 첫 페이지면 cursor 전달하지 않음(null/undefined)
+  if (cursor !== undefined && cursor !== null && cursor !== 0) {
+    params.cursor = cursor;
+  }
 
   const { data } = await axiosInstance.get(
     `/api/categories/${categoryId}/places`,
-    {
-      params
-    }
+    { params }
   );
-
-  return data.result;
+  return data.result; // { places, cursor, limit, hasNext }
 };
 
 // 지도 범위 내 장소 조회

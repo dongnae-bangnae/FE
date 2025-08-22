@@ -3,7 +3,7 @@ import { useLocation, useParams } from "react-router-dom";
 import Header from "../components/common/Header";
 import MyPagePostCard from "../components/MyPagePostCard";
 import SkeletonPostCard from "../components/SkeletonPostCard";
-import { usePlaceArticles } from "../hooks/queries/useArticles";
+import { usePlaceArticlesV2 } from "../hooks/queries/useArticles";
 
 function SavedPlaceListPage() {
   const { placeId } = useParams<{ placeId: string }>();
@@ -12,7 +12,7 @@ function SavedPlaceListPage() {
   const location = useLocation();
   const state = location.state as { placeName?: string } | undefined;
 
-  if (!Number.isFinite(placeIdNum)) {
+  if (!Number.isFinite(placeIdNum) || placeIdNum <= 0) {
     return (
       <div className="flex flex-col min-h-screen bg-white">
         <Header title="장소 게시물" underline={false} />
@@ -21,11 +21,12 @@ function SavedPlaceListPage() {
     );
   }
 
-  // ✅ placeId 기반 무한스크롤 (첫 페이지 cursor 없음)
+  // V2: 복합 커서(cursorCreatedAt, cursorArticleId) 방식
+  // 첫 페이지는 커서를 보내지 않으며, placeId는 query로 전송됩니다.
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    usePlaceArticles(placeIdNum, 20);
+    usePlaceArticlesV2(placeIdNum, 20); // swagger 기본값에 맞춰 limit=20
 
-  // pages -> items 평탄화
+  // pages -> items 평탄화 (V2에서 result는 배열)
   const articles = data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
@@ -46,13 +47,14 @@ function SavedPlaceListPage() {
               key={a.articleId}
               articleId={a.articleId}
               category={a.pinCategory}
-              imageUrl={a.mainImageUuid}
+              imageUrl={a.mainImageUuid ?? undefined} // swagger: mainImageUuid
               title={a.title}
               likes={a.likeCount}
               comments={a.commentCount}
               spam={a.spamCount}
               nickname={a.nickname}
-              userImage={a.userImage ?? null}
+              // swagger엔 userImage 없음 → 컴포넌트 prop이 optional이면 null로
+              userImage={null}
             />
           ))}
 
