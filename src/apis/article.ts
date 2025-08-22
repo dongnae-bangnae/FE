@@ -48,6 +48,7 @@ export const fetchCategoryArticles = async (
   return data.result;
 };
 
+
 const jsonPart = (obj: unknown) =>
   new Blob([JSON.stringify(obj)], { type: "application/json" });
 
@@ -56,16 +57,18 @@ function safeFiles(files?: (File | undefined)[]): File[] {
 }
 
 function appendMainAndOthers(fd: FormData, files: File[], mainIndex?: number) {
-  if (!files.length) return;
+  if (!files.length) return; 
 
   const hasMain =
-    typeof mainIndex === "number" && mainIndex >= 0 && mainIndex < files.length;
+    typeof mainIndex === "number" &&
+    mainIndex >= 0 &&
+    mainIndex < files.length;
 
   files.forEach((f, i) => {
     if (hasMain && i === mainIndex) {
-      fd.append("mainImage", f);
+      fd.append("mainImage", f);   
     } else {
-      fd.append("imageFiles", f);
+      fd.append("imageFiles", f); 
     }
   });
 }
@@ -146,6 +149,7 @@ export const createArticle = async (
 ): Promise<CreatedArticleResult> => {
   const fd = new FormData();
 
+
   const request: any = {
     categoryId: data.categoryId,
     title: data.title,
@@ -155,11 +159,13 @@ export const createArticle = async (
     longitude: data.longitude,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory
+    pinCategory: data.pinCategory,
 
     // mainImageUuid: data.mainImageUuid ?? null,
     // imageUuids: Array.isArray(data.imageUuids) ? data.imageUuids : [],
+
   };
+
 
   if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // UUID만
   if (Array.isArray(data.imageUuids) && data.imageUuids.length) {
@@ -169,9 +175,9 @@ export const createArticle = async (
   fd.append("request", jsonPart(request));
 
   for (const [k, v] of fd.entries()) {
-    console.log("FD", k, v instanceof File ? `(File ${v.name})` : v);
+  console.log("FD", k, v instanceof File ? `(File ${v.name})` : v);
   }
-
+ 
   const files = safeFiles(opts?.files);
   appendMainAndOthers(fd, files, opts?.mainIndex);
 
@@ -181,6 +187,7 @@ export const createArticle = async (
     {
       withCredentials: true
     }
+
   );
   return res.result as CreatedArticleResult;
 };
@@ -200,21 +207,22 @@ export const createArticleAtPlace = async (
     date: data.date,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory
+    pinCategory: data.pinCategory,
   };
 
   if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid; // CHANGED
   if (Array.isArray(data.imageUuids) && data.imageUuids.length) {
-    request.imageUuids = data.imageUuids; // CHANGED
+  request.imageUuids = data.imageUuids; // CHANGED
   }
 
   fd.append("request", jsonPart(request));
 
+
   const files = safeFiles(opts?.files);
-  appendMainAndOthers(fd, files, opts?.mainIndex); // CHANGED
+  appendMainAndOthers(fd, files, opts?.mainIndex);                          // CHANGED
 
   const { data: res } = await axiosInstance.post("/api/articles", fd, {
-    withCredentials: true
+    withCredentials: true,
   });
   return res.result as CreatedArticleResult;
 };
@@ -235,22 +243,23 @@ export const editArticle = async (
     longitude: data.longitude,
     detailAddress: data.detailAddress,
     placeName: data.placeName,
-    pinCategory: data.pinCategory
+    pinCategory: data.pinCategory,
   };
-  if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid;
+  if (data.mainImageUuid) request.mainImageUuid = data.mainImageUuid;     
   if (Array.isArray(data.imageUuids) && data.imageUuids.length) {
-    request.imageUuids = data.imageUuids;
+    request.imageUuids = data.imageUuids;                                  
   }
 
-  fd.append("request", jsonPart(request));
+  fd.append("request", jsonPart(request));                                   
 
   const files = safeFiles(data.files);
   appendMainAndOthers(fd, files, data.mainIndex);
 
   await axiosInstance.put(`/api/articles/${articleId}`, fd, {
-    withCredentials: true
+    withCredentials: true,
   });
 };
+
 
 //게시글 삭제
 export const deleteArticle = async (articleId: number): Promise<void> => {
@@ -273,7 +282,7 @@ export const likeArticle = async (articleId: number): Promise<LikeResponse> => {
     `/api/articles/${articleId}/likes`,
     null,
     {
-      withCredentials: true
+      withCredentials: true,
     }
   );
   return data.result;
@@ -286,7 +295,7 @@ export const unlikeArticle = async (
   const { data } = await axiosInstance.delete<ApiResponse<LikeResponse>>(
     `/api/articles/${articleId}/likes`,
     {
-      withCredentials: true
+      withCredentials: true,
     }
   );
   return data.result;
@@ -300,7 +309,7 @@ export const reportSpam = async (
     `/api/articles/${articleId}/spams`,
     null,
     {
-      withCredentials: true
+      withCredentials: true,
     }
   );
   return response.data;
@@ -313,7 +322,7 @@ export const unreportSpam = async (
   const response = await axiosInstance.delete(
     `/api/articles/${articleId}/spams`,
     {
-      withCredentials: true
+      withCredentials: true,
     }
   );
   return response.data;
@@ -378,7 +387,7 @@ export async function fetchArticlesByPlace(
 export async function fetchArticlesByPlaceV2(
   placeId: number,
   cursor?: PlaceCursor | null, // 첫 페이지면 null/undefined
-  limit: number = 20
+  limit: number = 10
 ): Promise<{
   items: PlaceArticleRow[];
   nextCursor: PlaceCursor | null;
