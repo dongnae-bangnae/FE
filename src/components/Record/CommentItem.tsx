@@ -49,13 +49,13 @@ const CommentItem = ({
             alt="avatar"
             className="w-[46px] h-[46px] rounded-full"
           />
-          <div className="min-w-0 w-0 flex-1">
+          <div className="min-w-0">
                   <div className="flex items-center gap-1">
-                    <span className="text-[14px]" style={{fontWeight: 600, wordBreak: "keep-all"}}>
+                    <span className="text-[14px]" style={{fontWeight: 600,}}>
                       {nickname}
                     </span>
                   </div>
-                  <p style={{ fontSize: 13, wordBreak: "keep-all" }}
+                  <p style={{ fontSize: 13, }}
                      className="break-words whitespace-pre-wrap"
                   >{content}</p>
                   <button
