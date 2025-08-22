@@ -101,8 +101,6 @@ const CommentItem = ({
             )}
           </>
         )}
-
-
       </div>
       {children}
     </div>
