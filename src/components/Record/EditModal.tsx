@@ -30,7 +30,7 @@ const EditModal = ({
             삭제
             </button>
         </div>
-        <div className="bg-[#F5F5F5] w-[350px] h-[64px] rounded-[15px] mt-[10px]">
+        <div className="bg-[#F5F5F5] w-[330px] h-[64px] rounded-[15px] mt-[10px]">
             <button
           className="w-full py-4 text-[20px] font-semibold text-center"
           onClick={onClose}
