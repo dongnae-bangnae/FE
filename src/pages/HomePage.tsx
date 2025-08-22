@@ -244,48 +244,49 @@ function HomePage() {
           </div>
         </section>
 
-        {/* Section: 맞춤 큐레이션 */}
-        <section className="relative z-0 w-full flex flex-col gap-2 bg-[#D6EBFF] px-0 py-4">
-          <div className="w-full px-4">
-            <h2 className="text-[20px] font-bold">맞춤 큐레이션</h2>
-          </div>
+      {/* Section: 맞춤 큐레이션 */}
+<section className="relative z-0 w-full flex flex-col gap-2 bg-[#D6EBFF] px-0 py-4">
+  <div className="w-full px-4">
+    <h2 className="text-[20px] font-bold">맞춤 큐레이션</h2>
+  </div>
 
-          <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-2">
-            {Array.from({ length: 5 }).map((_, i) => {
-              const locked = i !== 0; // ← 첫 번째만 오픈
+  {/*  스크롤바 보이게: no-scrollbar 제거, 카드 줄임 방지 위해 각 카드에 flex-none 사용 */}
+  <div className="flex gap-3 overflow-x-auto px-4 pb-2">
+  {Array.from({ length: 5 }).map((_, i) => {
+    const locked = i !== 0; // 첫 번째만 오픈
 
-              return (
-                // overflow-hidden 추가
-                <div key={i} className="relative overflow-hidden">
-                  <PreviewPost
-                    id={String(i)}
-                    profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
-                    author="푸짐바오"
-                    date="2시간 전"
-                    title="연남동 지브리 카페 다녀왔어요"
-                    image={sampleImage}
-                    onClick={() => {
-                      if (!locked) navigate(`/post/${i}`); // 잠금이면 클릭 무시
-                    }}
-                  />
+    return (
+      //  카드 크기 고정: 233×227
+      <div key={i} className="relative flex-none w-[233px] h-[227px]">
+        {/* 카드가 래퍼에 맞춰 꽉 차도록 */}
+        <div className="w-full h-full">
+          <PreviewPost
+            id={String(i)}
+            profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
+            author="푸짐바오"
+            date="2시간 전"
+            title="연남동 지브리 카페 다녀왔어요"
+            image={sampleImage}
+            onClick={() => { if (!locked) navigate(`/post/${i}`); }}
+          />
+        </div>
 
-                  {locked && (
-                    <img
-                      src={LockBadge}
-                      alt="잠김"
-                      className="absolute inset-0 z-10 w-full h-full object-cover rounded-[12px] cursor-not-allowed"
-                      onClick={(e) => {
-                        // 아래 카드 클릭 막기
-                        e.stopPropagation();
-                        e.preventDefault();
-                      }}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        {/*  SVG가 카드 전체(233×227)를 정확히 덮기 */}
+        {locked && (
+          <img
+            src={LockBadge}
+            alt="잠김"
+            className="absolute inset-0 z-10 w-full h-full object-fill pointer-events-none"
+            // pointer-events-none: 가로 스크롤 제스처 방해 안 함
+          />
+        )}
+      </div>
+    );
+  })}
+</div>
+</section>
+
+
       </div>
 
       {/* 하단 탭바 */}
