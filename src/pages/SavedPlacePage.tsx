@@ -34,7 +34,7 @@ export default function SavedPlacePage() {
   const state = location.state as { categoryName?: string } | undefined;
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useSavedPlaces(Number.isFinite(categoryIdNum) ? categoryIdNum : 0, 0, 20);
+    useSavedPlaces(categoryIdNum, 20);
 
   const places = useMemo(
     () => data?.pages.flatMap((p) => p.places) ?? [],
