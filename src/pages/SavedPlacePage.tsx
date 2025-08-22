@@ -1,86 +1,66 @@
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
-import pin_bookstore from "../assets/pin/pin_bookstore.svg";
-import pin_cafe from "../assets/pin/pin_cafe.svg";
-import pin_culture_art from "../assets/pin/pin_culture_art.svg";
-import pin_etc from "../assets/pin/pin_etc.svg";
-import pin_food from "../assets/pin/pin_food.svg";
-import pin_pub from "../assets/pin/pin_pub.svg";
-import pin_exercise from "../assets/pin/pin_sports.svg";
-import pin_walk from "../assets/pin/pin_walk.svg";
 import Header from "../components/common/Header";
-import SavedPlaceItem from "../components/SavedPlaceItem";
-import { useSavedPlaces } from "../hooks/queries/useSavedPlaces";
+import MyPagePostCard from "../components/MyPagePostCard";
+import SkeletonPostCard from "../components/SkeletonPostCard";
+import { usePlaceArticlesV2 } from "../hooks/queries/useArticles";
 
-const pinIcons: Record<string, string> = {
-  FOOD: pin_food,
-  CAFE: pin_cafe,
-  PUB: pin_pub,
-  WALK: pin_walk,
-  EXERCISE: pin_exercise,
-  BOOKSTORE: pin_bookstore,
-  CULTURE_ART: pin_culture_art,
-  ETC: pin_etc
-};
-
-export default function SavedPlacePage() {
-  const navigate = useNavigate();
-
-  const { categoryId } = useParams<{ categoryId: string }>();
-  const categoryIdNum = Number(categoryId);
+function SavedPlaceListPage() {
+  const { placeId } = useParams<{ placeId: string }>();
+  const placeIdNum = Number(placeId);
 
   const location = useLocation();
-  const state = location.state as { categoryName?: string } | undefined;
+  const state = location.state as { placeName?: string } | undefined;
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useSavedPlaces(Number.isFinite(categoryIdNum) ? categoryIdNum : 0, 0, 20);
-
-  const places = useMemo(
-    () => data?.pages.flatMap((p) => p.places) ?? [],
-    [data]
-  );
-
-  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
-  const selectedPlace =
-    places.find((p) => p.placeId === selectedPlaceId) ?? null;
-  const isButtonActive = !!selectedPlace;
-
-  useEffect(() => {
-    console.log("카테고리 ID:", categoryIdNum);
-    console.log("받은 장소 데이터:", places);
-  }, [places, categoryIdNum]);
-
-  if (!Number.isFinite(categoryIdNum) || categoryIdNum <= 0) {
+  if (!Number.isFinite(placeIdNum) || placeIdNum <= 0) {
     return (
-      <div className="bg-white min-h-screen flex flex-col">
-        <Header title="저장된 장소" underline={true} />
-        <div className="p-4">유효하지 않은 카테고리입니다.</div>
+      <div className="flex flex-col min-h-screen bg-white">
+        <Header title="장소 게시물" underline={false} />
+        <div className="p-4">유효하지 않은 장소입니다.</div>
       </div>
     );
   }
 
+  // V2: 복합 커서(cursorCreatedAt, cursorArticleId) 방식
+  // 첫 페이지는 커서를 보내지 않으며, placeId는 query로 전송됩니다.
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    usePlaceArticlesV2(placeIdNum, 20); // swagger 기본값에 맞춰 limit=20
+
+  // pages -> items 평탄화 (V2에서 result는 배열)
+  const articles = data?.pages.flatMap((p) => p.items) ?? [];
+
   return (
-    <div className="bg-white min-h-screen flex flex-col">
-      <Header title={state?.categoryName ?? "저장된 장소"} underline={true} />
+    <div className="flex flex-col min-h-screen bg-white">
+      <Header title={state?.placeName ?? "장소 게시물"} underline={false} />
 
-      <div className="flex flex-col px-4 pt-4 pb-28">
-        {isLoading && <div>불러오는 중...</div>}
+      <div className="flex-1 px-4 py-4 flex flex-col gap-4 items-center">
+        {isLoading &&
+          Array.from({ length: 5 }).map((_, i) => <SkeletonPostCard key={i} />)}
 
-        {places.map((place) => (
-          <SavedPlaceItem
-            key={place.placeId}
-            name={place.title}
-            category={place.pinCategory}
-            icon={pinIcons[place.pinCategory] ?? pin_etc}
-            selected={selectedPlaceId === place.placeId}
-            onClick={() => setSelectedPlaceId(place.placeId)}
-          />
-        ))}
+        {!isLoading && articles.length === 0 && (
+          <div>이 장소에 등록된 게시글이 없습니다.</div>
+        )}
+
+        {!isLoading &&
+          articles.map((a) => (
+            <MyPagePostCard
+              key={a.articleId}
+              articleId={a.articleId}
+              category={a.pinCategory}
+              imageUrl={a.mainImageUuid ?? undefined} // swagger: mainImageUuid
+              title={a.title}
+              likes={a.likeCount}
+              comments={a.commentCount}
+              spam={a.spamCount}
+              nickname={a.nickname}
+              // swagger엔 userImage 없음 → 컴포넌트 prop이 optional이면 null로
+              userImage={null}
+            />
+          ))}
 
         {hasNextPage && (
           <button
-            className="mt-3 w-full rounded-md border py-2"
+            className="mt-4 px-4 py-2 rounded-lg border"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
           >
@@ -88,42 +68,8 @@ export default function SavedPlacePage() {
           </button>
         )}
       </div>
-
-      {/* 하단 버튼 */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[375px] bg-white border-t border-[#999] px-4 py-3 flex justify-center gap-3 z-50">
-        <button
-          onClick={() => {
-            if (!selectedPlace) return;
-            const range = 0.01;
-            navigate(
-              `/mypage/saved/map?latMin=${selectedPlace.latitude - range}&latMax=${
-                selectedPlace.latitude + range
-              }&lngMin=${selectedPlace.longitude - range}&lngMax=${
-                selectedPlace.longitude + range
-              }`
-            );
-          }}
-          disabled={!isButtonActive}
-          className={`w-[120px] py-2 rounded-md text-sm font-medium transition-colors duration-200
-            ${isButtonActive ? "bg-[#E5E5E5] text-black hover:bg-[#FFC064] cursor-pointer" : "bg-[#ECECEC] cursor-not-allowed"}`}
-        >
-          지도 불러오기
-        </button>
-
-        <button
-          onClick={() => {
-            if (!selectedPlace) return;
-            navigate(`/mypage/saved/${selectedPlace.placeId}/list`, {
-              state: { placeName: selectedPlace.title }
-            });
-          }}
-          disabled={!isButtonActive}
-          className={`w-[120px] py-2 rounded-md text-sm font-medium transition-colors duration-200
-            ${isButtonActive ? "bg-[#E5E5E5] text-black hover:bg-[#FFC064] cursor-pointer" : "bg-[#ECECEC] cursor-not-allowed"}`}
-        >
-          게시물 확인
-        </button>
-      </div>
     </div>
   );
 }
+
+export default SavedPlaceListPage;
