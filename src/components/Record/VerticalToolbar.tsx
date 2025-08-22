@@ -177,6 +177,10 @@ const VerticalToolbar = ({
               borderRadius: "50%",
               width: "78px",
               height: "78px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+
             }}
           >
             <img
