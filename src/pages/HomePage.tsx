@@ -255,7 +255,8 @@ function HomePage() {
               const locked = i !== 0; // ← 첫 번째만 오픈
 
               return (
-                <div key={i} className="relative">
+                // overflow-hidden 추가
+                <div key={i} className="relative overflow-hidden">
                   <PreviewPost
                     id={String(i)}
                     profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
@@ -264,26 +265,21 @@ function HomePage() {
                     title="연남동 지브리 카페 다녀왔어요"
                     image={sampleImage}
                     onClick={() => {
-                      if (!locked) navigate(`/post/${i}`); // 잠금이면 클릭 막기
+                      if (!locked) navigate(`/post/${i}`); // 잠금이면 클릭 무시
                     }}
                   />
 
                   {locked && (
-                    <div
-                      className="
-                absolute inset-0 z-10
-                rounded-[12px]
-                bg-[#CDD4DC]/80   /* 연한 그레이 오버레이 */
-                flex items-center justify-center
-              "
-                      // 오버레이가 클릭을 가로채서 아래 카드 클릭 방지
-                    >
-                      <img
-                        src={LockBadge}
-                        alt="잠김"
-                        className="w-8 h-8 opacity-90"
-                      />
-                    </div>
+                    <img
+                      src={LockBadge}
+                      alt="잠김"
+                      className="absolute inset-0 z-10 w-full h-full object-cover rounded-[12px] cursor-not-allowed"
+                      onClick={(e) => {
+                        // 아래 카드 클릭 막기
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                    />
                   )}
                 </div>
               );
