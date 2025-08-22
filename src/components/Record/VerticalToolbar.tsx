@@ -171,11 +171,18 @@ const VerticalToolbar = ({
             onClick={() => setIsExpanded(false)}
             onMouseEnter={() => setHoveredIcon("back")}
             onMouseLeave={() => setHoveredIcon(null)}
+            style={{
+              boxShadow: "0 10px 22px #D9D9D9", 
+              backgroundColor: "white", 
+              borderRadius: "50%",
+              width: "78px",
+              height: "78px",
+            }}
           >
             <img
-              src={hoveredIcon === "back" ? Back_y : Back_o}
+              src={hoveredIcon === "back" ? Back_o : Back_y}
               alt="접기"
-              style={{ width: 78, height: 78, boxShadow: "0 10px 22px #D9D9D9", backgroundColor: "white", borderRadius: "50%",}}
+              style={{ width: 22, height: 22,}}
             />
           </button>
 
