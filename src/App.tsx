@@ -32,6 +32,7 @@ import RecordWritingPage from "./pages/RecordWritingPage";
 import SavedPlaceListPage from "./pages/SavedPlaceListPage";
 import SavedPlaceMapPage from "./pages/SavedPlaceMapPage";
 import SavedPlacePage from "./pages/SavedPlacePage";
+import HomeListPage from "./pages/HomeListPage";
 
 const routes: RouteObject[] = [
   {
@@ -43,6 +44,7 @@ const routes: RouteObject[] = [
       { path: "oauth-redirect", element: <OAuthRedirect /> },
       { path: "onboard", element: <OnboardingPage /> },
       { path: "home", element: <HomePage /> },
+      { path: "home/list", element: <HomeListPage /> },
       { path: "record/list", element: <RecordListPage /> },
       { path: "record/new", element: <NewRecordPage /> },
       { path: "record/new/write", element: <RecordWritingPage /> },

@@ -6,11 +6,10 @@ import BottomTabBar from "../components/common/BottomTabBar";
 import PreviewPost from "../components/Home/PostCardPreview";
 import ChallengeRewardModal from "../components/Home/ChallengeRewardModal";
 import sampleImage from "../assets/record/img1.jpg";
-import { getChallengeDetail } from "../apis/home";
+import { getChallengeDetail, getNewArticles } from "../apis/home";
 import DefaultProfile from "../assets/icon-defaultProfile.svg";
 import LockBadge from "../assets/home-secret.svg";
 import { imageUrlFromUuid } from "../utils/image";
-import { getNewArticles } from "../apis/home";
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -40,6 +39,13 @@ function HomePage() {
   });
   const items = homePage1?.postList ?? [];
 
+  // HomePage 컴포넌트 내부, return 위쪽에 한 줄 추가
+  const handleOpenArticle = (id: number) => {
+    // 상세 첫 진입 시 1회 강제 리로드
+    sessionStorage.setItem("rdp_force_reload", "1");
+    navigate(`/record/${id}`, { state: { articleId: id } });
+  };
+
   return (
     <div className="flex flex-col min-h-screen relative bg-[#f5f5f5]">
       {/* 헤더 */}
@@ -55,7 +61,7 @@ function HomePage() {
           <div className="flex justify-between items-center w-full px-4 py-[5px]">
             <h2 className="text-[20px] font-bold">새 글</h2>
             <button
-              onClick={() => navigate("/record/list")} // placeId 참조 제거(변수 없음)
+              onClick={() => navigate("/home/list")} // placeId 참조 제거(변수 없음)
               className="text-[14px] bg-[#fff] rounded-[8px] px-4 py-1 border border-gray-300"
             >
               게시물 확인하기
@@ -66,7 +72,7 @@ function HomePage() {
               <PreviewPost
                 key={article.articleId}
                 id={String(article.articleId)}
-                profileImage={DefaultProfile} // 홈 응답에 프로필이 없으면 기본이미지
+                profileImage={DefaultProfile}
                 author={article.username ?? "익명"}
                 date={formatDate(article.createdAt)}
                 title={article.title}
@@ -76,11 +82,7 @@ function HomePage() {
                   article.imageUrl ||
                   sampleImage
                 }
-                onClick={() =>
-                  navigate(`/record/${article.articleId}`, {
-                    state: { articleId: article.articleId }
-                  })
-                }
+                onClick={() => handleOpenArticle(article.articleId)}
               />
             ))}
           </div>
@@ -253,7 +255,8 @@ function HomePage() {
               const locked = i !== 0; // ← 첫 번째만 오픈
 
               return (
-                <div key={i} className="relative">
+                // overflow-hidden 추가
+                <div key={i} className="relative overflow-hidden">
                   <PreviewPost
                     id={String(i)}
                     profileImage="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/1200px-Tux.svg.png"
@@ -262,26 +265,21 @@ function HomePage() {
                     title="연남동 지브리 카페 다녀왔어요"
                     image={sampleImage}
                     onClick={() => {
-                      if (!locked) navigate(`/post/${i}`); // 잠금이면 클릭 막기
+                      if (!locked) navigate(`/post/${i}`); // 잠금이면 클릭 무시
                     }}
                   />
 
                   {locked && (
-                    <div
-                      className="
-                absolute inset-0 z-10
-                rounded-[12px]
-                bg-[#CDD4DC]/80   /* 연한 그레이 오버레이 */
-                flex items-center justify-center
-              "
-                      // 오버레이가 클릭을 가로채서 아래 카드 클릭 방지
-                    >
-                      <img
-                        src={LockBadge}
-                        alt="잠김"
-                        className="w-8 h-8 opacity-90"
-                      />
-                    </div>
+                    <img
+                      src={LockBadge}
+                      alt="잠김"
+                      className="absolute inset-0 z-10 w-full h-full object-cover rounded-[12px] cursor-not-allowed"
+                      onClick={(e) => {
+                        // 아래 카드 클릭 막기
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                    />
                   )}
                 </div>
               );
