@@ -73,7 +73,6 @@ const CommentItem = ({
                   </button>
                 </div>
         </div>
-
         {/* 모달 렌더링 */}
         {isMine && (
           <>
